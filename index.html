@@ -378,6 +378,9 @@
               <option value="4">ยุทธศาสตร์ที่ 4</option>
               <option value="5">งบบริหารสำนักงาน</option>
             </select>
+            <select id="filterCommittee" class="select-filter" onchange="renderTable()">
+              <option value="">🏛 อนุกรรมการทั้งหมด</option>
+            </select>
             <select id="filterStatus" class="select-filter" onchange="renderTable()">
               <option value="">สถานะทั้งหมด</option>
               <option value="done">✅ แล้วเสร็จ</option>
@@ -393,13 +396,10 @@
             </select>
             <button class="btn btn-sm btn-primary" onclick="openAdd()">+ เพิ่มโครงการ</button>
           </div>
-          <div id="comFilterBadge" style="display:none;align-items:center;gap:8px;margin:-4px 0 14px 0;padding:8px 12px;border-radius:10px;background:var(--accent-light,#eef2fd);width:fit-content">
-            <span id="comFilterBadgeText" style="font-size:13px;font-weight:600;color:var(--accent,#3b72f0)"></span>
-            <button onclick="clearComFilter()" title="ล้างตัวกรองอนุกรรมการ" style="border:none;background:none;cursor:pointer;font-size:14px;line-height:1;color:var(--accent,#3b72f0);padding:0 2px">✕</button>
-          </div>
           <div style="overflow-x:auto">
             <table>
               <thead>
+
                 <tr>
                   <th style="width:32px">#</th>
                   <th>ชื่อโครงการ <span style="font-weight:400;font-size:9px;color:var(--text3);letter-spacing:0;text-transform:none">(คลิกบรรทัดเพื่อดูรายละเอียด)</span></th>
