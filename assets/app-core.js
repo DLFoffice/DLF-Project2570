@@ -1014,7 +1014,7 @@ function renderTable() {
         <td style="color:var(--text3);text-align:center;font-size:12px;width:32px">${start+i+1}</td>
         <td class="td-name">
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span style="user-select:text">${p.name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
+            <span style="user-select:text">${(p.name||'(ไม่มีชื่อ)').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
             ${p.quarter&&p.quarter!=='all'?`<span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:1px 6px;border-radius:4px;font-weight:600;flex-shrink:0">Q${p.quarter}</span>`:''}
           </div>
         </td>
@@ -1111,7 +1111,8 @@ function getFiltered(){
         ? _getCommittees(p).length === 0
         : _getCommittees(p).includes(fc)
     );
-    return (!q||p.name.toLowerCase().includes(q)) &&
+    // กันตาราง/หน้าโครงการพังทั้งหน้า ถ้ามีแถวใน Sheet ที่ไม่มีชื่อโครงการ (เช่น แถวว่าง/ข้อมูลเพี้ยน)
+    return (!q||(p.name||'').toLowerCase().includes(q)) &&
       (!fs||p.strategy==fs) &&
       (!fst||p.status===fst) &&
       (!fq||p.quarter===fq||p.quarter==='all') &&
@@ -1295,8 +1296,14 @@ function saveProject(){
       showToast(`✅ อัปเดตสำเร็จ${imgLabel}`, 2800);
     }
   } else {
-    const maxId=projects.reduce((m,p)=>Math.max(m,Number(p.id)||0),0);
-    data.id=maxId+1;
+    // แก้ไข (บั๊ก): เดิมคำนวณ id ใหม่จาก id สูงสุดของโครงการ "ในเครื่อง" (local cache/localStorage)
+    // ถ้าเครื่องที่กำลังเพิ่มโครงการยังไม่ได้ sync ข้อมูลล่าสุด (เช่น มีคนอื่นเพิ่งเพิ่มโครงการจากเครื่องอื่นไปก่อน
+    // แต่เครื่องนี้ยังไม่รีเฟรช) id ใหม่ที่คำนวณได้จะไปชนกับ id ของโครงการที่มีอยู่แล้วจริงใน Sheet โดยไม่รู้ตัว
+    // เมื่อบันทึกขึ้น Sheet ฝั่ง Apps Script (saveProject) จะค้นหาแถวที่ id ตรงกันแล้ว "เขียนทับ" แถวเดิม
+    // แทนที่จะเพิ่มแถวใหม่ — โครงการเดิมที่ id ชนกันจึงถูกข้อมูลใหม่ทับไปเงียบๆ จำนวนแถวไม่เพิ่ม
+    // และโครงการที่เพิ่งกรอกก็ไม่ปรากฏเป็นรายการใหม่ในระบบ (ข้อมูลมีอยู่ใน Sheet จริง แต่ไปทับของเก่า)
+    // ทางแก้: ใช้ id ที่ไม่ซ้ำกันแน่นอนไม่ว่าจะ sync ทันหรือไม่ (timestamp มิลลิวินาที + เลขสุ่ม) แทนการนับ +1
+    data.id = Date.now() * 1000 + Math.floor(Math.random() * 1000);
     projects.push(data);
     // บันทึก actlog
     if(typeof actlogRecord === 'function') actlogRecord('เพิ่ม', data, [], null);
@@ -2907,7 +2914,8 @@ function getAllData() {
   const sheet = getSheet();
   const rows = sheet.getDataRange().getValues();
   if (rows.length <= 1) return {success:true, data:[]};
-  return {success:true, data: rows.slice(1).map(rowToObj)};
+  // กันแถวว่างสนิท (เช่น แถวว่างที่หลงเหลืออยู่กลาง/ท้าย Sheet) ไม่ให้กลายเป็นโครงการผีที่ไม่มี id/ชื่อ
+  return {success:true, data: rows.slice(1).filter(r => r.some(c => String(c).trim() !== '')).map(rowToObj)};
 }
 
 function saveProject(d) {
