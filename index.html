@@ -10,7 +10,7 @@
 <title>ระบบรายงาน พ.ศ. 2570 | มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20260901V.1">
+<link rel="stylesheet" href="assets/style.css?v=20260828">
 </head>
 <body>
 <div class="layout">
@@ -1656,51 +1656,12 @@
   </div>
 </div>
 
-<script src="assets/app-pdf-select.js?v=20260901V.1"></script>
+<script src="assets/app-pdf-select.js?v=20260828"></script>
 
-<script src="assets/app-pdf-export.js?v=20260901V.1"></script>
+<script src="assets/app-pdf-export.js?v=20260828"></script>
 <!-- ══ AUTH MODAL ══ -->
 <div class="auth-overlay" id="authOverlay">
-  <div class="auth-shell">
-    <div class="auth-left">
-      <div class="auth-left-top">
-        <div class="auth-left-logo">
-          <img src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" alt="DLF">
-          <span>DLF Action Plan System</span>
-        </div>
-        <div class="auth-left-heading">ระบบรายงานแผนปฏิบัติการ<br><span class="hl">ปีงบประมาณ 2570</span></div>
-        <div class="auth-left-desc">ระบบติดตามและรายงานผลแผนปฏิบัติการประจำปีของมูลนิธิการศึกษาทางไกลผ่านดาวเทียม ในพระบรมราชูปถัมภ์ ครบทุกยุทธศาสตร์ในศูนย์กลางข้อมูลเดียว</div>
-      </div>
-      <div class="auth-left-mid">
-        <div class="auth-feature-grid">
-          <div class="auth-feature-card">
-            <div class="auth-feature-icon">🎯</div>
-            <div><div class="auth-feature-title">4 ยุทธศาสตร์</div><div class="auth-feature-desc">ติดตามโครงการและงบประมาณแบบเรียลไทม์</div></div>
-          </div>
-          <div class="auth-feature-card">
-            <div class="auth-feature-icon">📊</div>
-            <div><div class="auth-feature-title">Dashboard</div><div class="auth-feature-desc">KPI และกราฟสรุปผลการดำเนินงาน</div></div>
-          </div>
-          <div class="auth-feature-card">
-            <div class="auth-feature-icon">🛡️</div>
-            <div><div class="auth-feature-title">ประวัติการแก้ไข</div><div class="auth-feature-desc">บันทึกทุกการเปลี่ยนแปลง ตรวจสอบย้อนหลังได้</div></div>
-          </div>
-          <div class="auth-feature-card">
-            <div class="auth-feature-icon">☁️</div>
-            <div><div class="auth-feature-title">Google Sheets</div><div class="auth-feature-desc">ซิงก์ข้อมูลอัตโนมัติ ไม่ต้องลงทุนเซิร์ฟเวอร์</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="auth-left-bottom auth-left-stats">
-        <div><div class="auth-stat-num">4</div><div class="auth-stat-label">ยุทธศาสตร์</div></div>
-        <div><div class="auth-stat-num">Google</div><div class="auth-stat-label">Sheets Sync</div></div>
-        <div><div class="auth-stat-num">100%</div><div class="auth-stat-label">Cloud</div></div>
-        <div><div class="auth-stat-num">24/7</div><div class="auth-stat-label">เข้าถึงได้ทุกที่</div></div>
-      </div>
-    </div>
-    <div class="auth-right">
-      <span class="auth-right-badge">ปีงบประมาณ พ.ศ. 2570</span>
-      <div class="auth-box">
+  <div class="auth-box">
     <div class="auth-logo">
       <div class="auth-logo-icon">
         <img src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" alt="Logo" width="44" style="object-fit:contain">
@@ -1851,21 +1812,19 @@
     </div>
 
   </div><!-- /.auth-box -->
-    </div><!-- /.auth-right -->
-  </div><!-- /.auth-shell -->
 </div><!-- /.auth-overlay -->
 
 <!-- ══ Firebase Auth + Firestore ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="assets/app-auth-risk.js?v=20260901V.1"></script>
+<script src="assets/app-auth-risk.js?v=20260828"></script>
 
 <!-- app-core.js ต้องโหลดหลังสุด (หลัง app-auth-risk.js) เพราะ initApp() ที่ท้ายไฟล์
      เรียก renderTable() ทันทีตอนโหลดหน้า ซึ่งเรียกใช้ _isEditable() ที่นิยามอยู่ใน
      app-auth-risk.js — ถ้าโหลดก่อนจะเกิด ReferenceError: _isEditable is not defined
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
-<script src="assets/app-core.js?v=20260901V.1"></script>
+<script src="assets/app-core.js?v=20260828"></script>
 
 </body>
 </html>
