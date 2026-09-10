@@ -43,8 +43,13 @@ function renderPdfReportTypeList() {
 }
 
 function generateSelectedReportPDF() {
-  const reportType = window._pdfSelectedReportType || 'overview';
-  const quarter = document.getElementById('pdfQuarterSelect').value || 'all';
-  const strategyFilter = document.getElementById('pdfStrategySelect').value || 'all';
-  exportReportPDF(reportType, quarter, strategyFilter);
+  try {
+    const reportType = window._pdfSelectedReportType || 'overview';
+    const quarter = document.getElementById('pdfQuarterSelect')?.value || 'all';
+    const strategyFilter = document.getElementById('pdfStrategySelect')?.value || 'all';
+    exportReportPDF(reportType, quarter, strategyFilter);
+  } catch (err) {
+    console.error('generateSelectedReportPDF failed:', err);
+    alert('เกิดข้อผิดพลาดก่อนเริ่มสร้าง PDF: ' + (err && err.message ? err.message : err));
+  }
 }
