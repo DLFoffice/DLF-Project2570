@@ -1388,10 +1388,16 @@
       <div class="rrg-form-grid">
         <div class="form-field full">
           <label class="form-label">โครงการที่เกี่ยวข้อง</label>
-          <input type="text" class="form-input" id="rrgProject" list="rrgProjectList"
-                 placeholder="เลือกจากรายการ หรือพิมพ์ชื่อโครงการเอง..."
-                 oninput="rrgOnProjectChange()" autocomplete="off">
-          <datalist id="rrgProjectList"></datalist>
+          <!-- เดิม: <input list="rrgProjectList"> ใช้ <datalist> ของเบราว์เซอร์ ซึ่งแสดงเป็นรายการ
+               แบนราบยาวๆ ไม่จัดกลุ่ม ไม่มีสไตล์ ล้นออกนอกกรอบโมดัล หาโครงการที่ต้องการยาก
+               (ดูตัวอย่างปัญหาเดิมได้จากภาพที่ผู้ใช้แนบมา) — เปลี่ยนมาใช้ตัวเลือกแบบเดียวกับหน้า
+               "บริหารความเสี่ยง (PRM)" คือค้นหาได้ + จัดกลุ่มตามยุทธศาสตร์ + ไฮไลต์รายการที่เลือก -->
+          <input type="text" class="form-input" id="rrgProject"
+                 placeholder="🔍 ค้นหาชื่อโครงการ หรือพิมพ์ชื่อเอง..."
+                 oninput="rrgOnProjectSearchInput(this.value)"
+                 onfocus="rrgShowProjectPicker()"
+                 autocomplete="off">
+          <div id="rrgProjectPickerWrap" style="display:none;max-height:260px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;margin-top:6px"></div>
           <div style="font-size:11px;color:var(--text3);margin-top:3px">💡 เลือกโครงการแล้วยุทธศาสตร์จะถูกเติมให้อัตโนมัติ (พิมพ์เองได้หากไม่มีในรายการ)</div>
         </div>
         <div class="form-field full">

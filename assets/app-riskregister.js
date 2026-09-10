@@ -270,13 +270,71 @@ async function _rrgAutoLoadFromSheet() {
 }
 
 // ── Populate project datalist from existing projects ──
-function rrgPopulateProjectList() {
-  const dl = document.getElementById('rrgProjectList');
-  if (!dl || typeof projects === 'undefined') return;
-  dl.innerHTML = projects.map(p =>
-    `<option value="${(p.name||'').replace(/"/g,'&quot;')}" data-strategy="${p.strategy||''}"></option>`
-  ).join('');
+// (เดิมใช้เติม <datalist> ของเบราว์เซอร์ ตอนนี้เปลี่ยนมาใช้ rrgRenderProjectPicker() แทน
+// แต่คงฟังก์ชันนี้ไว้เผื่อโค้ดส่วนอื่นเรียกอยู่ — ทำงานเป็น no-op อย่างปลอดภัย)
+function rrgPopulateProjectList() {}
+
+// ── ตัวเลือกโครงการแบบค้นหา + จัดกลุ่มตามยุทธศาสตร์ (เหมือนหน้า "บริหารความเสี่ยง (PRM)") ──
+function rrgShowProjectPicker() {
+  const input = document.getElementById('rrgProject');
+  rrgRenderProjectPicker(input ? input.value : '');
+  const wrap = document.getElementById('rrgProjectPickerWrap');
+  if (wrap) wrap.style.display = 'block';
 }
+function rrgOnProjectSearchInput(v) {
+  rrgRenderProjectPicker(v);
+  const wrap = document.getElementById('rrgProjectPickerWrap');
+  if (wrap) wrap.style.display = 'block';
+}
+function rrgRenderProjectPicker(filterText) {
+  const wrap = document.getElementById('rrgProjectPickerWrap');
+  if (!wrap || typeof projects === 'undefined') return;
+  const q = (filterText || '').trim().toLowerCase();
+  const all = projects || [];
+  const filtered = q ? all.filter(p => (p.name || '').toLowerCase().includes(q)) : all;
+  const _esc     = typeof escapeHtml  === 'function' ? escapeHtml : (s) => String(s == null ? '' : s);
+  const _S_NAMES = typeof S_NAMES !== 'undefined' ? S_NAMES : {};
+  const _S_FULL  = typeof S_FULL  !== 'undefined' ? S_FULL  : {};
+  const _S_BADGE = typeof S_BADGE !== 'undefined' ? S_BADGE : {};
+  const _S_KEYS  = typeof S_KEYS  !== 'undefined' ? S_KEYS  : [...new Set(all.map(p => p.strategy))];
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div style="padding:1rem;text-align:center;color:var(--text3);font-size:12.5px">ไม่พบโครงการที่ตรงกับคำค้นหา — พิมพ์ต่อเพื่อสร้างรายการอิสระได้เลย</div>';
+    return;
+  }
+  const groupsHtml = _S_KEYS.map(s => {
+    const ps = filtered.filter(p => String(p.strategy) === String(s));
+    if (!ps.length) return '';
+    const rows = ps.map(p => `
+      <div class="risk-newproj-row" onclick="rrgPickProject('${String(p.id).replace(/'/g, "\\'")}')">
+        <span class="badge ${_S_BADGE[p.strategy] || ''}" style="flex-shrink:0">${_S_NAMES[p.strategy] || ('ยุทธศาสตร์ที่ ' + p.strategy)}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(p.name)}</span>
+        ${p.owner || p.dept ? `<span style="font-size:11px;color:var(--text3);flex-shrink:0">${_esc(p.owner || p.dept)}</span>` : ''}
+      </div>`).join('');
+    return `<div class="risk-newproj-group">
+      <div class="risk-newproj-group-head">${_S_NAMES[s] || ('ยุทธศาสตร์ที่ ' + s)}${_S_FULL[s] ? ' — ' + _S_FULL[s] : ''}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+  wrap.innerHTML = groupsHtml || '<div style="padding:1rem;text-align:center;color:var(--text3);font-size:12.5px">ยังไม่มีโครงการในระบบ</div>';
+}
+function rrgPickProject(id) {
+  const proj = (projects || []).find(p => String(p.id) === String(id));
+  if (!proj) return;
+  const input = document.getElementById('rrgProject');
+  if (input) input.value = proj.name || '';
+  rrgOnProjectChange();
+  const wrap = document.getElementById('rrgProjectPickerWrap');
+  if (wrap) wrap.style.display = 'none';
+}
+// ปิด picker เมื่อคลิกนอกกรอบ (แต่ไม่ปิดถ้าคลิกที่ input หรือใน picker เอง)
+document.addEventListener('click', e => {
+  const wrap  = document.getElementById('rrgProjectPickerWrap');
+  const input = document.getElementById('rrgProject');
+  if (!wrap || wrap.style.display === 'none') return;
+  if (e.target === input || wrap.contains(e.target)) return;
+  wrap.style.display = 'none';
+});
 
 // ── Auto-fill strategy when a project is selected ──
 function rrgOnProjectChange() {
