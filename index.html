@@ -76,11 +76,11 @@
       <div class="nav-section">ความเสี่ยง</div>
       <button class="nav-item" onclick="showPage('risk',undefined,this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        บริหารความเสี่ยง
+        แผนบริหารความเสี่ยง
       </button>
       <button class="nav-item" onclick="showPage('riskregister',undefined,this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        ทะเบียนความเสี่ยง (Heat Map)
+        รายงานผลการบริหารความเสี่ยง
       </button>
     </div>
     <div class="sidebar-footer" id="sidebar-footer">ปีงบประมาณ 2570</div>
@@ -825,7 +825,7 @@
         <!-- Header + Project Selector -->
         <div class="card" style="margin-bottom:1rem">
           <div class="card-header" style="flex-wrap:wrap;gap:10px">
-            <span class="card-title">⚠️ ระบบบริหารความเสี่ยงโครงการ (PRM)</span>
+            <span class="card-title">⚠️ ระบบแผนบริหารความเสี่ยงโครงการ (PRM)</span>
             <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <select id="riskProjectSelect" class="risk-select" style="min-width:260px;max-width:340px;font-size:13px" onchange="loadRiskProject()">
                 <option value="">— เปิดรายการที่บันทึกไว้ —</option>
@@ -1088,10 +1088,10 @@
                     <tr><th>ระดับความเสี่ยง</th><th>คะแนน</th><th>คำอธิบาย</th></tr>
                   </thead>
                   <tbody>
-                    <tr><td><span class="risk-score-badge risk-very-high">สูงมาก</span></td><td>17 – 25</td><td>ระดับที่ไม่สามารถยอมรับได้ จำเป็นต้องเร่งจัดการความเสี่ยงให้อยู่ในระดับที่ยอมรับได้ทันที</td></tr>
-                    <tr><td><span class="risk-score-badge risk-high">สูง</span></td><td>10 – 16</td><td>ระดับที่ไม่สามารถยอมรับได้ โดยต้องจัดการความเสี่ยงเพื่อให้อยู่ในระดับยอมรับได้</td></tr>
-                    <tr><td><span class="risk-score-badge risk-medium">ปานกลาง</span></td><td>4 – 9</td><td>ระดับที่ยอมรับได้ แต่ต้องมีการควบคุมเพื่อป้องกันไม่ให้ความเสี่ยงไปยังระดับที่ยอมรับไม่ได้</td></tr>
-                    <tr><td><span class="risk-score-badge risk-low">ต่ำ</span></td><td>1 – 3</td><td>ระดับที่ยอมรับได้ โดยใช้วิธีควบคุมปกติตามขั้นตอนการปฏิบัติงานที่กำหนด</td></tr>
+                    <tr><td><span class="risk-score-badge risk-very-high">สูงมาก</span></td><td>16 – 25</td><td>ระดับที่ไม่สามารถยอมรับได้ จำเป็นต้องเร่งจัดการความเสี่ยงให้อยู่ในระดับที่ยอมรับได้ทันที</td></tr>
+                    <tr><td><span class="risk-score-badge risk-high">สูง</span></td><td>10 – 15</td><td>ระดับที่ไม่สามารถยอมรับได้ โดยต้องจัดการความเสี่ยงเพื่อให้อยู่ในระดับยอมรับได้</td></tr>
+                    <tr><td><span class="risk-score-badge risk-medium">ปานกลาง</span></td><td>5 – 9</td><td>ระดับที่ยอมรับได้ แต่ต้องมีการควบคุมเพื่อป้องกันไม่ให้ความเสี่ยงไปยังระดับที่ยอมรับไม่ได้</td></tr>
+                    <tr><td><span class="risk-score-badge risk-low">ต่ำ</span></td><td>1 – 4</td><td>ระดับที่ยอมรับได้ โดยใช้วิธีควบคุมปกติตามขั้นตอนการปฏิบัติงานที่กำหนด</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1161,8 +1161,8 @@
         <!-- Header banner -->
         <div class="rrg-header">
           <div>
-            <h2>🛡️ การบริหารความเสี่ยง</h2>
-            <div class="sub">ระบบบริหารและติดตามความเสี่ยงโครงการ · ปีงบประมาณ พ.ศ. 2570</div>
+            <h2>🛡️ รายงานผลการบริหารความเสี่ยง</h2>
+            <div class="sub">รวบรวมจากแผนบริหารความเสี่ยง (PRM) ที่ผู้รับผิดชอบแต่ละโครงการกรอกไว้โดยอัตโนมัติ พร้อม Heat Map · ปีงบประมาณ พ.ศ. 2570</div>
           </div>
           <div class="rrg-header-right">
             <select class="quarter-select" id="rrgQuarterFilter" onchange="rrgRenderTable()" style="background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);color:#fff;font-size:12px">
@@ -1180,9 +1180,15 @@
             <button class="btn btn-sm" onclick="rrgOpenForm()" id="rrgAddBtn"
               style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4);color:#fff;display:none">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              บันทึกความเสี่ยงใหม่
+              เพิ่มความเสี่ยงเพิ่มเติม
             </button>
           </div>
+        </div>
+
+        <!-- คำอธิบายที่มาของข้อมูล -->
+        <div style="background:var(--accent-light);border:1px solid var(--accent);border-radius:var(--radius);padding:.65rem 1rem;margin-bottom:1.25rem;font-size:12.5px;color:var(--text2);display:flex;gap:8px;align-items:flex-start">
+          <span>ℹ️</span>
+          <span>รายการความเสี่ยงส่วนใหญ่ในหน้านี้ดึงมาจากแบบ <b>PRM 01–04 · แผนบริหารความเสี่ยง</b> ที่ผู้รับผิดชอบแต่ละโครงการกรอกและกดบันทึกไว้โดยอัตโนมัติ (มีตรา "📋 จาก PRM" กำกับ) หากต้องการแก้ไขให้ไปแก้ที่หน้า "แผนบริหารความเสี่ยง" ส่วนปุ่ม "เพิ่มความเสี่ยงเพิ่มเติม" ใช้สำหรับบันทึกความเสี่ยงอื่นที่ไม่ได้ผูกกับโครงการใน PRM</span>
         </div>
 
         <!-- Google Sheets sync bar -->
