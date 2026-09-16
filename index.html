@@ -10,7 +10,7 @@
 <title>ระบบรายงาน พ.ศ. 2570 | มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20260916">
+<link rel="stylesheet" href="assets/style.css?v=20260916V.1">
 </head>
 <body>
 <div class="layout">
@@ -1575,6 +1575,66 @@
         Export PDF
       </button>
       <button class="btn btn-sm btn-primary" id="rrgDetailEditBtn" onclick="rrgEditFromDetail()" style="display:none">✏️ แก้ไข</button>
+      <button class="btn btn-sm btn-primary" id="rrgDetailReportBtn" onclick="rrgOpenReportFormFromDetail()" style="display:none;background:var(--accent);border-color:var(--accent)">📝 บันทึกรายงานผล</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: บันทึกรายงานผลการบริหารความเสี่ยง (สำหรับรายการที่มาจากแผน PRM) ===== -->
+<div class="modal-overlay" id="rrgReportModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:403;align-items:center;justify-content:center;padding:1rem">
+  <div class="modal" style="max-width:560px;width:100%;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📝 บันทึกรายงานผลการบริหารความเสี่ยง</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="rrgReportProject"></div>
+      </div>
+      <button class="btn btn-sm" onclick="rrgCloseReportForm()" style="color:var(--text2)">✕</button>
+    </div>
+    <div class="modal-body" style="overflow-y:auto">
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:.75rem 1rem;margin-bottom:14px;font-size:13px;font-weight:600;color:var(--text)" id="rrgReportName"></div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6">
+        ข้อมูลนี้จะถูกบันทึกไว้ที่แผนบริหารความเสี่ยง (PRM 04) ของโครงการนี้โดยตรง และ sync ขึ้น Google Sheet ชุดเดียวกับหน้า "แผนบริหารความเสี่ยง" — ผู้รับผิดชอบโครงการหรือผู้ที่เข้าดูจากเครื่องอื่นจะเห็นข้อมูลเดียวกัน
+      </div>
+      <div class="rrg-form-grid">
+        <div class="form-field">
+          <label class="form-label">สถานะการจัดการ <span class="required">*</span></label>
+          <select class="form-select" id="rrgReportStatus">
+            <option value="open">ยังไม่ดำเนินการ</option>
+            <option value="inprogress">กำลังดำเนินการ</option>
+            <option value="controlled">ควบคุมได้แล้ว</option>
+            <option value="closed">ปิดแล้ว</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">ความเสี่ยงคงเหลือหลังควบคุม (Residual)</label>
+          <select class="form-select" id="rrgReportResidual">
+            <option value="">-- ยังไม่ประเมิน --</option>
+            <option value="low">🟢 ต่ำ — ยอมรับได้</option>
+            <option value="medium">🟡 ปานกลาง — ต้องเฝ้าระวัง</option>
+            <option value="high">🟠 สูง — ต้องควบคุมเพิ่ม</option>
+            <option value="veryhigh">🔴 สูงมาก — ต้องเร่งจัดการ</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">กำหนดวันแล้วเสร็จ (Due Date)</label>
+          <input type="date" class="form-input" id="rrgReportDueDate">
+        </div>
+        <div class="form-field">
+          <label class="form-label">วันที่ทบทวนล่าสุด</label>
+          <input type="date" class="form-input" id="rrgReportReviewDate">
+        </div>
+        <div class="form-field full">
+          <label class="form-label">ผลการดำเนินงาน / หมายเหตุเพิ่มเติม</label>
+          <textarea class="form-textarea" id="rrgReportNote" placeholder="ระบุความคืบหน้า ผลการดำเนินงาน หรือหมายเหตุเพิ่มเติม..." style="min-height:72px;resize:vertical"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm" onclick="rrgCloseReportForm()">ยกเลิก</button>
+      <button class="btn btn-sm btn-primary" onclick="rrgSaveReportForm()" style="background:var(--accent);border-color:var(--accent)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        บันทึกรายงานผล
+      </button>
     </div>
   </div>
 </div>
@@ -2088,9 +2148,9 @@
   </div>
 </div>
 
-<script src="assets/app-pdf-select.js?v=20260916"></script>
+<script src="assets/app-pdf-select.js?v=20260916V.1"></script>
 
-<script src="assets/app-pdf-export.js?v=20260916"></script>
+<script src="assets/app-pdf-export.js?v=20260916V.1"></script>
 <!-- ══ AUTH MODAL ══ -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-box">
@@ -2250,14 +2310,14 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="assets/app-auth-risk.js?v=20260916"></script>
+<script src="assets/app-auth-risk.js?v=20260916V.1"></script>
 
 <!-- app-core.js ต้องโหลดหลังสุด (หลัง app-auth-risk.js) เพราะ initApp() ที่ท้ายไฟล์
      เรียก renderTable() ทันทีตอนโหลดหน้า ซึ่งเรียกใช้ _isEditable() ที่นิยามอยู่ใน
      app-auth-risk.js — ถ้าโหลดก่อนจะเกิด ReferenceError: _isEditable is not defined
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
-<script src="assets/app-core.js?v=20260916"></script>
-<script src="assets/app-riskregister.js?v=20260916"></script>
+<script src="assets/app-core.js?v=20260916V.1"></script>
+<script src="assets/app-riskregister.js?v=20260916V.1"></script>
 
 </body>
 </html>
