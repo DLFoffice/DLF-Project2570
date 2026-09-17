@@ -33,12 +33,12 @@
   --shadow-lg: 0 4px 20px rgba(0,0,0,.10);
 
   /* ── Sidebar theme (มินิมอล สีอ่อน สะอาดตา) ── */
-  --sidebar-grad: #ffffff;
+  --sidebar-grad: linear-gradient(0deg,rgba(165, 105, 214, 0.56) 0%, rgba(140, 73, 184, 1) 12%, rgba(37, 7, 168, 1) 97%);
   --sidebar-border: var(--border);
-  --sidebar-text: #1c2333;
-  --sidebar-text-muted: #5a6477;
+  --sidebar-text: #fcfcfc;
+  --sidebar-text-muted: #fcfcfc;
   --sidebar-text-faint: #9aa3b5;
-  --sidebar-hover-bg: #f2f5fc;
+  --sidebar-hover-bg: rgba(244, 242, 245, 0.6);
   --sidebar-active-bg: #eaf0fd;
   --sidebar-active-text: #3b72f0;
   --sidebar-active-accent: #3b72f0;
@@ -142,7 +142,7 @@ body {
   padding: .75rem 1rem;
   border-top: 1px solid var(--sidebar-border);
   font-size: 11px;
-  color: var(--sidebar-text-faint);
+  color: var(--sidebar-text);
 }
 
 /* ── Main ── */
