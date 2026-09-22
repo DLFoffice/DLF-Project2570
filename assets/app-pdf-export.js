@@ -34,7 +34,7 @@ function _pdfCell(txt, opts){
     'border-right:'+(borderR===false?'none':'1px solid '+_PDF_BORDER),
     'border-bottom:'+(borderB===false?'none':'1px solid '+_PDF_BORDER),
   ].join(';');
-  return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px 7px;font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};vertical-align:middle">${txt||''}</td>`;
+  return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px ${right?'4px':'7px'};font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};${right?'white-space:nowrap;':''}vertical-align:middle">${txt||''}</td>`;
 }
 
 function _buildActivitiesTable(activities) {
@@ -638,12 +638,12 @@ function _buildStrategyProjectsTable(ps) {
     <tr class="pdf-headerRow">
       ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'24px'})}
       ${_pdfCell('ชื่อโครงการ / รายการ',{bold:true,center:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('หน่วยงาน/ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'110px',small:true})}
-      ${_pdfCell('งบอนุมัติ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'75px',small:true})}
-      ${_pdfCell('ใช้ไป',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'70px',small:true})}
-      ${_pdfCell('PO',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'65px',small:true})}
-      ${_pdfCell('คงเหลือ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'70px',small:true})}
-      ${_pdfCell('สถานะ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'70px',small:true})}
+      ${_pdfCell('หน่วยงาน/ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'100px',small:true})}
+      ${_pdfCell('งบอนุมัติ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'88px',small:true})}
+      ${_pdfCell('ใช้ไป',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'82px',small:true})}
+      ${_pdfCell('PO',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'72px',small:true})}
+      ${_pdfCell('คงเหลือ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'86px',small:true})}
+      ${_pdfCell('สถานะ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'62px',small:true})}
     </tr>
     ${rows}
     <tr>
