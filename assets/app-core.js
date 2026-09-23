@@ -2130,24 +2130,7 @@ function openDetail(id){
     return warn + `<pre style="white-space:pre-wrap;word-break:break-word;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin:0">${escapeHtml(JSON.stringify(parsed,null,2))}</pre>`;
   }
 
-  const ganttHtml = (p.activities&&p.activities.length) ? `
-    <div class="detail-section">
-      <div class="detail-section-title">📅 แผนการดำเนินงาน (Gantt)</div>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;font-size:12px">
-          <thead><tr style="background:var(--surface2)">
-            <th style="padding:6px 8px;text-align:left;border:1px solid var(--border)">กิจกรรม</th>
-            <th style="padding:6px 8px;text-align:left;border:1px solid var(--border);white-space:nowrap">ผู้รับผิดชอบ</th>
-            ${['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'].map(m=>`<th style="padding:4px;text-align:center;border:1px solid var(--border);font-size:10px">${m}</th>`).join('')}
-          </tr></thead>
-          <tbody>${p.activities.map(a=>{ const n=_normalizeGanttEntry(a); return `<tr>
-            <td style="padding:5px 8px;border:1px solid var(--border)">${escapeHtml(n.name||'')}</td>
-            <td style="padding:5px 8px;border:1px solid var(--border);white-space:nowrap">${escapeHtml(n.person||'')}</td>
-            ${(n.months&&n.months.length===12?n.months:Array(12).fill(false)).map(m=>`<td style="text-align:center;border:1px solid var(--border);background:${m?'var(--accent-light)':''};">${m?'<span style="color:var(--accent);font-weight:700">✓</span>':''}</td>`).join('')}
-          </tr>`; }).join('')}</tbody>
-        </table>
-      </div>
-    </div>` : '';
+  const ganttHtml = _ganttDetailHtml(p);
 
   const budgetHtml = (p.budgetDetail&&p.budgetDetail.length) ? `
     <div class="detail-section">
@@ -3893,7 +3876,20 @@ function renderGanttTable() {
   tbody.querySelectorAll('.gf-input').forEach(_gfAutoGrow);
   syncGanttToHidden();
 }
-function _gfAutoGrow(el){ if(!el) return; el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
+// ปรับความสูงช่องกรอกตามข้อความ — ข้ามถ้าตารางยังซ่อนอยู่ (เช่น ตอน render ก่อนเปิดหน้าต่างฟอร์ม)
+// เพราะตอนซ่อน scrollHeight = 0 ถ้าเอาไปตั้งเป็นความสูง ช่องจะแบนจนมองไม่เห็นตัวอักษร
+function _gfAutoGrow(el){
+  if(!el || !el.offsetParent) return;
+  el.style.height='auto';
+  if(el.scrollHeight>0) el.style.height=el.scrollHeight+'px';
+}
+// เมื่อหน้าต่างฟอร์มเปิดขึ้นมา (ตารางมองเห็นแล้ว) ให้ปรับความสูงช่องกรอกทั้งหมดใหม่อีกครั้ง
+(function(){
+  if(typeof IntersectionObserver==='undefined') return;
+  const io = new IntersectionObserver(ents=>{ ents.forEach(e=>{ if(e.isIntersecting) e.target.querySelectorAll('.gf-input').forEach(_gfAutoGrow); }); });
+  const hook = ()=>{ const t=document.getElementById('ganttTableModal'); if(t) io.observe(t); };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', hook); else hook();
+})();
 function _gfSet(rowIdx, monthIdx, value){
   const row = ganttRows[rowIdx]; if(!row) return;
   if(row.months[monthIdx]===value) return;
@@ -3928,6 +3924,42 @@ function addGanttRow() {
 function removeGanttRow(i) {
   ganttRows.splice(i,1);
   renderGanttTable();
+}
+// ── แผนการดำเนินงาน (Gantt) ในหน้าต่างรายละเอียดโครงการ — แถบต่อเนื่องแบบเดียวกับฟอร์ม/หน้า Gantt ──
+function _ganttDetailHtml(p){
+  const acts = (p.activities||[]).map(a=>_normalizeGanttEntry(a)).filter(n=>n && ((n.name||'').trim() || (n.person||'').trim() || (n.months||[]).some(Boolean)));
+  if(!acts.length) return '';
+  const c = _GF_S_COLORS[Number(p.strategy)] || '#5459AC';
+  const yrs = _gfYearLabels();
+  const lane = (months) => {
+    const bars = _gfRuns(months).map(r=>{
+      const len=r.b-r.a+1;
+      return `<div class="gf-bar" style="left:calc(${r.a/12*100}% + 3px);width:calc(${len/12*100}% - 6px);--c:${c}">${len>=2?`<span>${_GF_MONTHS[r.a]} – ${_GF_MONTHS[r.b]}</span>`:''}</div>`;
+    }).join('');
+    return `<div class="gd-lane">${bars||'<span class="gd-none">ยังไม่ระบุเดือน</span>'}</div>`;
+  };
+  return `
+    <div class="detail-section">
+      <div class="detail-section-title">📅 แผนการดำเนินงาน (Gantt)</div>
+      <div class="gf-wrap">
+        <table class="gd-table">
+          <colgroup><col style="width:34%"><col style="width:16%">${_GF_MONTHS.map(()=>'<col>').join('')}</colgroup>
+          <thead>
+            <tr>
+              <th class="gf-th" rowspan="2" style="text-align:left">กิจกรรม</th>
+              <th class="gf-th" rowspan="2" style="text-align:left">ผู้รับผิดชอบ</th>
+              ${[1,2,3,4].map(q=>`<th class="gf-qh" colspan="3" style="background:${_GF_Q_COLORS[q-1]}">ไตรมาส ${q}</th>`).join('')}
+            </tr>
+            <tr>${_GF_MONTHS.map((m,i)=>`<th class="gf-mh${i%3===0&&i>0?' gf-qsep':''}">${m}${yrs[i]?`<small>${yrs[i]}</small>`:''}</th>`).join('')}</tr>
+          </thead>
+          <tbody>${acts.map(n=>`<tr class="gf-row">
+            <td class="gd-td">${escapeHtml(n.name||'')}</td>
+            <td class="gd-td" style="color:var(--text2)">${escapeHtml(n.person||'')}</td>
+            <td colspan="12" class="gf-lane-td">${lane(n.months&&n.months.length===12?n.months:Array(12).fill(false))}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
 function syncGanttToHidden() {
   const el = document.getElementById('fActivities');

@@ -2236,3 +2236,14 @@ tbody tr:hover td { background: rgba(91,82,243,.05); }
 .gf-del button { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; width: 28px; height: 28px; border-radius: 6px; }
 .gf-del button:hover { color: #ef4444; background: #fef2f2; }
 .gf-empty { text-align: center; padding: 18px; color: var(--text3); font-size: 12.5px; }
+.gf-input { min-height: 30px; field-sizing: content; }
+.gd-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 760px; table-layout: fixed; }
+.gd-td { padding: 7px 8px; vertical-align: middle; line-height: 1.5; }
+.gd-lane { position: relative; height: 100%; min-height: 38px;
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent calc(100% / 12 - 1px), var(--border) calc(100% / 12 - 1px), var(--border) calc(100% / 12)); }
+.gf-lane-td { position: relative; }
+.gd-table .gf-lane-td > .gd-lane { position: absolute; inset: 0; }
+.gd-none { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3); font-style: italic; }
+#ganttTableModal .gf-lane-td { height: 42px; }
+#ganttTableModal .gf-lane-td > .gf-lane { position: absolute; inset: 0; height: auto; }
+#ganttTableModal thead th:last-child { background: var(--surface2); }

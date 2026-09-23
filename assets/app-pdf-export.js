@@ -37,28 +37,43 @@ function _pdfCell(txt, opts){
   return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px ${right?'4px':'7px'};font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};${right?'white-space:nowrap;':''}vertical-align:middle">${txt||''}</td>`;
 }
 
-// ── ช่องเดือนของตารางกิจกรรม (ข้อ 4) แบบแถบต่อเนื่อง ──────────────────────────────
-// เดือนที่เลือกติดกันจะถูกรวมเป็นเซลล์เดียว (colspan) แล้ววาดแถบขอบมนต่อเนื่องอยู่ข้างใน
-// เดือนที่ไม่ได้เลือกยังเป็นช่องสีอ่อนตามไตรมาสเหมือนเดิม เพื่อให้ยังอ่านตำแหน่งเดือนได้ง่าย
-function _pdfActMonthCells(monthsArr, qBg, zebra){
+// ── ตารางกิจกรรม (ข้อ 4) ใน PDF แบบ Gantt: แถบสีทึบต่อเนื่อง + หัวไตรมาสสี ─────────────────────
+// - เดือนที่เลือกติดกันรวมเป็นเซลล์เดียว (colspan) แล้ววาดแถบขอบมนสีตามยุทธศาสตร์ของโครงการ
+// - แถบยาวตั้งแต่ 3 เดือนขึ้นไปจะมีป้ายช่วงเดือน (เช่น ม.ค. – มิ.ย.) อยู่ในแถบ
+// - พื้นที่เดือนเป็นพื้นขาว มีเส้นแบ่งเดือนบางๆ และเส้นแบ่งไตรมาสเข้มกว่า อ่านง่ายเวลาพิมพ์
+const _PDF_ACT_MONTHS = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+const _PDF_ACT_Q_COLORS = ['#3b72f0','#059669','#d97706','#7c3aed'];
+const _PDF_ACT_S_COLORS = {1:'#3b72f0',2:'#059669',3:'#d97706',4:'#7c3aed',5:'#0891b2'};
+function _pdfActMonthBorder(i){
+  return i===0 ? `1px solid ${_PDF_BORDER}` : (i%3===0 ? '1.2px solid #b3c0d8' : '1px solid #e7ecf4');
+}
+function _pdfActMonthCells(monthsArr, color){
   const m = Array.from({length:12}, (_,i)=> !!(monthsArr && monthsArr[i]));
+  const cellBase = `border-top:1px solid ${_PDF_BORDER};border-bottom:1px solid ${_PDF_BORDER};padding:0;background:#fff;height:26px;vertical-align:middle`;
   let html = '', i = 0;
   while(i < 12){
+    const last = (k)=> k===11 ? `;border-right:1px solid ${_PDF_BORDER}` : '';
     if(!m[i]){
-      html += `<td style="border:1px solid ${_PDF_BORDER};padding:0;background:${qBg[i]};height:24px"></td>`;
+      html += `<td style="${cellBase};border-left:${_pdfActMonthBorder(i)}${last(i)}"></td>`;
       i++; continue;
     }
     let j = i; while(j+1 < 12 && m[j+1]) j++;
-    html += `<td colspan="${j-i+1}" style="border:1px solid ${_PDF_BORDER};padding:0 2px;background:${zebra};height:24px;vertical-align:middle">
-      <div style="height:14px;border-radius:7px;background:#dfe1f4;border:1px solid #5459AC"></div></td>`;
+    const len = j-i+1;
+    const label = len>=3 ? `${_PDF_ACT_MONTHS[i]} – ${_PDF_ACT_MONTHS[j]}` : '';
+    // เส้นแบ่งเดือนภายในช่วงที่รวม colspan (วาดด้วย background ให้ยังเห็นตารางเดือนอยู่ใต้แถบ)
+    const grid = len>1 ? `;background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(${100/len}% - 1px),#e7ecf4 calc(${100/len}% - 1px),#e7ecf4 ${100/len}%)` : '';
+    html += `<td colspan="${len}" style="${cellBase};border-left:${_pdfActMonthBorder(i)}${last(j)};padding:0 3px${grid}">
+      <div style="height:15px;border-radius:8px;background:${color};color:#fff;font-size:8px;font-weight:700;line-height:15px;text-align:center;white-space:nowrap;overflow:hidden">${label}</div></td>`;
     i = j+1;
   }
   return html;
 }
 
-function _buildActivitiesTable(activities) {
-  const months = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
-  const qBg = ['#e8f0fb','#e8f0fb','#e8f0fb','#e8f5e9','#e8f5e9','#e8f5e9','#fff8e8','#fff8e8','#fff8e8','#fce4ec','#fce4ec','#fce4ec'];
+function _buildActivitiesTable(activities, strategy) {
+  const months = _PDF_ACT_MONTHS;
+  const color = _PDF_ACT_S_COLORS[Number(strategy)] || '#5459AC';
+  const fy = (typeof currentYear!=='undefined') ? Number(currentYear) : 0;
+  const yy = i => fy ? String((i<3?fy-1:fy)%100).padStart(2,'0') : '';
   const rows = Array.isArray(activities) && activities.length ? activities : Array(6).fill(null).map(()=>({name:'',person:'',months:Array(12).fill(false)}));
 
   const header = `
@@ -66,28 +81,27 @@ function _buildActivitiesTable(activities) {
       ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
       ${_pdfCell('กิจกรรม / ขั้นตอน',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
       ${_pdfCell('ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
-      ${_pdfCell('ระยะเวลาการดำเนินงาน',{bold:true,center:true,bg:_PDF_HEAD_BG,colspan:12})}
+      <td colspan="12" style="border:1px solid ${_PDF_BORDER};padding:4px;text-align:center;font-size:10px;font-weight:700;background:${_PDF_HEAD_BG}">ระยะเวลาการดำเนินงาน${fy?` ปีงบประมาณ พ.ศ. ${fy}`:''}</td>
     </tr>
     <tr class="pdf-headerRow">
-      ${['ไตรมาส 1','ไตรมาส 2','ไตรมาส 3','ไตรมาส 4'].map(q=>_pdfCell(q,{bold:true,center:true,bg:_PDF_HEAD_BG,colspan:3})).join('')}
+      ${[0,1,2,3].map(q=>`<td colspan="3" style="border:1px solid ${_PDF_BORDER};padding:3px 0;text-align:center;font-size:9px;font-weight:700;color:#fff;background:${_PDF_ACT_Q_COLORS[q]}">ไตรมาส ${q+1}</td>`).join('')}
     </tr>
     <tr class="pdf-headerRow">
-      ${months.map((m,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:3px 0;text-align:center;font-size:8.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.2px;background:${qBg[mi]}">${m}</td>`).join('')}
+      ${months.map((m,mi)=>`<td style="border-top:1px solid ${_PDF_BORDER};border-bottom:1px solid ${_PDF_BORDER};border-left:${_pdfActMonthBorder(mi)};${mi===11?`border-right:1px solid ${_PDF_BORDER};`:''}padding:3px 0 2px;text-align:center;font-size:8.5px;font-weight:700;line-height:1.15;white-space:nowrap;background:#f4f6fb;color:#3b4660">${m}${yy(mi)?`<div style="font-size:7px;font-weight:500;color:#8a94a8">${yy(mi)}</div>`:''}</td>`).join('')}
     </tr>`;
 
   const dataRows = rows.map((row,i) => {
     const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
-    return `<tr>
-    <td style="border:1px solid ${_PDF_BORDER};padding:4px 3px;text-align:center;font-size:10px;background:${zebra}">${i+1}</td>
-    <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_nl2br(_esc(row.name||''))}</td>
-    <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_esc(row.person||'')}</td>
-    ${_pdfActMonthCells(row.months, qBg, zebra)}
+    return `<tr style="page-break-inside:avoid">
+    <td style="border:1px solid ${_PDF_BORDER};padding:5px 3px;text-align:center;font-size:10px;background:${zebra}">${i+1}</td>
+    <td style="border:1px solid ${_PDF_BORDER};padding:5px 7px;font-size:10px;line-height:1.55;background:${zebra}">${_nl2br(_esc(row.name||''))}</td>
+    <td style="border:1px solid ${_PDF_BORDER};padding:5px 7px;font-size:10px;line-height:1.55;background:${zebra};color:#374151">${_esc(row.person||'')}</td>
+    ${_pdfActMonthCells(row.months, color)}
   </tr>`;
   }).join('');
 
-  // กำหนดสัดส่วนคอลัมน์ด้วย colgroup: ให้ช่อง "กิจกรรม" และ "ผู้รับผิดชอบ" กว้างพอ (ไม่ตกบรรทัดทีละคำ)
-  // ส่วนช่องเดือน 12 ช่องแบ่งพื้นที่ที่เหลือเท่าๆกัน (แค่ใส่เครื่องหมาย ✔ จึงไม่ต้องกว้างมาก)
-  const colgroup = `<colgroup><col style="width:4%"><col style="width:37%"><col style="width:19%">${months.map(()=>'<col style="width:3.333%">').join('')}</colgroup>`;
+  // สัดส่วนคอลัมน์: ที่ 4% · กิจกรรม 31% · ผู้รับผิดชอบ 15% · เดือน 12 ช่อง รวม 50% (ช่องละ ~4.17%)
+  const colgroup = `<colgroup><col style="width:4%"><col style="width:31%"><col style="width:15%">${months.map(()=>'<col style="width:4.1667%">').join('')}</colgroup>`;
   return `<table style="width:100%;border-collapse:collapse;font-family:'Sarabun',sans-serif;table-layout:fixed">${colgroup}${header}${dataRows}</table>`;
 }
 
@@ -328,7 +342,7 @@ function _buildFormHTML(p, logoSrc, opts) {
   </div>
 
   ${_sectionHeader(4,'การดำเนินงาน (กิจกรรม / ขั้นตอน)','#2c3e70')}
-  ${_buildActivitiesTable(p.activities)}
+  ${_buildActivitiesTable(p.activities, p.strategy)}
 
   ${_sectionHeader(5,'รายละเอียดการใช้งบประมาณ','#2c3e70')}
   <div style="font-size:10.5px;margin-bottom:6px">
