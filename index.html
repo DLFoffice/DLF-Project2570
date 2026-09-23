@@ -457,6 +457,7 @@
             <div class="card-body" style="padding:.875rem 1.25rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
               <button class="btn btn-sm" onclick="resetReportForm()">← เลือกโครงการอื่น</button>
               <div id="reportProjectInfo" style="flex:1;min-width:260px"></div>
+              <button class="btn btn-sm" onclick="openAnnualSummary(reportSelectedId)" style="background:#eef2ff;color:#4338ca;border-color:#c7d2fe;font-weight:700">📊 สรุปผลรวม ไตรมาส 1–4</button>
             </div>
           </div>
         </div>
@@ -2319,6 +2320,7 @@
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
 <script src="assets/app-core.js?v=20260916V.3"></script>
 <script src="assets/app-riskregister.js?v=20260916V.3"></script>
+<script src="assets/app-annual-report.js?v=20260923A"></script>
 
 </body>
 </html>

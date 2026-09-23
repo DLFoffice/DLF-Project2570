@@ -1530,6 +1530,10 @@ function renderReportProjectGroups(){
         <td colspan="6" style="padding:6px 10px 12px 40px;border-top:none">
           <div class="rq-strip">
             ${['1','2','3','4'].map(q=>qChip(p,q)).join('')}
+            <div class="rq-chip rq-chip-summary" onclick="event.stopPropagation();openAnnualSummary(${p.id})" title="สรุปผลรวมไตรมาส 1–4 เทียบงบอนุมัติ + ตัวชี้วัด">
+              <div class="rq-chip-label">📊 สรุปรวม Q1–Q4</div>
+              <div class="rq-chip-value">ใช้ไป ${p.budget?((([1,2,3,4].reduce((a,q)=>{const r=getQuarterReport(p,q);return a+(r?(Number(r.spent)||0):0);},0))/p.budget*100).toFixed(1)):'0.0'}%</div>
+            </div>
           </div>
         </td>
       </tr>`;
@@ -2204,7 +2208,7 @@ function openDetail(id){
     <div class="detail-section">
       <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <span>📈 ผลการดำเนินงานรายไตรมาส</span>
-        <button class="btn btn-sm" onclick="exportAllQuartersReportPDF(${p.id})" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border-color:transparent">📄 Export PDF (ทุกไตรมาส)</button>
+        <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm" onclick="openAnnualSummary(${p.id})" style="background:#eef2ff;color:#4338ca;border-color:#c7d2fe;font-weight:700">📊 สรุปรวม Q1–Q4</button><button class="btn btn-sm" onclick="exportAllQuartersReportPDF(${p.id})" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border-color:transparent">📄 Export PDF (ทุกไตรมาส)</button></span>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
         ${['1','2','3','4'].map(q=>{
