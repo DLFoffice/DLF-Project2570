@@ -4338,6 +4338,36 @@ const PROJECT_ACTIVITIES = {
 
 let ganttExpandState = {}; // {projectId: true/false}
 
+// ── Gantt Chart แบบ A: แถบต่อเนื่อง + ความคืบหน้าการใช้งบ + เส้นเดือนปัจจุบัน ──────────
+// - แถบของแต่ละโครงการวาดเป็นแถบยาวต่อเนื่อง (รวมเดือนที่ติดกันเป็นแถบเดียว) สีตามยุทธศาสตร์
+// - ส่วนสีเข้มในแถบ = ร้อยละงบประมาณที่ใช้ไปแล้ว (p.spent / p.budget จากรายงานผลรายไตรมาส)
+// - ช่วงเดือนของโครงการ: ใช้เดือนที่ติ๊กไว้ใน "แผนกิจกรรม" ของโครงการก่อน (ตรงกับแผนจริงที่สุด)
+//   ถ้าโครงการยังไม่มีแผนกิจกรรมที่ระบุเดือน จึงใช้ไตรมาสของโครงการ (getActiveMonths) แทนเหมือนเดิม
+// - เส้นประสีแดง = เดือนปัจจุบัน (แสดงเฉพาะเมื่อวันนี้อยู่ในปีงบประมาณที่เปิดดู)
+function _ganttRuns(set){
+  const idx = [...set].filter(i=>i>=0 && i<12).sort((a,b)=>a-b);
+  const runs = [];
+  idx.forEach(i=>{
+    const last = runs[runs.length-1];
+    if(last && i===last.b+1) last.b = i; else runs.push({a:i,b:i});
+  });
+  return runs;
+}
+function _ganttActivityList(p){
+  if(Array.isArray(p.activities) && p.activities.length){
+    return p.activities
+      .map(a => (typeof _normalizeGanttEntry==='function') ? _normalizeGanttEntry(a) : a)
+      .filter(a => a && a.name && String(a.name).trim())
+      .map(a => ({ name:a.name, months:new Set((a.months||[]).map((v,idx)=>v?idx:-1).filter(idx=>idx>=0)) }));
+  }
+  return (typeof PROJECT_ACTIVITIES!=='undefined' && PROJECT_ACTIVITIES[p.id]) || parseActivities(p);
+}
+function _ganttCurrentMonthIndex(fy){
+  // ปีงบประมาณ พ.ศ. fy เริ่ม ต.ค. ของปี ค.ศ. (fy-544)
+  const now = new Date();
+  const idx = (now.getFullYear()*12 + now.getMonth()) - ((fy-544)*12 + 9);
+  return (idx>=0 && idx<12) ? idx : -1;
+}
 function renderGantt() {
   const search = (document.getElementById('ganttSearch')||{}).value||'';
   const filterSt = (document.getElementById('ganttFilterStrategy')||{}).value||'';
@@ -4348,9 +4378,9 @@ function renderGantt() {
   const Q_COLORS = {1:'#3b72f0',2:'#059669',3:'#d97706',4:'#7c3aed'};
   const Q_NAMES = {1:'ไตรมาส 1',2:'ไตรมาส 2',3:'ไตรมาส 3',4:'ไตรมาส 4'};
   const STRAT_COLORS = ['','#3b72f0','#059669','#d97706','#7c3aed','#0891b2'];
-  const STRAT_NAMES = ['','ย.1','ย.2','ย.3','ย.4','งบบ.'];
+  const N = months.length;
+  const nowIdx = _ganttCurrentMonthIndex(months[0] && months[0].fy ? months[0].fy : currentYear);
 
-  // Filter projects
   let list = projects.filter(p => {
     if(filterSt && String(p.strategy)!==filterSt) return false;
     if(filterStatus && p.status!==filterStatus) return false;
@@ -4364,107 +4394,91 @@ function renderGantt() {
 
   if(!list.length) {
     head.innerHTML='';
-    body.innerHTML=`<tr><td class="gantt-empty" colspan="${2+months.length}">ไม่พบโครงการ</td></tr>`;
+    body.innerHTML=`<tr><td class="gantt-empty" colspan="${3+N}">ไม่พบโครงการ</td></tr>`;
     return;
   }
 
-  // ── Build header ──────────────────────────────────────────────
-  // Row 1: Quarter groups
-  let headRow1 = '<tr>';
-  headRow1 += '<th class="th-left" rowspan="2" style="min-width:220px">ชื่อโครงการ / กิจกรรม</th>';
-  headRow1 += '<th rowspan="2" style="min-width:60px;text-align:center">สถานะ</th>';
-  // Group months by quarter
-  let prevQ = null;
-  let qSpan = 0; let qStart = 0; let qGroups = [];
-  months.forEach((m,i)=>{
-    if(m.q!==prevQ) {
-      if(prevQ!==null) qGroups.push({q:prevQ, span:qSpan, start:qStart});
-      qStart=i; qSpan=1; prevQ=m.q;
-    } else qSpan++;
-  });
-  if(prevQ!==null) qGroups.push({q:prevQ, span:qSpan, start:qStart});
-  qGroups.forEach(({q,span})=>{
-    headRow1 += `<th colspan="${span}" style="text-align:center;background:${Q_COLORS[q]};color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;padding:5px 4px">${Q_NAMES[q]}</th>`;
-  });
-  headRow1 += '</tr>';
-
-  // Row 2: Month names
-  let headRow2 = '<tr>';
-  months.forEach((m,i)=>{
+  // ── Header ──
+  let qGroups = [], prevQ = null;
+  months.forEach(m=>{ if(m.q!==prevQ){ qGroups.push({q:m.q,span:1}); prevQ=m.q; } else qGroups[qGroups.length-1].span++; });
+  let headRow1 = '<tr>'
+    + '<th class="th-left" rowspan="2" style="min-width:240px">ชื่อโครงการ / กิจกรรม</th>'
+    + '<th rowspan="2" style="min-width:64px;text-align:center">สถานะ</th>'
+    + qGroups.map(({q,span})=>`<th colspan="${span}" class="gl-qhead" style="--qc:${Q_COLORS[q]}">${Q_NAMES[q]}</th>`).join('')
+    + '<th rowspan="2" style="min-width:74px;text-align:center">ใช้งบ</th>'
+    + '</tr>';
+  let headRow2 = '<tr>' + months.map((m,i)=>{
     const isQSep = i>0 && months[i].q !== months[i-1].q;
-    headRow2 += `<th class="gantt-month-th${isQSep?' gantt-q-sep':''}" style="font-size:10px;font-weight:600;color:var(--text2);padding:5px 4px;min-width:52px">${m.label}<br><span style="font-size:8px;color:var(--text3)">${m.year}</span></th>`;
-  });
-  headRow2 += '</tr>';
+    return `<th class="gantt-month-th${isQSep?' gantt-q-sep':''}${i===nowIdx?' gl-now-th':''}">${m.label}<br><span style="font-size:8px;color:var(--text3)">${m.year}</span></th>`;
+  }).join('') + '</tr>';
   head.innerHTML = headRow1 + headRow2;
 
-  // ── Build body ────────────────────────────────────────────────
-  const BAR_CLASS = {done:'bar-done',progress:'bar-progress',pending:'bar-pending'};
   const STATUS_EMOJI = {done:'✅',progress:'⏳',pending:'⭕'};
   const STATUS_TEXT = {done:'แล้วเสร็จ',progress:'กำลังดำเนิน',pending:'ยังไม่เริ่ม'};
+  const pctOf = i => (i/N*100);
+  const nowLine = nowIdx>=0 ? `<div class="gl-now" style="left:${pctOf(nowIdx+0.5)}%"></div>` : '';
+  const lane = inner => `<td colspan="${N}" class="gl-lane-td"><div class="gl-lane" style="--n:${N}">${inner}${nowLine}</div></td>`;
+
+  // วาดแถบหลายช่วง (runs) โดยเติมสีเข้มตามร้อยละ (pct) ไล่จากช่วงแรกไปช่วงหลัง
+  const barsHtml = (runs, color, pct, label, tip, isActivity) => {
+    const total = runs.reduce((s,r)=>s+(r.b-r.a+1),0) || 1;
+    let remain = isActivity ? 0 : Math.max(0,Math.min(100,pct||0))/100*total;
+    return runs.map((r,ri)=>{
+      const len = r.b-r.a+1;
+      const fill = Math.max(0,Math.min(len,remain)); remain -= fill;
+      const showLabel = ri===runs.length-1 && label;
+      return `<div class="gl-bar${isActivity?' gl-bar-act':''}" title="${tip}" style="left:calc(${pctOf(r.a)}% + 3px);width:calc(${pctOf(len)}% - 6px);--c:${color}">
+        ${isActivity?'':`<div class="gl-fill" style="width:${fill/len*100}%"></div>`}
+        ${showLabel?`<span class="gl-label${(!isActivity && fill>=len-0.35)?' gl-label-in':''}">${label}</span>`:''}
+      </div>`;
+    }).join('');
+  };
 
   let rows = '';
-  list.forEach((p,pi) => {
+  list.forEach(p => {
    try {
-    const pName = escapeHtml(p.name||'(ไม่มีชื่อโครงการ)');
-    const activeMonths = getActiveMonths(p);
-    const barClass = BAR_CLASS[p.status]||'bar-pending';
+    const rawName = p.name||'(ไม่มีชื่อโครงการ)';
+    const pName = escapeHtml(rawName);
     const s = Number(p.strategy)||1;
-    const expanded = ganttExpandState[p.id] || false;
-    const hasActs = Array.isArray(p.activities)
-      ? p.activities.some(a => a && a.name && String(a.name).trim())
-      : !!(p.activities && String(p.activities).trim());
     const sColor = STRAT_COLORS[s]||'#9aa3b2';
+    const acts = _ganttActivityList(p);
+    const hasActs = acts.length>0;
+    const expanded = ganttExpandState[p.id] || false;
 
-    // Project row
-    rows += `<tr>`;
-    rows += `<td style="padding:6px 8px">
-      <div style="display:flex;align-items:center;gap:6px">
-        ${showActs && hasActs ? `<button class="gantt-expand-btn" onclick="ganttExpandState[${p.id}]=!ganttExpandState[${p.id}];renderGantt()" title="${expanded?'ซ่อน':'แสดง'}กิจกรรมย่อย">${expanded?'▾':'▸'}</button>` : '<span style="width:16px;display:inline-block"></span>'}
-        <span style="width:6px;height:14px;border-radius:2px;background:${sColor};flex-shrink:0;display:inline-block"></span>
-        <span class="gantt-project-name" onclick="openDetail(${p.id})" title="${pName}">${(p.name||'(ไม่มีชื่อโครงการ)').length>45?pName.substring(0,45)+'…':pName}</span>
-      </div>
-    </td>`;
-    rows += `<td style="text-align:center;white-space:nowrap">
-      <span style="font-size:11px">${STATUS_EMOJI[p.status]||'⭕'}</span>
-    </td>`;
-    months.forEach((m,mi) => {
-      const isQSep = mi>0 && months[mi].q!==months[mi-1].q;
-      const isActive = activeMonths.has(mi);
-      rows += `<td class="gantt-bar-cell${isQSep?' gantt-q-sep':''}" style="padding:3px 4px">`;
-      if(isActive) {
-        rows += `<div class="gantt-bar ${barClass}"></div>`;
-      }
-      rows += `</td>`;
-    });
-    rows += `</tr>`;
+    // ช่วงเดือนของโครงการ = รวมทุกเดือนจากแผนกิจกรรม ถ้าไม่มีจึงใช้ไตรมาสของโครงการ
+    const actMonths = new Set(); acts.forEach(a=>a.months.forEach(m=>actMonths.add(m)));
+    const runs = _ganttRuns(actMonths.size ? actMonths : getActiveMonths(p));
 
-    // Activity sub-rows
+    const budget = Number(p.budget)||0, spent = Number(p.spent)||0;
+    const pct = budget>0 ? spent/budget*100 : 0;
+    const pctText = budget>0 ? (pct>=10||pct===0 ? Math.round(pct) : pct.toFixed(1))+'%' : '–';
+    const late = nowIdx>=0 && p.status!=='done' && runs.length && runs[runs.length-1].b < nowIdx;
+    const tip = escapeHtml(`${rawName}\nสถานะ: ${STATUS_TEXT[p.status]||'ยังไม่เริ่ม'}\nงบอนุมัติ: ${fmtFull(budget)} บาท\nใช้ไปแล้ว: ${fmtFull(spent)} บาท (${pctText})${late?'\n⚠️ เลยกำหนดตามแผนแล้วแต่ยังไม่แล้วเสร็จ':''}`);
+
+    rows += `<tr class="gl-row">
+      <td style="padding:6px 8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${showActs && hasActs ? `<button class="gantt-expand-btn" onclick="ganttExpandState[${p.id}]=!ganttExpandState[${p.id}];renderGantt()" title="${expanded?'ซ่อน':'แสดง'}กิจกรรมย่อย">${expanded?'▾':'▸'}</button>` : '<span style="width:16px;display:inline-block"></span>'}
+          <span style="width:6px;height:14px;border-radius:2px;background:${sColor};flex-shrink:0;display:inline-block"></span>
+          <span class="gantt-project-name" onclick="openDetail(${p.id})" title="${pName}">${rawName.length>45?escapeHtml(rawName.substring(0,45))+'…':pName}</span>
+          ${late?'<span class="gl-late" title="เลยกำหนดตามแผนแล้วแต่ยังไม่แล้วเสร็จ">ล่าช้า</span>':''}
+        </div>
+      </td>
+      <td style="text-align:center;white-space:nowrap" title="${STATUS_TEXT[p.status]||'ยังไม่เริ่ม'}"><span style="font-size:11px">${STATUS_EMOJI[p.status]||'⭕'}</span></td>
+      ${lane(runs.length ? barsHtml(runs, sColor, pct, pctText, tip, false) : '<span class="gl-none">ยังไม่ระบุช่วงเวลา</span>')}
+      <td class="gl-pct-cell"><div class="gl-pct-num">${pctText}</div><div class="gl-pct-sub">${fmtFull(spent)} / ${fmtFull(budget)}</div></td>
+    </tr>`;
+
     if(showActs && expanded && hasActs) {
-      const acts = (Array.isArray(p.activities) && p.activities.length)
-        ? p.activities
-            .filter(a => a && a.name && String(a.name).trim())
-            .map(a => ({
-              name: a.name,
-              months: new Set((a.months||[]).map((v,idx)=>v?idx:-1).filter(idx=>idx>=0))
-            }))
-        : (PROJECT_ACTIVITIES[p.id] || parseActivities(p));
       acts.forEach(act => {
         const actName = escapeHtml(act.name||'');
-        rows += `<tr class="gantt-activity-row">`;
-        rows += `<td style="padding:3px 8px;padding-left:32px">
-          <span class="gantt-activity-name">↳ ${actName.length>50?actName.substring(0,50)+'…':actName}</span>
-        </td>`;
-        rows += `<td></td>`;
-        months.forEach((m,mi) => {
-          const isQSep = mi>0 && months[mi].q!==months[mi-1].q;
-          const isActive = act.months.has(mi);
-          rows += `<td class="gantt-bar-cell${isQSep?' gantt-q-sep':''}" style="padding:3px 4px">`;
-          if(isActive) {
-            rows += `<div class="gantt-bar bar-activity"></div>`;
-          }
-          rows += `</td>`;
-        });
-        rows += `</tr>`;
+        const aRuns = _ganttRuns(act.months);
+        rows += `<tr class="gantt-activity-row">
+          <td style="padding:3px 8px;padding-left:32px"><span class="gantt-activity-name" title="${actName}">↳ ${actName.length>50?escapeHtml(String(act.name).substring(0,50))+'…':actName}</span></td>
+          <td></td>
+          ${lane(aRuns.length ? barsHtml(aRuns, sColor, 0, '', actName, true) : '<span class="gl-none">ยังไม่ระบุเดือน</span>')}
+          <td></td>
+        </tr>`;
       });
     }
    } catch(err) {
@@ -4472,7 +4486,7 @@ function renderGantt() {
    }
   });
 
-  body.innerHTML = rows || `<tr><td class="gantt-empty" colspan="${2+months.length}">ไม่พบโครงการ</td></tr>`;
+  body.innerHTML = rows || `<tr><td class="gantt-empty" colspan="${3+N}">ไม่พบโครงการ</td></tr>`;
 }
 
 

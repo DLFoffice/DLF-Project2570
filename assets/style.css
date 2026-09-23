@@ -2173,3 +2173,31 @@ tbody tr:hover td { background: rgba(91,82,243,.05); }
 .rq-chip-summary .rq-chip-value { color: #4338ca; }
 .rq-chip-summary:hover { background: #e0e7ff; border-color: #a5b4fc; }
 .ar-table th.td-num { text-align: right; }
+
+/* ── Gantt แบบ A: แถบต่อเนื่อง + ความคืบหน้าการใช้งบ ── */
+.gantt-table { min-width: 1180px; }
+.gantt-table th.gl-qhead { background: var(--qc); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .05em; padding: 5px 4px; border-bottom: none; }
+.gantt-table th.gl-now-th { color: #dc2626; box-shadow: inset 0 -3px 0 #dc2626; }
+.gantt-table td.gl-lane-td { padding: 0; }
+.gl-lane {
+  position: relative; height: 34px;
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent calc(100% / var(--n) - 1px), var(--border) calc(100% / var(--n) - 1px), var(--border) calc(100% / var(--n)));
+}
+.gantt-activity-row .gl-lane { height: 26px; }
+.gl-bar {
+  position: absolute; top: 7px; height: 20px; border-radius: 10px; overflow: hidden;
+  background: color-mix(in srgb, var(--c) 16%, #fff);
+  border: 1px solid color-mix(in srgb, var(--c) 55%, #fff);
+  cursor: default; transition: transform .12s, box-shadow .12s;
+}
+.gl-bar:hover { transform: translateY(-1px); box-shadow: 0 3px 10px color-mix(in srgb, var(--c) 30%, transparent); }
+.gl-fill { position: absolute; inset: 0 auto 0 0; background: var(--c); }
+.gl-label { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10.5px; font-weight: 800; color: color-mix(in srgb, var(--c) 70%, #000); text-shadow: 0 0 3px #fff, 0 0 3px #fff; font-variant-numeric: tabular-nums; }
+.gl-bar-act { top: 7px; height: 12px; border-radius: 6px; border-style: dashed; background: color-mix(in srgb, var(--c) 10%, #fff); }
+.gl-now { position: absolute; top: 0; bottom: 0; border-left: 2px dashed #ef4444; pointer-events: none; z-index: 2; }
+.gl-none { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3); font-style: italic; }
+.gl-late { font-size: 10px; font-weight: 700; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 0 6px; border-radius: 99px; flex-shrink: 0; }
+.gl-pct-cell { text-align: right; padding: 4px 10px !important; white-space: nowrap; }
+.gl-pct-num { font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums; }
+.gl-pct-sub { font-size: 9.5px; color: var(--text3); font-variant-numeric: tabular-nums; }
+.gl-label-in { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
