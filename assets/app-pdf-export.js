@@ -44,16 +44,16 @@ function _buildActivitiesTable(activities) {
 
   const header = `
     <tr class="pdf-headerRow">
-      ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3,width:'26px'})}
-      ${_pdfCell('กิจกรรม / ขั้นตอน',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3,width:'195px'})}
-      ${_pdfCell('ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3,width:'80px'})}
+      ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
+      ${_pdfCell('กิจกรรม / ขั้นตอน',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
+      ${_pdfCell('ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,rowspan:3})}
       ${_pdfCell('ระยะเวลาการดำเนินงาน',{bold:true,center:true,bg:_PDF_HEAD_BG,colspan:12})}
     </tr>
     <tr class="pdf-headerRow">
       ${['ไตรมาส 1','ไตรมาส 2','ไตรมาส 3','ไตรมาส 4'].map(q=>_pdfCell(q,{bold:true,center:true,bg:_PDF_HEAD_BG,colspan:3})).join('')}
     </tr>
     <tr class="pdf-headerRow">
-      ${months.map((m,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:3px 1px;text-align:center;font-size:9px;font-weight:600;background:${qBg[mi]}">${m}</td>`).join('')}
+      ${months.map((m,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:3px 0;text-align:center;font-size:8.5px;font-weight:600;white-space:nowrap;letter-spacing:-0.2px;background:${qBg[mi]}">${m}</td>`).join('')}
     </tr>`;
 
   const dataRows = rows.map((row,i) => {
@@ -62,11 +62,14 @@ function _buildActivitiesTable(activities) {
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 3px;text-align:center;font-size:10px;background:${zebra}">${i+1}</td>
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_nl2br(_esc(row.name||''))}</td>
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_esc(row.person||'')}</td>
-    ${(row.months||Array(12).fill(false)).map((on,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:0;text-align:center;background:${on?'#5459AC':qBg[mi]};min-width:16px;height:22px">${on?'<span style="color:#fff;font-size:10px">✔</span>':''}</td>`).join('')}
+    ${(row.months||Array(12).fill(false)).map((on,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:0;text-align:center;background:${on?'#5459AC':qBg[mi]};height:22px">${on?'<span style="color:#fff;font-size:10px">✔</span>':''}</td>`).join('')}
   </tr>`;
   }).join('');
 
-  return `<table style="width:100%;border-collapse:collapse;font-family:'Sarabun',sans-serif;table-layout:fixed">${header}${dataRows}</table>`;
+  // กำหนดสัดส่วนคอลัมน์ด้วย colgroup: ให้ช่อง "กิจกรรม" และ "ผู้รับผิดชอบ" กว้างพอ (ไม่ตกบรรทัดทีละคำ)
+  // ส่วนช่องเดือน 12 ช่องแบ่งพื้นที่ที่เหลือเท่าๆกัน (แค่ใส่เครื่องหมาย ✔ จึงไม่ต้องกว้างมาก)
+  const colgroup = `<colgroup><col style="width:4%"><col style="width:37%"><col style="width:19%">${months.map(()=>'<col style="width:3.333%">').join('')}</colgroup>`;
+  return `<table style="width:100%;border-collapse:collapse;font-family:'Sarabun',sans-serif;table-layout:fixed">${colgroup}${header}${dataRows}</table>`;
 }
 
 function _buildBudgetTable(budgetRows, totalBudget) {
