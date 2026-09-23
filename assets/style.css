@@ -2201,3 +2201,38 @@ tbody tr:hover td { background: rgba(91,82,243,.05); }
 .gl-pct-num { font-weight: 800; font-size: 12px; font-variant-numeric: tabular-nums; }
 .gl-pct-sub { font-size: 9.5px; color: var(--text3); font-variant-numeric: tabular-nums; }
 .gl-label-in { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+
+/* ── ฟอร์มเพิ่ม/แก้ไขโครงการ ข้อ 4: แผนกิจกรรมแบบแถบต่อเนื่อง ── */
+.gf-wrap { overflow-x: auto; border: 1px solid var(--border2); border-radius: 10px; background: var(--surface); }
+#ganttTableModal { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; table-layout: fixed; }
+#ganttTableModal th { font-weight: 700; }
+.gf-th { background: var(--surface2); color: var(--text2); padding: 8px; text-align: center; border-bottom: 1px solid var(--border2); font-size: 12px; vertical-align: middle; }
+.gf-qh { color: #fff; font-size: 11px; padding: 6px 4px; text-align: center; letter-spacing: .03em; }
+.gf-mh { background: var(--surface2); color: var(--text2); font-size: 10.5px; font-weight: 600; padding: 4px 0; text-align: center; border-bottom: 1px solid var(--border2); line-height: 1.25; }
+.gf-mh small { display: block; font-size: 9px; color: var(--text3); font-weight: 500; }
+.gf-qsep { box-shadow: inset 1.5px 0 0 color-mix(in srgb, var(--accent) 35%, transparent); }
+.gf-row td { border-bottom: 1px solid var(--border); vertical-align: middle; }
+.gf-row:hover td { background: color-mix(in srgb, var(--accent) 3%, transparent); }
+.gf-no { text-align: center; color: var(--text3); font-size: 12px; }
+.gf-td { padding: 4px 6px; }
+.gf-input { width: 100%; border: 1px solid transparent; border-radius: 6px; outline: none; font-size: 12px; font-family: inherit; background: transparent; resize: none; overflow: hidden; line-height: 1.5; padding: 5px 6px; color: var(--text); }
+.gf-input:hover { border-color: var(--border2); }
+.gf-input:focus { border-color: var(--accent); background: var(--surface); }
+.gf-lane-td { padding: 0 !important; }
+.gf-lane { position: relative; height: 40px; }
+.gf-bars { position: absolute; inset: 0; pointer-events: none; }
+.gf-bar {
+  position: absolute; top: 50%; transform: translateY(-50%); height: 20px; border-radius: 10px;
+  background: color-mix(in srgb, var(--c) 18%, #fff); border: 1px solid color-mix(in srgb, var(--c) 60%, #fff);
+  display: flex; align-items: center; justify-content: flex-end; padding: 0 8px; overflow: hidden;
+}
+.gf-bar span { font-size: 10.5px; font-weight: 700; color: color-mix(in srgb, var(--c) 75%, #000); white-space: nowrap; }
+.gf-cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(12, 1fr); }
+.gf-cell { border-left: 1px solid var(--border); cursor: pointer; touch-action: none; user-select: none; }
+.gf-cell:first-child { border-left: none; }
+.gf-cell:nth-child(3n+1):not(:first-child) { border-left: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.gf-cell:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.gf-del { text-align: center; }
+.gf-del button { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; width: 28px; height: 28px; border-radius: 6px; }
+.gf-del button:hover { color: #ef4444; background: #fef2f2; }
+.gf-empty { text-align: center; padding: 18px; color: var(--text3); font-size: 12.5px; }

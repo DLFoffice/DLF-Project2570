@@ -37,6 +37,25 @@ function _pdfCell(txt, opts){
   return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px ${right?'4px':'7px'};font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};${right?'white-space:nowrap;':''}vertical-align:middle">${txt||''}</td>`;
 }
 
+// ── ช่องเดือนของตารางกิจกรรม (ข้อ 4) แบบแถบต่อเนื่อง ──────────────────────────────
+// เดือนที่เลือกติดกันจะถูกรวมเป็นเซลล์เดียว (colspan) แล้ววาดแถบขอบมนต่อเนื่องอยู่ข้างใน
+// เดือนที่ไม่ได้เลือกยังเป็นช่องสีอ่อนตามไตรมาสเหมือนเดิม เพื่อให้ยังอ่านตำแหน่งเดือนได้ง่าย
+function _pdfActMonthCells(monthsArr, qBg, zebra){
+  const m = Array.from({length:12}, (_,i)=> !!(monthsArr && monthsArr[i]));
+  let html = '', i = 0;
+  while(i < 12){
+    if(!m[i]){
+      html += `<td style="border:1px solid ${_PDF_BORDER};padding:0;background:${qBg[i]};height:24px"></td>`;
+      i++; continue;
+    }
+    let j = i; while(j+1 < 12 && m[j+1]) j++;
+    html += `<td colspan="${j-i+1}" style="border:1px solid ${_PDF_BORDER};padding:0 2px;background:${zebra};height:24px;vertical-align:middle">
+      <div style="height:14px;border-radius:7px;background:#dfe1f4;border:1px solid #5459AC"></div></td>`;
+    i = j+1;
+  }
+  return html;
+}
+
 function _buildActivitiesTable(activities) {
   const months = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
   const qBg = ['#e8f0fb','#e8f0fb','#e8f0fb','#e8f5e9','#e8f5e9','#e8f5e9','#fff8e8','#fff8e8','#fff8e8','#fce4ec','#fce4ec','#fce4ec'];
@@ -62,7 +81,7 @@ function _buildActivitiesTable(activities) {
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 3px;text-align:center;font-size:10px;background:${zebra}">${i+1}</td>
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_nl2br(_esc(row.name||''))}</td>
     <td style="border:1px solid ${_PDF_BORDER};padding:4px 6px;font-size:10px;background:${zebra}">${_esc(row.person||'')}</td>
-    ${(row.months||Array(12).fill(false)).map((on,mi)=>`<td style="border:1px solid ${_PDF_BORDER};padding:0;text-align:center;background:${on?'#5459AC':qBg[mi]};height:22px">${on?'<span style="color:#fff;font-size:10px">✔</span>':''}</td>`).join('')}
+    ${_pdfActMonthCells(row.months, qBg, zebra)}
   </tr>`;
   }).join('');
 

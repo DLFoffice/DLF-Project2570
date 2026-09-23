@@ -3804,6 +3804,7 @@ function onStrategyCheck(val) {
   const fStr = document.getElementById('fStrategy');
   if (fStr) fStr.value = checked ? checked.value : '1';
   _applyProjectTerminology(fStr ? fStr.value : '1');
+  if(typeof renderGanttTable==='function' && document.getElementById('ganttBodyModal')) renderGanttTable();
 }
 function _setStrategyCheckbox(val) {
   document.querySelectorAll('input[name="fStrategyCheck"]').forEach(cb => {
@@ -3812,6 +3813,7 @@ function _setStrategyCheckbox(val) {
   const fStr = document.getElementById('fStrategy');
   if (fStr) fStr.value = val || '1';
   _applyProjectTerminology(val || '1');
+  if(typeof renderGanttTable==='function' && document.getElementById('ganttBodyModal')) renderGanttTable();
 }
 
 // ── Gantt Table ────────────────────────────────────────
@@ -3819,40 +3821,109 @@ let ganttRows = [];
 function _mkGanttRow(idx, name='', person='', months=[]) {
   return { idx, name, person, months: months.length===12 ? [...months] : Array(12).fill(false) };
 }
+// ── ตารางแผนกิจกรรม (ข้อ 4) ในฟอร์มเพิ่ม/แก้ไขโครงการ — แสดงเป็นแถบต่อเนื่องแบบ Gantt ──────────
+// - คลิกช่องเดือนเพื่อเลือก/ยกเลิก หรือ "กดค้างแล้วลาก" เพื่อระบายหลายเดือนต่อกันได้ในครั้งเดียว
+// - เดือนที่เลือกติดกันจะรวมเป็นแถบยาวแถบเดียว (ขอบมน) สีตามยุทธศาสตร์ที่เลือกในฟอร์ม
+// - ข้อมูลที่บันทึกยังเป็นรูปแบบเดิม (months: [true/false x12]) จึงไม่กระทบข้อมูลเก่าหรือหน้าอื่น
+const _GF_MONTHS = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+const _GF_Q_COLORS = ['#3b72f0','#059669','#d97706','#7c3aed'];
+const _GF_S_COLORS = {1:'#3b72f0',2:'#059669',3:'#d97706',4:'#7c3aed',5:'#0891b2'};
+let _gfDrag = null; // {row, value} ระหว่างกดค้างลาก
+function _gfEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _gfColor(){
+  const v = (document.getElementById('fStrategy')||{}).value || '1';
+  return _GF_S_COLORS[v] || '#5459AC';
+}
+function _gfYearLabels(){
+  // ปีย่อ (พ.ศ. 2 หลัก) ใต้ชื่อเดือน: ต.ค.–ธ.ค. = ปีงบ-1, ม.ค.–ก.ย. = ปีงบ
+  const fy = (typeof currentYear!=='undefined') ? Number(currentYear) : 0;
+  if(!fy) return Array(12).fill('');
+  return _GF_MONTHS.map((_,i)=> String((i<3?fy-1:fy)%100).padStart(2,'0'));
+}
+function _gfRuns(months){
+  const runs=[]; (months||[]).forEach((on,i)=>{ if(!on) return; const l=runs[runs.length-1]; if(l && l.b===i-1) l.b=i; else runs.push({a:i,b:i}); });
+  return runs;
+}
+function _gfBarsHtml(months){
+  const c = _gfColor();
+  return _gfRuns(months).map(r=>{
+    const len = r.b-r.a+1;
+    const label = len>=2 ? `${_GF_MONTHS[r.a]} – ${_GF_MONTHS[r.b]}` : (len===1 ? '' : '');
+    return `<div class="gf-bar" style="left:calc(${r.a/12*100}% + 3px);width:calc(${len/12*100}% - 6px);--c:${c}">${label?`<span>${label}</span>`:''}</div>`;
+  }).join('');
+}
+function _renderGanttHeadModal(){
+  const thead = document.querySelector('#ganttTableModal thead'); if(!thead) return;
+  const yrs = _gfYearLabels();
+  thead.innerHTML = `
+    <tr>
+      <th class="gf-th" rowspan="2" style="width:34px">ที่</th>
+      <th class="gf-th" rowspan="2" style="text-align:left;width:26%">กิจกรรม / ขั้นตอน</th>
+      <th class="gf-th" rowspan="2" style="text-align:left;width:16%">ผู้รับผิดชอบ</th>
+      ${[1,2,3,4].map(q=>`<th class="gf-qh" colspan="3" style="background:${_GF_Q_COLORS[q-1]}">ไตรมาส ${q}</th>`).join('')}
+      <th class="gf-th" rowspan="2" style="width:34px"></th>
+    </tr>
+    <tr>
+      ${_GF_MONTHS.map((m,i)=>`<th class="gf-mh${i%3===0&&i>0?' gf-qsep':''}">${m}${yrs[i]?`<small>${yrs[i]}</small>`:''}</th>`).join('')}
+    </tr>`;
+}
 function renderGanttTable() {
   const tbody = document.getElementById('ganttBodyModal'); if(!tbody) return;
-  const monthBg = ['#e8f0fb','#e8f0fb','#e8f0fb','#e8f5e9','#e8f5e9','#e8f5e9','#fff8e8','#fff8e8','#fff8e8','#fce4ec','#fce4ec','#fce4ec'];
+  _renderGanttHeadModal();
+  if(!ganttRows.length){
+    tbody.innerHTML = `<tr><td colspan="16" class="gf-empty">ยังไม่มีกิจกรรม — กด “+ เพิ่มกิจกรรม” เพื่อเริ่ม</td></tr>`;
+    syncGanttToHidden(); return;
+  }
   tbody.innerHTML = ganttRows.map((row, i) => `
-    <tr>
-      <td style="border:1px solid #ccd5e4;padding:4px;text-align:center;font-size:12px">${i+1}</td>
-      <td style="border:1px solid #ccd5e4;padding:4px">
-        <input type="text" value="${row.name}" oninput="ganttRows[${i}].name=this.value;syncGanttToHidden()"
-          style="width:100%;border:none;outline:none;font-size:12px;font-family:inherit;background:transparent" placeholder="ชื่อกิจกรรม...">
-      </td>
-      <td style="border:1px solid #ccd5e4;padding:4px">
-        <input type="text" value="${row.person}" oninput="ganttRows[${i}].person=this.value;syncGanttToHidden()"
-          style="width:100%;border:none;outline:none;font-size:12px;font-family:inherit;background:transparent" placeholder="ผู้รับผิดชอบ...">
-      </td>
-      ${row.months.map((checked, mi) => `
-        <td style="border:1px solid #ccd5e4;padding:0;text-align:center;background:${monthBg[mi]};cursor:pointer"
-            onclick="toggleGanttMonth(${i},${mi})" title="คลิกเพื่อเลือก">
-          <div style="width:100%;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px">
-            ${checked ? '<span style="color:#5459AC;font-weight:700">✔</span>' : '<span style="color:#ccc">·</span>'}
+    <tr class="gf-row">
+      <td class="gf-no">${i+1}</td>
+      <td class="gf-td"><textarea rows="1" class="gf-input" oninput="ganttRows[${i}].name=this.value;syncGanttToHidden();_gfAutoGrow(this)" placeholder="ชื่อกิจกรรม...">${_gfEsc(row.name)}</textarea></td>
+      <td class="gf-td"><textarea rows="1" class="gf-input" oninput="ganttRows[${i}].person=this.value;syncGanttToHidden();_gfAutoGrow(this)" placeholder="ผู้รับผิดชอบ...">${_gfEsc(row.person)}</textarea></td>
+      <td colspan="12" class="gf-lane-td">
+        <div class="gf-lane">
+          <div class="gf-bars" id="gfBars${i}">${_gfBarsHtml(row.months)}</div>
+          <div class="gf-cells">
+            ${row.months.map((on,mi)=>`<div class="gf-cell${on?' on':''}" data-r="${i}" data-m="${mi}" title="${_GF_MONTHS[mi]} — คลิกหรือกดค้างแล้วลากเพื่อเลือกหลายเดือน"
+              onpointerdown="_gfDown(event,${i},${mi})" onpointerenter="_gfEnter(${i},${mi})"></div>`).join('')}
           </div>
-        </td>`).join('')}
-      <td style="border:1px solid #ccd5e4;padding:0;text-align:center">
-        <button type="button" onclick="removeGanttRow(${i})" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:14px;width:28px;height:28px">×</button>
+        </div>
       </td>
+      <td class="gf-del"><button type="button" onclick="removeGanttRow(${i})" title="ลบกิจกรรม">×</button></td>
     </tr>`).join('');
+  tbody.querySelectorAll('.gf-input').forEach(_gfAutoGrow);
   syncGanttToHidden();
 }
+function _gfAutoGrow(el){ if(!el) return; el.style.height='auto'; el.style.height=(el.scrollHeight)+'px'; }
+function _gfSet(rowIdx, monthIdx, value){
+  const row = ganttRows[rowIdx]; if(!row) return;
+  if(row.months[monthIdx]===value) return;
+  row.months[monthIdx] = value;
+  const bars = document.getElementById('gfBars'+rowIdx);
+  if(bars) bars.innerHTML = _gfBarsHtml(row.months);
+  const cell = document.querySelector(`#ganttBodyModal .gf-cell[data-r="${rowIdx}"][data-m="${monthIdx}"]`);
+  if(cell) cell.classList.toggle('on', value);
+  syncGanttToHidden();
+}
+function _gfDown(ev, rowIdx, monthIdx){
+  ev.preventDefault();
+  const v = !ganttRows[rowIdx].months[monthIdx];
+  _gfDrag = { row: rowIdx, value: v };
+  if(ev.target && ev.target.releasePointerCapture) try{ ev.target.releasePointerCapture(ev.pointerId); }catch(e){}
+  _gfSet(rowIdx, monthIdx, v);
+}
+function _gfEnter(rowIdx, monthIdx){
+  if(!_gfDrag || _gfDrag.row!==rowIdx) return;
+  _gfSet(rowIdx, monthIdx, _gfDrag.value);
+}
+document.addEventListener('pointerup', ()=>{ _gfDrag = null; });
 function toggleGanttMonth(rowIdx, monthIdx) {
-  ganttRows[rowIdx].months[monthIdx] = !ganttRows[rowIdx].months[monthIdx];
-  renderGanttTable();
+  _gfSet(rowIdx, monthIdx, !ganttRows[rowIdx].months[monthIdx]);
 }
 function addGanttRow() {
   ganttRows.push(_mkGanttRow(ganttRows.length));
   renderGanttTable();
+  const inputs = document.querySelectorAll('#ganttBodyModal .gf-row:last-child .gf-input');
+  if(inputs[0]) inputs[0].focus();
 }
 function removeGanttRow(i) {
   ganttRows.splice(i,1);

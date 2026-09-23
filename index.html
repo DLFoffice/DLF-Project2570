@@ -1805,41 +1805,12 @@
         </div>
         <div class="form-field full">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <span class="form-hint" style="margin:0">ระบุกิจกรรม ผู้รับผิดชอบ และทำเครื่องหมาย ✔ ในเดือนที่ดำเนินการ</span>
+            <span class="form-hint" style="margin:0">ระบุกิจกรรม ผู้รับผิดชอบ แล้วคลิกเดือนที่ดำเนินการ (กดค้างแล้วลากเพื่อเลือกหลายเดือนต่อกัน)</span>
             <button type="button" onclick="addGanttRow()" class="btn btn-sm" style="background:var(--accent);color:#fff;border-color:transparent;font-size:12px">+ เพิ่มกิจกรรม</button>
           </div>
-          <div style="overflow-x:auto;border:1.5px solid var(--border);border-radius:8px">
-            <table id="ganttTableModal" style="width:100%;border-collapse:collapse;font-size:12px;min-width:820px">
-              <thead>
-                <tr style="background:#dde4f0">
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;width:30px">ที่</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 8px;text-align:left;min-width:160px">กิจกรรม / ขั้นตอน</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 8px;text-align:left;min-width:90px">ผู้รับผิดชอบ</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;background:#c8d8f0" colspan="3">ไตรมาส 1</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;background:#c8e6c9" colspan="3">ไตรมาส 2</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;background:#ffe0b2" colspan="3">ไตรมาส 3</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;background:#f8bbd0" colspan="3">ไตรมาส 4</th>
-                  <th style="border:1px solid #b0bcd4;padding:6px 4px;text-align:center;width:28px"></th>
-                </tr>
-                <tr style="background:#eef2fb">
-                  <th style="border:1px solid #b0bcd4"></th>
-                  <th style="border:1px solid #b0bcd4"></th>
-                  <th style="border:1px solid #b0bcd4"></th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f0fb">ต.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f0fb">พ.ย.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f0fb">ธ.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f5e9">ม.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f5e9">ก.พ.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#e8f5e9">มี.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fff8e8">เม.ย.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fff8e8">พ.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fff8e8">มิ.ย.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fce4ec">ก.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fce4ec">ส.ค.</th>
-                  <th style="border:1px solid #b0bcd4;padding:4px 2px;text-align:center;font-size:10.5px;background:#fce4ec">ก.ย.</th>
-                  <th style="border:1px solid #b0bcd4"></th>
-                </tr>
-              </thead>
+          <div class="gf-wrap">
+            <table id="ganttTableModal">
+              <thead></thead>
               <tbody id="ganttBodyModal"></tbody>
             </table>
           </div>
