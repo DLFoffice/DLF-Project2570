@@ -21,10 +21,10 @@ function _val(id){ const el=document.getElementById(id); return el ? (el.value||
 
 // ── ชุดสี/เส้นขอบมาตรฐานที่ใช้ร่วมกันทุกตารางใน PDF เพื่อความเป็นระเบียบและสม่ำเสมอ ──
 // (แทนที่เส้นขอบดำสนิท #222 ที่ดูแข็ง/หนักเกินไป ด้วยสีเทาอมฟ้าที่นุ่มนวลกว่า แต่ยังคมชัดเวลาพิมพ์)
-const _PDF_BORDER = '#a9b6c9';      // เส้นขอบเซลล์ทั่วไป
-const _PDF_BORDER_DARK = '#5a6a85'; // เส้นขอบกรอบนอก/ตารางหลัก ที่ต้องการความเข้มกว่าเส้นแบ่งภายใน
-const _PDF_HEAD_BG = '#e3e9f6';     // พื้นหลังหัวตาราง (ฟ้าอ่อน) ใช้ตัวเดียวกันทุกตารางแทนที่จะมีหลายเฉด
-const _PDF_ZEBRA_BG = '#f6f8fc';    // พื้นหลังแถวคู่ (zebra stripe) ช่วยให้อ่านตารางแถวยาวๆง่ายขึ้น
+const _PDF_BORDER = '#dcd8ea';      // เส้นขอบเซลล์ทั่วไป
+const _PDF_BORDER_DARK = '#8f88b8'; // เส้นขอบกรอบนอก/ตารางหลัก ที่ต้องการความเข้มกว่าเส้นแบ่งภายใน
+const _PDF_HEAD_BG = '#f1eefb';     // พื้นหลังหัวตาราง (ฟ้าอ่อน) ใช้ตัวเดียวกันทุกตารางแทนที่จะมีหลายเฉด
+const _PDF_ZEBRA_BG = '#faf9fe';    // พื้นหลังแถวคู่ (zebra stripe) ช่วยให้อ่านตารางแถวยาวๆง่ายขึ้น
 
 function _pdfCell(txt, opts){
   const {bold,center,right,bg,color,small,colspan,rowspan,borderR,borderB,borderT,borderL,noBorder,width,gray} = opts||{};
@@ -42,8 +42,8 @@ function _pdfCell(txt, opts){
 // - แถบยาวตั้งแต่ 3 เดือนขึ้นไปจะมีป้ายช่วงเดือน (เช่น ม.ค. – มิ.ย.) อยู่ในแถบ
 // - พื้นที่เดือนเป็นพื้นขาว มีเส้นแบ่งเดือนบางๆ และเส้นแบ่งไตรมาสเข้มกว่า อ่านง่ายเวลาพิมพ์
 const _PDF_ACT_MONTHS = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
-const _PDF_ACT_Q_COLORS = ['#3b72f0','#059669','#d97706','#7c3aed'];
-const _PDF_ACT_S_COLORS = {1:'#3b72f0',2:'#059669',3:'#d97706',4:'#7c3aed',5:'#0891b2'};
+const _PDF_ACT_Q_COLORS = ['#5B83D9','#3FA07E','#D07A48','#9478DB'];
+const _PDF_ACT_S_COLORS = {1:'#5B83D9',2:'#3FA07E',3:'#D07A48',4:'#9478DB',5:'#7D82A6'};
 function _pdfActMonthBorder(i){
   return i===0 ? `1px solid ${_PDF_BORDER}` : (i%3===0 ? '1.2px solid #b3c0d8' : '1px solid #e7ecf4');
 }
@@ -251,11 +251,19 @@ function _buildSignatureBlock(proposer, proposerPos, approver, approverPos, auth
 }
 
 function _sectionHeader(num, title, color) {
-  return `<div style="background:${color||'#2c3e70'};color:#fff;font-weight:700;font-size:11px;letter-spacing:.2px;padding:6px 12px;margin:16px 0 7px;border-radius:4px;display:flex;align-items:center;gap:7px">
-    <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;background:rgba(255,255,255,.22);border-radius:9px;font-size:10px">${num}</span>
-    <span>${title}</span>
+  const c = color || '#5A4CB0';
+  return `<div style="display:flex;align-items:center;gap:9px;margin:18px 0 8px;page-break-after:avoid;break-after:avoid">
+    <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:${c};color:#fff;font-size:10px;font-weight:700">${num}</span>
+    <span style="font-size:12.5px;font-weight:700;color:#2e2a4a;letter-spacing:.1px">${title}</span>
+    <span style="flex:1;height:1.5px;background:linear-gradient(90deg,${_pdfLightBg(c,.55)},${_pdfLightBg(c,0)})"></span>
   </div>`;
 }
+// แถบตัวเลขสรุปเล็กๆ ใต้หัวข้อยุทธศาสตร์ (งบอนุมัติ / ใช้ไป / PO / คงเหลือ)
+function _ovStatStrip(st) {
+  const cell = (l, v, color) => `<span><em>${l}</em><b style="${color?'color:'+color:''}">${_fmt(v)}</b></span>`;
+  return `<div class="ov-strip">${cell('งบอนุมัติรวม', st.budget)}${cell('ใช้ไป', st.spent)}${cell('PO ผูกพัน', st.po)}${cell('คงเหลือ', st.remaining, st.remaining<0?'#c0394f':'#23805f')}</div>`;
+}
+const _OV_STATUS_PILL = {done:'done',progress:'progress',pending:'pending'};
 
 function _buildFormHTML(p, logoSrc, opts) {
   const stratNames = ['','การพัฒนาการจัดการศึกษาทางไกล','การพัฒนาครูและโรงเรียนต้นทาง','การพัฒนาครูและโรงเรียนปลายทาง','การพัฒนาระบบการบริหารจัดการ','งบบริหารสำนักงาน'];
@@ -322,17 +330,17 @@ function _buildFormHTML(p, logoSrc, opts) {
   </table>
 
   <div class="pdf-noBreak">
-    ${_sectionHeader(1,'หลักการและเหตุผล','#2c3e70')}
+    ${_sectionHeader(1,'หลักการและเหตุผล','#5A4CB0')}
     <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:60px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.rationale||''))}</div>
   </div>
 
   <div class="pdf-noBreak">
-    ${_sectionHeader(2,'วัตถุประสงค์','#2c3e70')}
+    ${_sectionHeader(2,'วัตถุประสงค์','#5A4CB0')}
     <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:44px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.objective||''))}</div>
   </div>
 
   <div class="pdf-noBreak">
-  ${_sectionHeader(3,'เป้าหมาย','#2c3e70')}
+  ${_sectionHeader(3,'เป้าหมาย','#5A4CB0')}
   <div style="font-size:10.5px;font-weight:600;margin:4px 0 2px;margin-left:8px">3.1 เชิงปริมาณ</div>
   <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;margin-bottom:6px;text-align:justify">${_nl2br(_esc(p.targetQuantity||''))}</div>
   </div>
@@ -341,21 +349,21 @@ function _buildFormHTML(p, logoSrc, opts) {
   <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.target||''))}</div>
   </div>
 
-  ${_sectionHeader(4,'การดำเนินงาน (กิจกรรม / ขั้นตอน)','#2c3e70')}
+  ${_sectionHeader(4,'การดำเนินงาน (กิจกรรม / ขั้นตอน)','#5A4CB0')}
   ${_buildActivitiesTable(p.activities, p.strategy)}
 
-  ${_sectionHeader(5,'รายละเอียดการใช้งบประมาณ','#2c3e70')}
+  ${_sectionHeader(5,'รายละเอียดการใช้งบประมาณ','#5A4CB0')}
   <div style="font-size:10.5px;margin-bottom:6px">
     ใช้งบประมาณ จำนวน <strong>${_fmt(p.budget)}</strong> บาท${p.budgetSource?' ('+_esc(p.budgetSource)+')':''}
   </div>
   ${_buildBudgetTable(p.budgetDetail, p.budget||0)}
 
-  ${_sectionHeader(6,'การวัดและประเมินผล','#2c3e70')}
+  ${_sectionHeader(6,'การวัดและประเมินผล','#5A4CB0')}
   ${_buildEvalTable(evalData)}
   ${p.risk?`<div style="font-size:10.5px;margin-top:6px"><strong>ความเสี่ยงและการจัดการ :</strong> ${_nl2br(_esc(p.risk))}</div>`:''}
 
   <div class="pdf-noBreak">
-  ${_sectionHeader(7,'ผลที่คาดว่าจะได้รับ','#2c3e70')}
+  ${_sectionHeader(7,'ผลที่คาดว่าจะได้รับ','#5A4CB0')}
   <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:50px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.expectedBenefit||''))}</div>
   </div>
 
@@ -467,7 +475,7 @@ async function _runPdfExport(htmlContentOrBlocks, filenameBase, headerOpts, orie
 <style>
   @page { size: ${pageSize}; margin: 14mm 12mm 16mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  html, body { margin:0; padding:0; background:#e5e7eb; font-family:'Sarabun',sans-serif; color:#161c26; }
+  html, body { margin:0; padding:0; background:#ecebf3; font-family:'Sarabun',sans-serif; color:#161c26; }
   table.pdf-print-table { width:100%; border-collapse:collapse;table-layout:fixed; page-break-before: always; background:#fff; }
   table.pdf-print-table:first-child { page-break-before: avoid; }
   table.pdf-print-table thead { display: table-header-group; }
@@ -476,19 +484,51 @@ async function _runPdfExport(htmlContentOrBlocks, filenameBase, headerOpts, orie
   tr, .pdf-noBreak { page-break-inside: avoid; break-inside: avoid; }
   /* ...ยกเว้นแถว "ห่อเนื้อหาทั้งกลุ่ม" ของตารางหลักเอง ที่ตั้งใจให้ล้นข้ามหลายหน้าได้ตามปกติ */
   table.pdf-print-table > thead > tr, table.pdf-print-table > tbody > tr { page-break-inside: auto; break-inside: auto; }
-  .pph-wrap { padding:10px 36px 10px; }
+  .pph-wrap { padding:12px 36px 10px; }
+  /* ── ตารางแบบเรียบหรู (minimal): เส้นแนวนอนบางๆ ไม่มีเส้นแนวตั้ง หัวตารางพื้นลาเวนเดอร์อ่อน ── */
+  table.xt { width:100%; border-collapse:collapse; table-layout:fixed; font-size:10.3px; margin:2px 0 12px; font-variant-numeric:tabular-nums; }
+  table.xt thead { display:table-header-group; }
+  table.xt th { background:#f3f1fb; color:#4a4570; font-weight:700; font-size:9.6px; text-align:left; padding:7px 8px;
+    border-top:1.6px solid #5A4CB0; border-bottom:1px solid #d6d0ee; }
+  table.xt td { padding:6px 8px; border-bottom:1px solid #ece9f5; vertical-align:top; line-height:1.5; color:#2e2a4a; }
+  table.xt tbody tr:nth-child(even) td { background:#fbfaff; }
+  table.xt tfoot td { font-weight:700; background:#f6f4fd; border-top:1.6px solid #5A4CB0; border-bottom:none; padding:7px 8px; }
+  table.xt .n { text-align:right; white-space:nowrap; }
+  table.xt .c { text-align:center; }
+  table.xt .idx { color:#8e89aa; }
+  table.xt .name { font-weight:600; }
+  table.xt .sub { color:#6b6788; font-size:9.6px; }
+  table.xt .muted { color:#c0bdd2; }
+  .sdot { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:7px; vertical-align:1px; }
+  .pill { display:inline-block; padding:1px 8px; border-radius:99px; font-size:9px; font-weight:700; white-space:nowrap; }
+  .pill.done { background:#e3f4ec; color:#23805f; } .pill.progress { background:#fcf0dc; color:#9a6416; } .pill.pending { background:#efeff4; color:#7a7f96; }
+  .mini-meter { display:inline-block; width:120px; height:6px; border-radius:99px; background:#eeecf6; overflow:hidden; vertical-align:middle; margin-right:6px; }
+  .mini-meter i { display:block; height:100%; } .mini-meter i.done { background:#8FD3B8; } .mini-meter i.progress { background:#F2C27A; } .mini-meter i.pending { background:#C3C6D6; }
+  .ov-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:2px 0 8px; }
+  .ov-kpi { border:1px solid #e6e2f3; border-radius:8px; padding:9px 12px; background:#fff; }
+  .ov-kpi.accent { background:#f3f1fb; border-color:#ddd6f6; }
+  .ov-kpi em { display:block; font-style:normal; font-size:9.4px; color:#6b6788; line-height:1.4; }
+  .ov-kpi b { display:block; font-size:16px; font-weight:700; color:#2e2a4a; margin-top:2px; font-variant-numeric:tabular-nums; }
+  .ov-kpi.accent b { color:#5A4CB0; }
+  .ov-kpi small { font-size:9px; color:#8e89aa; }
+  .ov-meter { height:6px; border-radius:99px; background:#eeecf6; overflow:hidden; margin:0 0 12px; }
+  .ov-meter i { display:block; height:100%; background:linear-gradient(90deg,#B9AEF2,#8E80EE); }
+  .ov-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:0 0 7px; }
+  .ov-strip span { padding:5px 9px; border-radius:6px; background:#f8f7fd; border:1px solid #efecf8; }
+  .ov-strip em { display:block; font-style:normal; font-size:8.8px; color:#8e89aa; }
+  .ov-strip b { display:block; font-size:11.2px; color:#2e2a4a; font-variant-numeric:tabular-nums; }
   .pph-row { display:flex; align-items:center; gap:16px; }
   .pph-logo { height:46px; width:auto; object-fit:contain; flex-shrink:0; }
   .pph-text { flex:1; text-align:center; }
-  .pph-title { font-size:15px; font-weight:700; margin:2px 0; color:#1e2f4f; }
-  .pph-sub { font-size:10px; color:#555; }
-  .pph-sub2 { font-size:9.5px; color:#888; margin-top:1px; }
-  .pph-bar { margin-top:7px; height:3px; border-radius:2px; background:linear-gradient(90deg,#2c3e70 0%,#2c3e70 70%,#8fa3cf 100%); }
+  .pph-title { font-size:15px; font-weight:700; margin:2px 0; color:#2e2a4a; }
+  .pph-sub { font-size:10px; color:#5f5a80; }
+  .pph-sub2 { font-size:9.5px; color:#8e89aa; margin-top:1px; }
+  .pph-bar { margin-top:8px; height:3px; border-radius:2px; background:linear-gradient(90deg,#8E80EE 0%,#F09BBE 45%,#F6C08E 75%,#8FD3B8 100%); }
   .pdf-print-footnote { text-align:right; font-size:9px; color:#999; padding:10px 36px 0; }
-  .pdf-print-toolbar { position:sticky; top:0; z-index:10; background:#1e2f4f; color:#fff; padding:10px 16px;
+  .pdf-print-toolbar { position:sticky; top:0; z-index:10; background:#3A3468; color:#fff; padding:10px 16px;
     display:flex; align-items:center; justify-content:space-between; font-size:13px; font-family:'Sarabun',sans-serif; }
   .pdf-print-toolbar button { font-family:'Sarabun',sans-serif; font-size:13px; font-weight:600; padding:7px 16px;
-    border:none; border-radius:6px; background:#dc2626; color:#fff; cursor:pointer; }
+    border:none; border-radius:8px; background:linear-gradient(100deg,#8E80EE,#5546C4); color:#fff; cursor:pointer; }
   .pdf-print-toolbar span { opacity:.85; }
   @media print {
     html, body { background:#fff; }
@@ -563,7 +603,7 @@ async function exportFormPDF(projectId) {
   const s = parseInt(p.strategy) || 1;
   const isOffice = s === 5;
   const blocks = [
-    { html: _buildGenericReportCoverPageHTML(_DLF_LOGO_SRC, year, isOffice?'แบบฟอร์มขอตั้งงบประมาณรายการ':'แบบฟอร์มขอตั้งงบประมาณโครงการ', isOffice?'ชื่อรายการ':'ชื่อโครงการ', p.name || '(ไม่มีชื่อ)', _OV_STRAT_COLORS[s] || '#2c3e70'), noHeader: true },
+    { html: _buildGenericReportCoverPageHTML(_DLF_LOGO_SRC, year, isOffice?'แบบฟอร์มขอตั้งงบประมาณรายการ':'แบบฟอร์มขอตั้งงบประมาณโครงการ', isOffice?'ชื่อรายการ':'ชื่อโครงการ', p.name || '(ไม่มีชื่อ)', _OV_STRAT_COLORS[s] || '#5A4CB0'), noHeader: true },
     { html: _buildFormHTML(p, _DLF_LOGO_SRC), forcePageBreak: true },
   ];
   await _runPdfExport(blocks, 'แผนปฏิบัติการ_2570_'+safeName, headerOpts);
@@ -573,9 +613,9 @@ async function exportFormPDF(projectId) {
 // EXPORT ภาพรวม / รายยุทธศาสตร์ / โครงการทั้งหมด
 // ══════════════════════════════════════════════════════
 const _OV_STRAT_NAMES = ['','การพัฒนาการจัดการศึกษาทางไกล','การพัฒนาครูและโรงเรียนต้นทาง','การพัฒนาครูและโรงเรียนปลายทาง','การพัฒนาระบบการบริหารจัดการ','งบบริหารสำนักงาน'];
-const _OV_STRAT_COLORS = ['','#3b72f0','#059669','#d97706','#9333ea','#0891b2'];
+const _OV_STRAT_COLORS = ['','#5B83D9','#3FA07E','#D07A48','#9478DB','#7D82A6'];
 const _OV_STATUS_LABEL = {done:'แล้วเสร็จ',progress:'กำลังดำเนิน',pending:'ยังไม่เริ่ม'};
-const _OV_STATUS_COLOR = {done:'#059669',progress:'#d97706',pending:'#9aa3b2'};
+const _OV_STATUS_COLOR = {done:'#23805f',progress:'#9a6416',pending:'#7a7f96'};
 // ── หน่วยงานมี "ยุทธศาสตร์" จริงแค่ 4 ด้าน (1-4) ส่วนกลุ่มที่ 5 ไม่ใช่ยุทธศาสตร์ แต่เป็น
 // "งบบริหารสำนักงาน" ซึ่งนับเป็น "รายการ" ไม่ใช่ "โครงการ" — ใช้ 2 ฟังก์ชันนี้แทนการเขียน
 // "ยุทธศาสตร์ที่ ${s}" หรือ "โครงการ" ตรงๆ ทุกจุดในรายงาน PDF ที่วนลูปตามยุทธศาสตร์/กลุ่ม (s)
@@ -605,91 +645,69 @@ function _buildAllocatedBudgetSummary(fp) {
   const entered = fp.reduce((a,p)=>a+(p.budget||0),0);
   const diff = allocated - entered;
   const over = diff < 0;
-  const diffColor = over ? '#dc2626' : '#059669';
+  const pct = allocated > 0 ? Math.round(entered/allocated*1000)/10 : 0;
   const diffLabel = over ? 'เกินวงเงินที่ได้รับจัดสรร' : 'คงเหลือ (ยังไม่จัดทำโครงการ)';
-  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:'Sarabun',sans-serif;margin-bottom:10px">
-    <tr>
-      ${_pdfCell('งบประมาณที่ได้รับจัดสรรประจำปี พ.ศ. 2570',{bold:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell(_fmt(allocated)+' บาท',{right:true,bold:true,bg:_PDF_HEAD_BG,width:'150px'})}
-    </tr>
-    <tr>
-      ${_pdfCell('ยอดรวมงบประมาณโครงการที่กรอกเข้าระบบ (ทุกยุทธศาสตร์)',{bg:_PDF_ZEBRA_BG})}
-      ${_pdfCell(_fmt(entered)+' บาท',{right:true,width:'150px',bg:_PDF_ZEBRA_BG})}
-    </tr>
-    <tr>
-      ${_pdfCell(diffLabel,{bold:true})}
-      ${_pdfCell(_fmt(Math.abs(diff))+' บาท',{right:true,bold:true,color:diffColor,width:'150px'})}
-    </tr>
-  </table>`;
+  return `<div class="ov-kpis">
+    <div class="ov-kpi accent"><em>งบประมาณที่ได้รับจัดสรรประจำปี พ.ศ. 2570</em><b>${_fmt(allocated)}</b><small>บาท</small></div>
+    <div class="ov-kpi"><em>ยอดรวมงบประมาณโครงการที่กรอกเข้าระบบ</em><b>${_fmt(entered)}</b><small>บาท · ${pct}% ของวงเงิน</small></div>
+    <div class="ov-kpi"><em>${diffLabel}</em><b style="color:${over?'#c0394f':'#23805f'}">${_fmt(Math.abs(diff))}</b><small>บาท</small></div>
+  </div>
+  <div class="ov-meter"><i style="width:${Math.min(100,Math.max(0,pct))}%;${over?'background:#e07a8f':''}"></i></div>`;
 }
 
 function _buildOverviewSummaryTable(fp) {
   const rows = [1,2,3,4,5].map(s => _ovStrategyStats(s, fp));
   let tB=0,tC=0;
-  const trs = rows.map((r,i) => {
+  const trs = rows.map(r => {
     tB+=r.budget; tC+=r.count;
-    const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
     return `<tr>
-      ${_pdfCell(r.s===5?'':r.s,{center:true,bold:true,bg:zebra})}
-      ${_pdfCell(_esc(r.name),{bg:zebra})}
-      ${_pdfCell(`${r.count} ${_stratUnit(r.s)}`,{center:true,bg:zebra})}
-      ${_pdfCell(r.budget?_fmt(r.budget):'',{right:true,bg:zebra})}
+      <td class="c idx">${r.s===5?'–':r.s}</td>
+      <td><span class="sdot" style="background:${r.color}"></span>${_esc(r.name)}</td>
+      <td class="c">${r.count} ${_stratUnit(r.s)}</td>
+      <td class="n">${r.budget?_fmt(r.budget):'<span class="muted">–</span>'}</td>
+      <td class="n">${tBshare(r.budget)}</td>
     </tr>`;
-  }).join('');
-  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:'Sarabun',sans-serif">
-    <tr class="pdf-headerRow">
-      ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'30px'})}
-      ${_pdfCell('ยุทธศาสตร์ / งบสำนักงาน',{bold:true,center:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('จำนวน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'90px'})}
-      ${_pdfCell('งบประมาณ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'120px'})}
-    </tr>
-    ${trs}
-    <tr>
-      ${_pdfCell('รวมทั้งหมด',{bold:true,center:true,colspan:2,bg:_PDF_HEAD_BG})}
-      ${_pdfCell(tC,{center:true,bold:true,bg:'#eef2ff'})}
-      ${_pdfCell(_fmt(tB),{right:true,bold:true,bg:'#eef2ff'})}
-    </tr>
+  });
+  function tBshare(b){ const tot = rows.reduce((a,r)=>a+r.budget,0); return tot>0 ? (Math.round(b/tot*1000)/10)+'%' : '–'; }
+  return `<table class="xt">
+    <colgroup><col style="width:34px"><col><col style="width:96px"><col style="width:120px"><col style="width:70px"></colgroup>
+    <thead><tr><th class="c">ที่</th><th>ยุทธศาสตร์ / งบสำนักงาน</th><th class="c">จำนวน</th><th class="n">งบประมาณ (บาท)</th><th class="n">สัดส่วน</th></tr></thead>
+    <tbody>${trs.join('')}</tbody>
+    <tfoot><tr><td></td><td>รวมทั้งหมด</td><td class="c">${tC}</td><td class="n">${_fmt(tB)}</td><td class="n">100%</td></tr></tfoot>
   </table>`;
 }
 
 function _buildStrategyProjectsTable(ps) {
-  if (!ps.length) return `<div style="font-size:10.5px;color:#888;padding:8px 4px">ไม่มีข้อมูลในหมวดนี้</div>`;
+  if (!ps.length) return `<div style="font-size:10.5px;color:#8e89aa;padding:8px 4px">ไม่มีข้อมูลในหมวดนี้</div>`;
+  const num = v => v ? _fmt(v) : '<span class="muted">–</span>';
   const rows = ps.map((p,i) => {
     const budget=p.budget||0, spent=p.spent||0, po=p.po||0, remaining=budget-spent-po;
-    const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
+    const st = _OV_STATUS_PILL[p.status] || 'pending';
     return `<tr>
-      ${_pdfCell(i+1,{center:true,bg:zebra})}
-      ${_pdfCell(_esc(p.name||''),{bg:zebra})}
-      ${_pdfCell(_esc(p.owner||p.dept||''),{small:true,bg:zebra})}
-      ${_pdfCell(budget?_fmt(budget):'',{right:true,bg:zebra})}
-      ${_pdfCell(spent?_fmt(spent):'',{right:true,bg:zebra})}
-      ${_pdfCell(po?_fmt(po):'',{right:true,bg:zebra})}
-      ${_pdfCell(_fmt(remaining),{right:true,color:'#059669',bg:zebra})}
-      ${_pdfCell(_OV_STATUS_LABEL[p.status]||'-',{center:true,small:true,color:_OV_STATUS_COLOR[p.status]||'#333',bg:zebra})}
+      <td class="c idx">${i+1}</td>
+      <td class="name">${_esc(p.name||'')}</td>
+      <td class="sub">${_esc(p.owner||p.dept||'') || '<span class="muted">–</span>'}</td>
+      <td class="n">${num(budget)}</td>
+      <td class="n">${num(spent)}</td>
+      <td class="n">${num(po)}</td>
+      <td class="n" style="color:${remaining<0?'#c0394f':'#23805f'};font-weight:600">${_fmt(remaining)}</td>
+      <td class="c"><span class="pill ${st}">${_OV_STATUS_LABEL[p.status]||'-'}</span></td>
     </tr>`;
   }).join('');
   let tb=0,ts=0,tp=0;
   ps.forEach(p => { tb+=p.budget||0; ts+=p.spent||0; tp+=p.po||0; });
-  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:'Sarabun',sans-serif;margin-bottom:4px">
-    <tr class="pdf-headerRow">
-      ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'24px'})}
-      ${_pdfCell('ชื่อโครงการ / รายการ',{bold:true,center:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('หน่วยงาน/ผู้รับผิดชอบ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'100px',small:true})}
-      ${_pdfCell('งบอนุมัติ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'88px',small:true})}
-      ${_pdfCell('ใช้ไป',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'82px',small:true})}
-      ${_pdfCell('PO',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'72px',small:true})}
-      ${_pdfCell('คงเหลือ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'86px',small:true})}
-      ${_pdfCell('สถานะ',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'62px',small:true})}
-    </tr>
-    ${rows}
-    <tr>
-      ${_pdfCell('รวม',{bold:true,center:true,colspan:3,bg:_PDF_HEAD_BG})}
-      ${_pdfCell(_fmt(tb),{right:true,bold:true,bg:'#eef2ff'})}
-      ${_pdfCell(_fmt(ts),{right:true,bold:true,bg:'#eef2ff'})}
-      ${_pdfCell(_fmt(tp),{right:true,bold:true,bg:'#eef2ff'})}
-      ${_pdfCell(_fmt(tb-ts-tp),{right:true,bold:true,color:'#059669',bg:'#eef2ff'})}
-      ${_pdfCell('',{bg:'#eef2ff'})}
-    </tr>
+  return `<table class="xt">
+    <colgroup><col style="width:26px"><col><col style="width:100px"><col style="width:78px"><col style="width:72px"><col style="width:64px"><col style="width:78px"><col style="width:82px"></colgroup>
+    <thead><tr>
+      <th class="c">ที่</th><th>ชื่อโครงการ / รายการ</th><th>หน่วยงาน / ผู้รับผิดชอบ</th>
+      <th class="n">งบอนุมัติ</th><th class="n">ใช้ไป</th><th class="n">PO</th><th class="n">คงเหลือ</th><th class="c">สถานะ</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr>
+      <td></td><td colspan="2">รวม ${ps.length} ${_stratUnit(ps[0].strategy)}</td>
+      <td class="n">${_fmt(tb)}</td><td class="n">${_fmt(ts)}</td><td class="n">${_fmt(tp)}</td>
+      <td class="n" style="color:${tb-ts-tp<0?'#c0394f':'#23805f'}">${_fmt(tb-ts-tp)}</td><td></td>
+    </tr></tfoot>
   </table>`;
 }
 
@@ -702,14 +720,14 @@ function _buildOverviewHTML(mode, logoSrc) {
   let body = '';
   let secNum = 1;
   if (isAll) {
-    body += `<div class="pdf-noBreak">${_sectionHeader(secNum, 'ภาพรวมทุกยุทธศาสตร์', '#2c3e70')}${_buildOverviewSummaryTable(fp)}</div>`;
+    body += `<div class="pdf-noBreak">${_sectionHeader(secNum, 'ภาพรวมทุกยุทธศาสตร์', '#5A4CB0')}${_buildOverviewSummaryTable(fp)}</div>`;
     secNum++;
   }
   stratList.forEach(s => {
     const stat = _ovStrategyStats(s, fp);
     body += `<div class="pdf-noBreak" style="margin-top:14px">${_sectionHeader(secNum, _stratHeaderText(s, stat.count), stat.color)}</div>`;
     if (isAll) {
-      body += `<div style="font-size:10.5px;margin-bottom:6px">งบอนุมัติรวม <strong>${_fmt(stat.budget)}</strong> บาท · ใช้ไป <strong>${_fmt(stat.spent)}</strong> บาท · PO <strong>${_fmt(stat.po)}</strong> บาท · คงเหลือ <strong style="color:#059669">${_fmt(stat.remaining)}</strong> บาท</div>`;
+      body += _ovStatStrip(stat);
     }
     body += _buildStrategyProjectsTable(stat.projects);
     secNum++;
@@ -770,7 +788,7 @@ function _buildCoverPageHTML(logoSrc, year) {
 // รูปแบบเดียวกับหน้าปกรูปเล่มฉบับสมบูรณ์ (_buildCoverPageHTML) แต่ใส่ชื่อรายงาน/ชื่อโครงการที่เกี่ยวข้องเพิ่มเข้าไปในกล่องเน้นสี
 // detailLabel/detailValue: ใส่ได้เมื่อ export เจาะจงรายการเดียว เช่น "ชื่อโครงการ" + ชื่อโครงการนั้น (ถ้าไม่มีให้ส่ง '' จะไม่แสดงกล่อง)
 function _buildGenericReportCoverPageHTML(logoSrc, year, reportLabel, detailLabel, detailValue, accentColor) {
-  const color = accentColor || '#2c3e70';
+  const color = accentColor || '#5A4CB0';
   return `
 <div style="font-family:'Sarabun',sans-serif;width:100%;box-sizing:border-box;min-height:255mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:#fff;color:#111;padding:40px 36px">
   <img src="${logoSrc}" style="width:120px;height:auto;margin-bottom:28px" alt="logo">
@@ -791,7 +809,7 @@ function _buildGenericReportCoverPageHTML(logoSrc, year, reportLabel, detailLabe
 // หน้าปกคั่นยุทธศาสตร์ — ใช้คั่นก่อนเริ่มรายละเอียดโครงการของแต่ละยุทธศาสตร์ใน "รูปเล่มรายงานฉบับสมบูรณ์" (book)
 // ดีไซน์เต็มหน้าของตัวเอง (ธีมสีตามยุทธศาสตร์นั้น) จึงใช้ noHeader:true ตอนเรียกใช้ เหมือนหน้าปกหลัก/หน้าปกอนุกรรมการ
 function _buildStrategyCoverPageHTML(logoSrc, year, s, name, count, color) {
-  color = color || '#2c3e70';
+  color = color || '#5A4CB0';
   s = parseInt(s);
   const isOffice = s === 5; // งบบริหารสำนักงาน ไม่ใช่ยุทธศาสตร์ จึงไม่ใส่หมายเลข/คำว่า "ยุทธศาสตร์ที่" กำกับ
   const badgeContent = isOffice ? '🏢' : s;
@@ -845,33 +863,20 @@ function _buildForewordHTML(fp, year) {
 // ตารางสรุปสถานะโครงการ (แล้วเสร็จ / กำลังดำเนิน / ยังไม่เริ่ม) พร้อมสัดส่วนร้อยละ
 function _buildStatusBreakdownTable(fp) {
   const total = fp.length || 1;
-  const done = fp.filter(p=>p.status==='done').length;
-  const prog = fp.filter(p=>p.status==='progress').length;
-  const pend = fp.filter(p=>p.status==='pending').length;
   const rows = [
-    {label:'✅ แล้วเสร็จ', n:done, color:_OV_STATUS_COLOR.done},
-    {label:'⏳ อยู่ระหว่างดำเนินการ', n:prog, color:_OV_STATUS_COLOR.progress},
-    {label:'⭕ ยังไม่เริ่มดำเนินการ', n:pend, color:_OV_STATUS_COLOR.pending},
+    {k:'done', label:'แล้วเสร็จ', n:fp.filter(p=>p.status==='done').length},
+    {k:'progress', label:'อยู่ระหว่างดำเนินการ', n:fp.filter(p=>p.status==='progress').length},
+    {k:'pending', label:'ยังไม่เริ่มดำเนินการ', n:fp.filter(p=>p.status==='pending').length},
   ];
-  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:'Sarabun',sans-serif;margin-bottom:10px">
-    <tr class="pdf-headerRow">
-      ${_pdfCell('สถานะ',{bold:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('จำนวน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'110px'})}
-      ${_pdfCell('สัดส่วน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'90px'})}
-    </tr>
-    ${rows.map((r,i)=>{
-      const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
-      return `<tr>
-      ${_pdfCell(r.label,{color:r.color,bold:true,bg:zebra})}
-      ${_pdfCell(r.n,{center:true,bg:zebra})}
-      ${_pdfCell(Math.round(r.n/total*100)+'%',{center:true,bg:zebra})}
-    </tr>`;
-    }).join('')}
-    <tr>
-      ${_pdfCell('รวมทั้งหมด',{bold:true,bg:'#eef2ff'})}
-      ${_pdfCell(fp.length,{center:true,bold:true,bg:'#eef2ff'})}
-      ${_pdfCell('100%',{center:true,bold:true,bg:'#eef2ff'})}
-    </tr>
+  return `<table class="xt">
+    <colgroup><col><col style="width:90px"><col style="width:200px"></colgroup>
+    <thead><tr><th>สถานะ</th><th class="c">จำนวน</th><th>สัดส่วน</th></tr></thead>
+    <tbody>${rows.map(r=>{ const pc=Math.round(r.n/total*100); return `<tr>
+      <td><span class="pill ${r.k}">${r.label}</span></td>
+      <td class="c">${r.n}</td>
+      <td><span class="mini-meter"><i class="${r.k}" style="width:${pc}%"></i></span> ${pc}%</td>
+    </tr>`; }).join('')}</tbody>
+    <tfoot><tr><td>รวมทั้งหมด</td><td class="c">${fp.length}</td><td>100%</td></tr></tfoot>
   </table>`;
 }
 
@@ -881,22 +886,18 @@ function _buildCommitteeSummaryTablePdf(fp) {
   const map = _comStats(fp);
   const list = [...COM_LIST, COM_UNASSIGNED].filter(c => map[c.key] && map[c.key].projects.length > 0);
   if (!list.length) return '';
-  const rows = list.map((c,i) => {
+  const rows = list.map(c => {
     const d = map[c.key];
-    const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
     return `<tr>
-      ${_pdfCell(c.icon+' '+_esc(c.label),{bg:zebra})}
-      ${_pdfCell(d.projects.length,{center:true,bg:zebra})}
-      ${_pdfCell(_fmt(Math.round(d.budget)),{right:true,bg:zebra})}
+      <td><span class="sdot" style="background:${c.color||'#9B8CE8'}"></span>${_esc(c.label)}</td>
+      <td class="c">${d.projects.length}</td>
+      <td class="n">${_fmt(Math.round(d.budget))}</td>
     </tr>`;
   }).join('');
-  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:'Sarabun',sans-serif;margin-bottom:10px">
-    <tr class="pdf-headerRow">
-      ${_pdfCell('อนุกรรมการ',{bold:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('จำนวน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'80px'})}
-      ${_pdfCell('งบประมาณ (บาท)',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'150px'})}
-    </tr>
-    ${rows}
+  return `<table class="xt">
+    <colgroup><col><col style="width:80px"><col style="width:140px"></colgroup>
+    <thead><tr><th>อนุกรรมการ</th><th class="c">จำนวน</th><th class="n">งบประมาณ (บาท)</th></tr></thead>
+    <tbody>${rows}</tbody>
   </table>`;
 }
 
@@ -933,10 +934,10 @@ function _buildExecutiveSummaryHTML(fp, year) {
     คิดเป็นงบประมาณ ${_fmt(topStrat.budget)} บาท` : ''}
   </div>
 
-  <div class="pdf-noBreak">${_sectionHeader('ก','งบประมาณโดยสรุป','#2c3e70')}${_buildAllocatedBudgetSummary(fp)}</div>
-  <div class="pdf-noBreak">${_sectionHeader('ข','สถานะการดำเนินงานโครงการ','#2c3e70')}${_buildStatusBreakdownTable(fp)}</div>
-  <div class="pdf-noBreak">${_sectionHeader('ค','สรุปงบประมาณและจำนวนโครงการแยกตามยุทธศาสตร์','#2c3e70')}${_buildOverviewSummaryTable(fp)}</div>
-  ${committeeTable ? `<div class="pdf-noBreak">${_sectionHeader('ง','สรุปงบประมาณและจำนวนโครงการแยกตามอนุกรรมการ','#2c3e70')}${committeeTable}</div>` : ''}
+  <div class="pdf-noBreak">${_sectionHeader('ก','งบประมาณโดยสรุป','#5A4CB0')}${_buildAllocatedBudgetSummary(fp)}</div>
+  <div class="pdf-noBreak">${_sectionHeader('ข','สถานะการดำเนินงานโครงการ','#5A4CB0')}${_buildStatusBreakdownTable(fp)}</div>
+  <div class="pdf-noBreak">${_sectionHeader('ค','สรุปงบประมาณและจำนวนโครงการแยกตามยุทธศาสตร์','#5A4CB0')}${_buildOverviewSummaryTable(fp)}</div>
+  ${committeeTable ? `<div class="pdf-noBreak">${_sectionHeader('ง','สรุปงบประมาณและจำนวนโครงการแยกตามอนุกรรมการ','#5A4CB0')}${committeeTable}</div>` : ''}
 </div>`;
 }
 
@@ -944,12 +945,12 @@ function _buildExecutiveSummaryHTML(fp, year) {
 function _buildOverviewOnlySectionHTML(fp, logoSrc, quarter) {
   return `
 <div style="font-family:'Sarabun',sans-serif;width:100%;box-sizing:border-box;margin:0 auto;background:#fff;color:#111;font-size:11px;line-height:1.6;padding:6px 36px 24px;overflow-wrap:anywhere;word-break:normal">
-  <div class="pdf-noBreak">${_sectionHeader(1, 'สรุปงบประมาณเทียบกับวงเงินที่ได้รับจัดสรร', '#2c3e70')}${_buildAllocatedBudgetSummary(fp)}</div>
-  <div class="pdf-noBreak">${_sectionHeader(2, 'ภาพรวมทุกยุทธศาสตร์', '#2c3e70')}${_buildOverviewSummaryTable(fp)}</div>
+  <div class="pdf-noBreak">${_sectionHeader(1, 'สรุปงบประมาณเทียบกับวงเงินที่ได้รับจัดสรร', '#5A4CB0')}${_buildAllocatedBudgetSummary(fp)}</div>
+  <div class="pdf-noBreak">${_sectionHeader(2, 'ภาพรวมทุกยุทธศาสตร์', '#5A4CB0')}${_buildOverviewSummaryTable(fp)}</div>
   ${[1,2,3,4,5].map((s,i) => {
     const stat = _ovStrategyStats(s, fp);
     if (!stat.count) return '';
-    return `<div class="pdf-noBreak" style="margin-top:12px">${_sectionHeader('2.'+(i+1), _stratHeaderText(s, stat.count), stat.color)}</div>${_buildStrategyProjectsTable(stat.projects)}`;
+    return `<div class="pdf-noBreak" style="margin-top:12px">${_sectionHeader('2.'+(i+1), _stratHeaderText(s, stat.count), stat.color)}${_ovStatStrip(stat)}</div>${_buildStrategyProjectsTable(stat.projects)}`;
   }).join('')}
 </div>`;
 }
@@ -985,7 +986,7 @@ function _buildFullFormsBlocks(fp, logoSrc, opts) {
       blocks.push({
         html: `
 <div style="font-family:'Sarabun',sans-serif;width:100%;box-sizing:border-box;margin:0 auto;background:#fff;padding:10px 36px 0">
-  <div class="pdf-noBreak" style="background:${_OV_STRAT_COLORS[s]};color:#fff;font-weight:700;font-size:11.5px;padding:6px 12px;margin:14px 0 6px;border-radius:3px">${_stratHeaderText(s, ps.length)}</div>
+  <div class="pdf-noBreak">${_sectionHeader(s===5?'–':s, _stratHeaderText(s, ps.length), _OV_STRAT_COLORS[s])}</div>
 </div>`,
         forcePageBreak: true, // ยุทธศาสตร์ใหม่แต่ละกลุ่มเริ่มหน้าใหม่เสมอ
       });
@@ -1023,11 +1024,11 @@ function _buildReportBlocks(reportType, quarter, strategyFilter, logoSrc) {
     // รายงานประเภทอื่น (ภาพรวม / รายโครงการ / ฉบับสมบูรณ์) ไม่มีหน้าปก+คำนำ+บทสรุปแบบรูปเล่ม
     // แต่ยังคงเพิ่มหน้าปกทั่วไปให้ทุกฉบับ เพื่อให้ดูเป็นทางการเหมือนรูปเล่มรายงานฉบับสมบูรณ์
     if (reportType === 'overview') {
-      blocks.push({ html: _buildGenericReportCoverPageHTML(logoSrc, year, 'รายงานสรุปภาพรวมยุทธศาสตร์', 'ไตรมาสที่รายงาน', ql, '#2c3e70'), noHeader: true });
+      blocks.push({ html: _buildGenericReportCoverPageHTML(logoSrc, year, 'รายงานสรุปภาพรวมยุทธศาสตร์', 'ไตรมาสที่รายงาน', ql, '#5A4CB0'), noHeader: true });
     } else if (reportType === 'projects') {
       // ถ้ากรองจนเหลือโครงการเดียว ให้ขึ้นชื่อโครงการนั้นบนหน้าปกไปเลย ตามที่ผู้ใช้ต้องการ
       let detailLabel = 'ยุทธศาสตร์ที่รายงาน', detailValue = strategyFilter && strategyFilter !== 'all' ? _esc(_stratLabel(strategyFilter)) : `ทุกยุทธศาสตร์ (${fpProjects.length} โครงการ)`;
-      let accent = strategyFilter && strategyFilter !== 'all' ? _OV_STRAT_COLORS[strategyFilter] : '#2c3e70';
+      let accent = strategyFilter && strategyFilter !== 'all' ? _OV_STRAT_COLORS[strategyFilter] : '#5A4CB0';
       if (fpProjects.length === 1) {
         detailLabel = parseInt(fpProjects[0].strategy) === 5 ? 'ชื่อรายการ' : 'ชื่อโครงการ';
         detailValue = fpProjects[0].name || '(ไม่มีชื่อ)';
@@ -1035,7 +1036,7 @@ function _buildReportBlocks(reportType, quarter, strategyFilter, logoSrc) {
       }
       blocks.push({ html: _buildGenericReportCoverPageHTML(logoSrc, year, 'รายงานสรุปรายโครงการ', detailLabel, detailValue, accent), noHeader: true });
     } else if (reportType === 'full') {
-      blocks.push({ html: _buildGenericReportCoverPageHTML(logoSrc, year, 'รายงานฉบับสมบูรณ์ (ภาพรวม + รายโครงการ)', 'ไตรมาสที่รายงาน', ql, '#2c3e70'), noHeader: true });
+      blocks.push({ html: _buildGenericReportCoverPageHTML(logoSrc, year, 'รายงานฉบับสมบูรณ์ (ภาพรวม + รายโครงการ)', 'ไตรมาสที่รายงาน', ql, '#5A4CB0'), noHeader: true });
     }
   }
   if (reportType === 'overview' || reportType === 'full' || reportType === 'book') {

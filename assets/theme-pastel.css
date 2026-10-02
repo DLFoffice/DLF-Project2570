@@ -596,3 +596,132 @@ tbody tr.data-row:hover td { background: #FAF8FF; }
   color: var(--text) !important;
   border: 1px solid var(--border2) !important;
 }
+
+/* ═══════════ ปรับเพิ่ม (รอบ 4) ═══════════ */
+
+/* 1) โลโก้และข้อความหัวแถบเมนูอยู่กึ่งกลาง */
+.sidebar-logo { text-align: center; }
+.sidebar-logo .org-logo { margin-left: auto; margin-right: auto; }
+
+/* 3) ซ่อนตัวเลือกไตรมาสในแถบบน */
+#quarterSelect[hidden] { display: none !important; }
+
+/* 4) พรีวิวรายละเอียดโครงการ */
+.detail-modal { --sc: #9B8CE8; --sc-lt: #EEEBFC; width: min(860px, 100%); overflow: hidden; }
+.detail-modal .modal-header {
+  position: relative;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 1.35rem 1.5rem 1.2rem;
+  border-bottom: none;
+  background:
+    radial-gradient(60% 160% at 100% 0%, rgba(250,210,194,.5) 0%, transparent 60%),
+    linear-gradient(180deg, var(--sc-lt) 0%, #F6F4FD 100%);
+}
+.detail-modal .modal-header::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--sc);
+}
+.detail-modal #detailTitle {
+  font-size: 19px; font-weight: 700; line-height: 1.45; color: var(--text);
+  padding: 0 !important; background: none !important; border: none !important;
+}
+.detail-modal .modal-header .btn-icon {
+  flex: none; width: 36px; height: 36px; padding: 0; justify-content: center;
+  border-radius: 50%; background: rgba(255,255,255,.85); border-color: transparent;
+}
+.detail-modal .modal-header .btn-icon:hover { background: #fff; color: var(--accent); transform: rotate(90deg); }
+.detail-modal .modal-header .btn-icon svg { transition: none; }
+.detail-modal .modal-body { padding: 0 1.5rem 1.5rem; background: #fff; }
+
+.dt-hero {
+  margin: 0 -1.5rem 1.25rem;
+  padding: 0 1.5rem 1.25rem;
+  background: linear-gradient(180deg, #F6F4FD 0%, #fff 100%);
+  border-bottom: 1px solid #F0EEF8;
+}
+.dt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.dt-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 10px; border-radius: 99px;
+  background: #fff; border: 1px solid var(--border2);
+  font-size: 11.5px; font-weight: 600; color: var(--text2);
+}
+.dt-tag svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+.dt-stats { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 10px; }
+.dt-stat {
+  padding: 12px 14px; border-radius: 14px;
+  background: #fff; border: 1px solid #EFECF8;
+  box-shadow: 0 6px 16px -14px rgba(74,62,150,.5);
+}
+.dt-stat span { display: block; font-size: 11.5px; color: var(--text3); font-weight: 600; }
+.dt-stat b { display: block; margin-top: 2px; font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.25; }
+.dt-stat small { font-size: 11px; color: var(--text3); }
+.dt-stat.dt-main { background: linear-gradient(135deg, #fff 0%, var(--sc-lt) 100%); border-color: transparent; }
+.dt-stat.dt-main b { font-size: 22px; color: var(--accent-2); }
+.dt-stat .c-spent { color: var(--green); }
+.dt-stat .c-po { color: var(--amber); }
+.dt-stat .c-rem { color: var(--text); }
+.dt-stat .c-neg { color: var(--red); }
+.dt-bar { display: flex; height: 8px; margin-top: 14px; border-radius: 99px; overflow: hidden; background: #F0EEF8; }
+.dt-bar i { display: block; height: 100%; transition: width .8s var(--ease-out); }
+.dt-bar .s { background: #8FD3B8; }
+.dt-bar .p { background: #F7D58E; }
+.dt-bar-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 7px; font-size: 11.5px; color: var(--text3); }
+.dt-bar-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dt-bar-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+.dt-bar-legend i.s { background: #8FD3B8; } .dt-bar-legend i.p { background: #F7D58E; }
+.dt-bar-pct { margin-left: auto; }
+.dt-bar-pct b { color: var(--accent-2); }
+.dt-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.dt-chip { padding: 3px 11px; border-radius: 99px; background: var(--p-lavender-lt); color: var(--accent-2); font-size: 12px; font-weight: 600; }
+.dt-muted { color: var(--text3); font-weight: 400; font-size: 12px; }
+
+#detailBody .detail-section {
+  margin-bottom: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #EFECF8;
+  border-radius: 16px;
+  background: #fff;
+}
+#detailBody .detail-section-title {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px; padding-bottom: 0; border-bottom: none;
+  font-family: var(--font-display); font-size: 14.5px; font-weight: 700; color: var(--text);
+}
+#detailBody .detail-section-title::before {
+  content: ''; flex: none; width: 4px; height: 16px; border-radius: 4px; background: var(--sc);
+}
+#detailBody .detail-section-title > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+#detailBody .detail-grid { gap: 14px 18px; }
+#detailBody .detail-item-label { font-size: 11.5px; color: var(--text3); font-weight: 600; margin-bottom: 3px; }
+#detailBody .detail-item-value { font-size: 13.5px; font-weight: 600; color: var(--text); }
+#detailBody .detail-text { font-size: 14px; line-height: 1.85; color: var(--text2); }
+
+/* ตารางในพรีวิว (สไตล์เดิมเป็น inline — ทับด้วย !important) */
+#detailBody table { border-collapse: separate !important; border-spacing: 0; width: 100%; border: 1px solid #ECE9F6; border-radius: 12px; overflow: hidden; font-size: 12.5px !important; }
+#detailBody table th { background: #F8F7FD !important; color: var(--text2) !important; font-weight: 600 !important; border: none !important; border-bottom: 1px solid #ECE9F6 !important; padding: 9px 10px !important; }
+#detailBody table td { border: none !important; border-bottom: 1px solid #F3F1FA !important; padding: 8px 10px !important; }
+#detailBody table tbody tr:last-child td { border-bottom: none !important; }
+#detailBody table tbody tr:nth-child(even) td { background: #FCFBFF; }
+#detailBody table tfoot td { background: #F6F4FD !important; border-top: 1px solid #ECE9F6 !important; border-bottom: none !important; }
+#detailBody thead tr { background: transparent !important; }
+
+/* บล็อกรายไตรมาส + ปุ่ม (สไตล์เดิมเป็น inline) */
+#detailBody .detail-section div[style*="border:1px solid var(--border2);border-radius:10px"] { border-color: #ECE9F6 !important; border-radius: 14px !important; background: #FCFBFF !important; }
+#detailBody .detail-section div[style*="border:1px dashed var(--border2)"] { border-radius: 14px !important; background: #FAF9FE !important; }
+#detailBody .btn[style*="#dc2626"] { background: #fff !important; color: var(--red) !important; border-color: #F3CCD5 !important; }
+#detailBody .btn[style*="#dc2626"]:hover { background: var(--red-light) !important; }
+#detailBody .btn[style*="#eef2ff"] { background: var(--p-lavender-lt) !important; color: var(--accent-2) !important; border-color: var(--p-lavender) !important; }
+#detailBody div[style*="grid-template-columns:1fr 1fr 1fr"] > div { border-radius: 14px !important; border-color: #ECE9F6 !important; background: #FCFBFF; }
+
+.detail-modal .modal-footer { gap: 8px; padding: .9rem 1.5rem; background: #FAF9FE; border-top-color: #F0EEF8; }
+.btn-pdf { background: #fff; color: var(--red); border-color: #F3CCD5; }
+.btn-pdf:hover { background: var(--red-light); color: var(--red); border-color: var(--red); }
+
+@media (max-width: 720px) {
+  .dt-stats { grid-template-columns: 1fr 1fr; }
+  .detail-modal .modal-body { padding: 0 1rem 1rem; }
+  .dt-hero { margin: 0 -1rem 1rem; padding: 0 1rem 1rem; }
+}
+#detailBody .detail-section-title { justify-content: flex-start !important; }
+#detailBody .detail-section-title > span:first-child { margin-right: auto; }

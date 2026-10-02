@@ -279,81 +279,86 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
         65% { transform:translateY(-6px) scale(1.01) }
         100%{ opacity:1; transform:translateY(0) scale(1) }
       }
-      @keyframes _wlcCardOut {
-        0%  { opacity:1; transform:scale(1) }
-        100%{ opacity:0; transform:scale(.9) translateY(20px) }
-      }
-      @keyframes _wlcShimmer {
-        0%  { background-position:200% center }
-        100%{ background-position:-200% center }
-      }
-      @keyframes _wlcPulse {
-        0%,100%{ box-shadow:0 0 0 0 rgba(34,197,94,.4) }
-        50%    { box-shadow:0 0 0 10px rgba(34,197,94,0) }
-      }
+      @keyframes _wlcCardOut { 0%{ opacity:1; transform:scale(1) } 100%{ opacity:0; transform:scale(.92) translateY(18px) } }
+      @keyframes _wlcSpin { to { transform:rotate(360deg) } }
+      @keyframes _wlcRise { from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+      @keyframes _wlcDrift { 50% { transform:translate(18px,-10px) scale(1.12) } }
       @keyframes _wlcBar { from{width:0} to{width:100%} }
+      @keyframes _wlcWave { 0%,60%,100%{transform:rotate(0)} 10%,30%{transform:rotate(14deg)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(-4deg)} 50%{transform:rotate(10deg)} }
       ._wlc-overlay {
         position:fixed;inset:0;z-index:99999;
-        display:flex;align-items:center;justify-content:center;
-        background:rgba(15,23,42,.55);
-        backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+        display:flex;align-items:center;justify-content:center;padding:16px;
+        background:rgba(58,52,104,.28);
+        backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
         animation:_wlcOverlayIn .3s ease forwards;
       }
       ._wlc-card {
-        background:#fff;
-        border-radius:20px;
-        box-shadow:0 24px 64px rgba(0,0,0,.22),0 4px 16px rgba(0,0,0,.1);
-        width:340px;
-        overflow:hidden;
-        animation:_wlcCardIn .45s cubic-bezier(.22,.68,0,1.15) forwards;
-        font-family:'Sarabun',sans-serif;
+        position:relative;width:360px;max-width:100%;overflow:hidden;
+        background:#fff;border-radius:24px;
+        box-shadow:0 40px 80px -30px rgba(74,62,150,.55),0 0 0 1px rgba(255,255,255,.8) inset;
+        animation:_wlcCardIn .5s cubic-bezier(.22,.68,0,1.15) forwards;
+        font-family:'Noto Sans Thai','Sarabun',sans-serif;color:#2E2A4A;
       }
       ._wlc-header {
-        padding:28px 24px 20px;
-        background:linear-gradient(135deg,#0f4c81 0%,#1a6bb0 50%,#0d7a4e 100%);
-        background-size:200% auto;
-        animation:_wlcShimmer 3s linear infinite;
-        text-align:center;position:relative;
+        position:relative;overflow:hidden;text-align:center;
+        padding:30px 24px 22px;
+        background:linear-gradient(140deg,#E6E0FC 0%,#E4EEFC 55%,#FBE7EE 100%);
       }
+      ._wlc-header::before,._wlc-header::after {
+        content:'';position:absolute;border-radius:50%;filter:blur(26px);opacity:.85;
+        animation:_wlcDrift 7s ease-in-out infinite;
+      }
+      ._wlc-header::before { width:150px;height:150px;left:-40px;top:-50px;background:#CFC6F5; }
+      ._wlc-header::after  { width:130px;height:130px;right:-30px;bottom:-60px;background:#FAD2C2;animation-delay:-3s; }
+      ._wlc-orbit { position:relative;z-index:1;width:84px;height:84px;margin:0 auto 14px; }
+      ._wlc-orbit .ring { position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(106,92,216,.4);animation:_wlcSpin 12s linear infinite; }
+      ._wlc-orbit .ring i { position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#F29BB8;box-shadow:0 0 0 3px rgba(242,155,184,.3); }
       ._wlc-avatar {
-        width:64px;height:64px;border-radius:50%;
-        background:rgba(255,255,255,.2);
-        border:3px solid rgba(255,255,255,.6);
+        position:absolute;inset:10px;border-radius:50%;
         display:flex;align-items:center;justify-content:center;
-        font-size:26px;font-weight:700;color:#fff;
-        margin:0 auto 12px;
-        animation:_wlcPulse 2s ease infinite;
+        background:#fff;box-shadow:0 10px 22px -10px rgba(106,92,216,.6);
+        font-family:'Anuphan','Noto Sans Thai',sans-serif;font-size:28px;font-weight:700;
+        background-clip:padding-box;color:#6A5CD8;
       }
-      ._wlc-greeting { font-size:13px;color:rgba(255,255,255,.8);margin-bottom:4px;letter-spacing:.3px; }
-      ._wlc-name { font-size:18px;font-weight:700;color:#fff;line-height:1.3; }
-      ._wlc-body { padding:20px 24px 8px; }
+      ._wlc-greeting { position:relative;z-index:1;font-size:13px;color:#5F5A80;margin-bottom:2px;animation:_wlcRise .5s .15s both; }
+      ._wlc-greeting span { display:inline-block;transform-origin:70% 70%;animation:_wlcWave 2.2s ease-in-out .6s 2; }
+      ._wlc-name { position:relative;z-index:1;font-family:'Anuphan','Noto Sans Thai',sans-serif;font-size:21px;font-weight:700;color:#2E2A4A;line-height:1.3;animation:_wlcRise .5s .22s both; }
+      ._wlc-body { padding:18px 22px 6px; }
       ._wlc-row {
-        display:flex;align-items:center;gap:10px;
-        padding:10px 14px;border-radius:10px;
-        background:#f8fafc;border:1px solid #e2e8f0;
-        margin-bottom:8px;
+        display:flex;align-items:center;gap:12px;
+        padding:11px 14px;margin-bottom:9px;border-radius:14px;
+        background:#FAF9FE;border:1px solid #ECE9F6;
+        animation:_wlcRise .5s both;
       }
-      ._wlc-row-icon { font-size:18px;flex-shrink:0; }
-      ._wlc-row-label { font-size:10.5px;color:#94a3b8;margin-bottom:1px; }
-      ._wlc-row-val { font-size:13.5px;font-weight:600;color:#1e293b;line-height:1.3; }
+      ._wlc-row:nth-child(1){ animation-delay:.3s } ._wlc-row:nth-child(2){ animation-delay:.38s }
+      ._wlc-row-icon { flex:none;width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center; }
+      ._wlc-row-icon svg { width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
+      ._wlc-row-icon.pos  { background:#EEEBFC;color:#6A5CD8; }
+      ._wlc-row-icon.dept { background:#E8F7F1;color:#2E9A76; }
+      ._wlc-row-label { font-size:11.5px;color:#8E89AA;margin-bottom:1px; }
+      ._wlc-row-val { font-size:14px;font-weight:600;color:#2E2A4A;line-height:1.35; }
       ._wlc-offline {
-        margin:0 24px 12px;padding:7px 12px;border-radius:8px;
-        background:#fffbeb;border:1px solid #fde68a;
-        font-size:11.5px;color:#92400e;text-align:center;
+        margin:0 22px 12px;padding:8px 12px;border-radius:11px;
+        background:#FDF7E0;border:1px solid #F7E4A6;
+        font-size:12px;color:#8A6417;text-align:center;
       }
-      ._wlc-footer { padding:0 24px 20px;margin-top:4px; }
+      ._wlc-footer { padding:4px 22px 20px; }
       ._wlc-btn {
-        width:100%;padding:11px;border:none;border-radius:10px;
-        background:linear-gradient(135deg,#0f4c81,#1a6bb0);
-        color:#fff;font-size:14px;font-weight:600;
-        font-family:'Sarabun',sans-serif;cursor:pointer;
-        transition:opacity .15s,transform .15s;
+        position:relative;overflow:hidden;width:100%;height:48px;border:none;border-radius:14px;
+        background:linear-gradient(100deg,#8E80EE 0%,#6A5CD8 50%,#5546C4 100%);
+        box-shadow:0 14px 26px -12px rgba(106,92,216,.75);
+        color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
+        transition:transform .2s,box-shadow .2s;
       }
-      ._wlc-btn:hover { opacity:.9;transform:translateY(-1px); }
-      ._wlc-progress { height:3px;background:#f1f5f9; }
-      ._wlc-progress-fill {
-        height:100%;background:linear-gradient(90deg,#0f4c81,#22c55e);
-        animation:_wlcBar var(--d,3.5s) linear forwards;
+      ._wlc-btn::after { content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;transform:skewX(-20deg);
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transition:left .7s cubic-bezier(.16,1,.3,1); }
+      ._wlc-btn:hover { transform:translateY(-2px);box-shadow:0 18px 30px -12px rgba(106,92,216,.85); }
+      ._wlc-btn:hover::after { left:120%; }
+      ._wlc-btn:focus-visible { outline:3px solid rgba(106,92,216,.35);outline-offset:3px; }
+      ._wlc-progress { height:4px;background:#F0EEF8; }
+      ._wlc-progress-fill { height:100%;background:linear-gradient(90deg,#B9AEF2,#F29BB8,#F6C08E,#8FD3B8);animation:_wlcBar var(--d,3.5s) linear forwards; }
+      @media (prefers-reduced-motion: reduce) {
+        ._wlc-card,._wlc-row,._wlc-name,._wlc-greeting,._wlc-header::before,._wlc-header::after,._wlc-orbit .ring,._wlc-greeting span { animation:none !important; }
       }
     `;
     document.head.appendChild(s);
@@ -367,12 +372,12 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
 
   const posRow = position ? `
     <div class="_wlc-row">
-      <div class="_wlc-row-icon">💼</div>
+      <div class="_wlc-row-icon pos"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
       <div><div class="_wlc-row-label">ตำแหน่ง</div><div class="_wlc-row-val">${position}</div></div>
     </div>` : '';
   const deptRow = dept ? `
     <div class="_wlc-row">
-      <div class="_wlc-row-icon">🏢</div>
+      <div class="_wlc-row-icon dept"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M14 9h1M9 13h1M14 13h1M10 21v-4h4v4"/></svg></div>
       <div><div class="_wlc-row-label">สังกัด</div><div class="_wlc-row-val">${dept}</div></div>
     </div>` : '';
   const offlineBadge = isOffline ? '<div class="_wlc-offline">⚠️ ใช้ข้อมูลในเครื่อง (ไม่ได้เชื่อมต่อเซิร์ฟเวอร์)</div>' : '';
@@ -380,8 +385,8 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
   overlay.innerHTML = `
     <div class="_wlc-card">
       <div class="_wlc-header">
-        <div class="_wlc-avatar">${initial}</div>
-        <div class="_wlc-greeting">ยินดีต้อนรับเข้าสู่ระบบ</div>
+        <div class="_wlc-orbit"><span class="ring"><i></i></span><div class="_wlc-avatar">${initial}</div></div>
+        <div class="_wlc-greeting">ยินดีต้อนรับเข้าสู่ระบบ <span>👋</span></div>
         <div class="_wlc-name">${name}</div>
       </div>
       <div class="_wlc-body">
@@ -389,7 +394,7 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
       </div>
       ${offlineBadge}
       <div class="_wlc-footer">
-        <button class="_wlc-btn" id="_wlcCloseBtn">เข้าสู่ระบบ →</button>
+        <button class="_wlc-btn" id="_wlcCloseBtn">เริ่มใช้งาน</button>
       </div>
       <div class="_wlc-progress"><div class="_wlc-progress-fill" style="--d:${dur/1000}s"></div></div>
     </div>
@@ -2082,8 +2087,10 @@ function openDetail(id){
   const p=projects.find(x=>x.id==id); if(!p) return;
   document.getElementById('detailTitle').textContent=p.name;
   // สีอ่อนๆ ตามยุทธศาสตร์ของโครงการ ไว้ที่หัวข้อชื่อโครงการ ให้แยกแต่ละโครงการออกจากกันชัดเจนขึ้น
-  document.getElementById('detailTitle').style.cssText =
-    `padding:3px 12px;border-radius:7px;background:${_lightBg(S_COLORS[p.strategy],0.14)};border-left:4px solid ${S_COLORS[p.strategy]||'transparent'}`;
+  document.getElementById('detailTitle').style.cssText = '';
+  // สีประจำยุทธศาสตร์ของโครงการ → ใช้แต่งหัว modal และแถบความคืบหน้า (CSS อ่านจาก --sc)
+  const _dm = document.querySelector('#detailOverlay .modal');
+  if(_dm){ _dm.style.setProperty('--sc', S_COLORS[p.strategy]||'#9B8CE8'); _dm.style.setProperty('--sc-lt', _lightBg(S_COLORS[p.strategy],0.16)); }
   document.getElementById('detailEditBtn').onclick=()=>openEdit(id);
   document.getElementById('detailExportPdfBtn').onclick=()=>exportFormPDF(id);
   const remaining=(p.budget||0)-(p.spent||0)-(p.po||0);
@@ -2285,44 +2292,39 @@ function openDetail(id){
       </div>
     </div>` : '';
 
+  const _usedPct = (p.budget||0)>0 ? Math.round(((p.spent||0)+(p.po||0))/(p.budget)*100) : 0;
+  const _spentPct = (p.budget||0)>0 ? Math.min(100,((p.spent||0)/(p.budget))*100) : 0;
+  const _poPct = (p.budget||0)>0 ? Math.min(100-_spentPct,((p.po||0)/(p.budget))*100) : 0;
+  const _comChips = (p.committees&&p.committees.length)
+    ? p.committees.map(c=>`<span class="dt-chip">${escapeHtml(c)}</span>`).join('')
+    : '<span class="dt-muted">ไม่ได้ระบุ</span>';
   document.getElementById('detailBody').innerHTML=`
+    <div class="dt-hero">
+      <div class="dt-tags">
+        <span class="badge ${S_BADGE[p.strategy]}">${S_NAMES[p.strategy]}</span>
+        <span class="badge ${STATUS_CLASS[p.status]}">${STATUS_LABEL[p.status]}</span>
+        <span class="dt-tag">${escapeHtml(p.projectType||'ต่อเนื่อง')}</span>
+        ${p.duration?`<span class="dt-tag"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${escapeHtml(p.duration)}</span>`:''}
+      </div>
+      <div class="dt-stats">
+        <div class="dt-stat dt-main"><span>งบประมาณที่อนุมัติ</span><b>${fmtFull(p.budget)}</b><small>บาท</small></div>
+        <div class="dt-stat"><span>ใช้ไปแล้ว</span><b class="c-spent">${fmtFull(p.spent)}</b><small>บาท</small></div>
+        <div class="dt-stat"><span>PO ผูกพัน</span><b class="c-po">${fmtFull(p.po)}</b><small>บาท</small></div>
+        <div class="dt-stat"><span>คงเหลือสุทธิ</span><b class="${remaining<0?'c-neg':'c-rem'}">${fmtFull(remaining)}</b><small>บาท</small></div>
+      </div>
+      <div class="dt-bar" title="ใช้ไป+PO ${_usedPct}%"><i class="s" style="width:${_spentPct.toFixed(1)}%"></i><i class="p" style="width:${_poPct.toFixed(1)}%"></i></div>
+      <div class="dt-bar-legend"><span><i class="s"></i>ใช้ไป</span><span><i class="p"></i>PO ผูกพัน</span><span class="dt-bar-pct">ใช้ไป + PO <b>${_usedPct}%</b> ของงบอนุมัติ</span></div>
+    </div>
     <div class="detail-section">
-      <div class="detail-section-title">ข้อมูลทั่วไป</div>
+      <div class="detail-section-title">ข้อมูลโครงการ</div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="detail-item-label">ยุทธศาสตร์</div><div class="detail-item-value"><span class="badge ${S_BADGE[p.strategy]}">${S_NAMES[p.strategy]}</span></div></div>
-        <div class="detail-item"><div class="detail-item-label">สถานะ</div><div class="detail-item-value"><span class="badge ${STATUS_CLASS[p.status]}">${STATUS_LABEL[p.status]}</span></div></div>
-        <div class="detail-item"><div class="detail-item-label">ไตรมาส</div><div class="detail-item-value">${Q_LABEL[p.quarter||'all']}</div></div>
-        <div class="detail-item"><div class="detail-item-label">ลักษณะโครงการ</div><div class="detail-item-value">${escapeHtml(p.projectType||'ต่อเนื่อง')}</div></div>
         <div class="detail-item"><div class="detail-item-label">ฝ่าย / กลุ่มงาน</div><div class="detail-item-value">${escapeHtml(p.owner||'—')}</div></div>
         <div class="detail-item"><div class="detail-item-label">หน่วยงาน</div><div class="detail-item-value">${escapeHtml(p.dept||'—')}</div></div>
+        <div class="detail-item"><div class="detail-item-label">ไตรมาส</div><div class="detail-item-value">${Q_LABEL[p.quarter||'all']}</div></div>
         <div class="detail-item"><div class="detail-item-label">ผู้รับผิดชอบ</div><div class="detail-item-value">${escapeHtml(p.coordinator||'—')}</div></div>
         <div class="detail-item"><div class="detail-item-label">ตำแหน่งงาน</div><div class="detail-item-value">${escapeHtml(p.position||'—')}</div></div>
-        <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">ระยะเวลาดำเนินการ</div><div class="detail-item-value">${escapeHtml(p.duration||'—')}</div></div>
-      </div>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-title">💰 งบประมาณ</div>
-      <div class="detail-grid">
-        <div class="detail-item"><div class="detail-item-label">งบประมาณที่อนุมัติ</div><div class="detail-item-value" style="font-size:15px;font-weight:700;color:var(--accent)">${fmtFull(p.budget)} บาท</div></div>
-        <div class="detail-item"><div class="detail-item-label">งบประมาณที่ใช้ไป</div><div class="detail-item-value">${fmtFull(p.spent)} บาท</div></div>
-        <div class="detail-item"><div class="detail-item-label">PO ผูกพัน</div><div class="detail-item-value">${fmtFull(p.po)} บาท</div></div>
-        <div class="detail-item"><div class="detail-item-label">งบประมาณคงเหลือสุทธิ</div><div class="detail-item-value" style="${remaining<0?'color:var(--red);font-weight:700':''}">${fmtFull(remaining)} บาท</div></div>
-        ${p.budgetSource?`<div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">แหล่งงบประมาณ</div><div class="detail-item-value">${escapeHtml(p.budgetSource)}</div></div>`:''}
-      </div>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-title">👥 ผู้รับผิดชอบและอนุกรรมการ</div>
-      <div class="detail-grid">
-        <div class="detail-item"><div class="detail-item-label">ฝ่าย / กลุ่มงาน</div><div class="detail-item-value">${escapeHtml(p.owner||'—')}</div></div>
-        <div class="detail-item"><div class="detail-item-label">ผู้รับผิดชอบ</div><div class="detail-item-value">${escapeHtml(p.coordinator||'—')}</div></div>
-        <div class="detail-item" style="grid-column:1/-1">
-          <div class="detail-item-label">อนุกรรมการที่เกี่ยวข้อง</div>
-          <div class="detail-item-value" style="margin-top:4px">
-            ${(p.committees&&p.committees.length)
-              ? p.committees.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;background:var(--accent-light);color:var(--accent);margin:2px 3px 2px 0">🏛 ${escapeHtml(c)}</span>`).join('')
-              : '<span style="color:var(--text3);font-weight:400;font-size:12px">ไม่ได้ระบุ</span>'}
-          </div>
-        </div>
+        ${p.budgetSource?`<div class="detail-item"><div class="detail-item-label">แหล่งงบประมาณ</div><div class="detail-item-value">${escapeHtml(p.budgetSource)}</div></div>`:''}
+        <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">อนุกรรมการที่เกี่ยวข้อง</div><div class="detail-item-value dt-chips">${_comChips}</div></div>
       </div>
     </div>
     ${p.rationale?`<div class="detail-section"><div class="detail-section-title">📝 หลักการและเหตุผล</div>${renderFreeText(p.rationale)}</div>`:''}
