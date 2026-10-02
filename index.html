@@ -10,9 +10,9 @@
 <title>ระบบรายงาน พ.ศ. 2570 | มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Bai+Jamjuree:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261002P.2">
+<link rel="stylesheet" href="assets/style.css?v=20261002P.3">
 <!-- ธีม "Pastel Sky" (ทับธีมหลัก) — เปลี่ยนเป็น theme-lagoon.css เพื่อใช้ธีมน้ำทะเลลึก หรือลบบรรทัดนี้เพื่อใช้ธีมน้ำเงินกรมท่า -->
-<link rel="stylesheet" href="assets/theme-pastel.css?v=20261002P.2">
+<link rel="stylesheet" href="assets/theme-pastel.css?v=20261002P.3">
 </head>
 <body>
 <div class="layout">
@@ -826,66 +826,83 @@
 
 
       <!-- ===== RISK MANAGEMENT PAGE ===== -->
-      <div id="page-risk" style="display:none">
-        <!-- Header + Project Selector -->
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header" style="flex-wrap:wrap;gap:10px">
-            <span class="card-title">⚠️ ระบบแผนบริหารความเสี่ยงโครงการ (PRM)</span>
-            <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-              <select id="riskProjectSelect" class="risk-select" style="min-width:260px;max-width:340px;font-size:13px" onchange="loadRiskProject()">
-                <option value="">— เปิดรายการที่บันทึกไว้ —</option>
-              </select>
-              <button class="btn btn-sm" onclick="openAddRiskModal()" class="risk-edit-only" style="background:var(--accent);color:#fff;border-color:var(--accent);display:flex;align-items:center;gap:5px">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                เพิ่มรายการใหม่
-              </button>
-              <button class="btn btn-sm" onclick="exportRiskPDF()" style="background:var(--green-light);color:var(--green);border-color:var(--green);display:flex;align-items:center;gap:5px">
-                📄 Export PDF
-              </button>
-            </div>
-          </div>
-          <!-- View-only banner -->
-          <div class="risk-readonly-banner" id="riskReadonlyBanner">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            โหมดดูอย่างเดียว — ผู้เยี่ยมชมไม่สามารถเพิ่ม แก้ไข หรือลบข้อมูลได้
-          </div>
-          <!-- Saved records bar -->
-          <div id="riskRecordsBar" style="padding:.5rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-height:44px">
-            <span style="font-size:12px;color:var(--text3);flex-shrink:0">รายการที่บันทึก:</span>
-            <div id="riskRecordChips" style="display:flex;gap:6px;flex-wrap:wrap;flex:1"></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0">
-              <div id="riskSyncBadge"><span style="color:#9ca3af;font-size:12px">📴 ออฟไลน์</span></div>
-              <button onclick="loadAllRiskFromGAS()" title="Sync จาก Google Sheets"
-                style="padding:3px 10px;border-radius:99px;border:1.5px solid var(--border2);background:var(--surface);font-size:11.5px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:4px">
-                🔄 Sync
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== RISK DASHBOARD ===== -->
-        <div id="risk-dashboard-panel" class="card" style="margin-bottom:1rem">
-          <div class="card-header" style="padding:.75rem 1.25rem;border-bottom:1px solid var(--border)">
-            <span class="card-title" style="font-size:13.5px">📊 สถานะรายการบริหารความเสี่ยง</span>
-            <span id="riskDashCount" style="margin-left:8px;font-size:12px;color:var(--text2)"></span>
-          </div>
-          <div style="padding:.875rem 1.25rem">
-            <div id="riskDashGrid" class="risk-dash-grid">
-              <div style="color:var(--text3);font-size:13px;padding:.5rem 0">
-                ยังไม่มีรายการ — กด "+ เพิ่มรายการใหม่" เพื่อเริ่มต้น
+      <div id="page-risk" class="prm-page" style="display:none">
+        <!-- ส่วนหัว: อธิบายว่าหน้านี้ทำอะไร + ขั้นตอน 4 ขั้น + ปุ่มหลัก -->
+        <section class="prm-hero">
+          <div class="prm-hero-top">
+            <div class="prm-hero-title">
+              <span class="prm-hero-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg></span>
+              <div>
+                <h2>แผนบริหารความเสี่ยงโครงการ (PRM)</h2>
+                <p>ระบุ ประเมิน และวางแผนจัดการความเสี่ยงของแต่ละโครงการตาม 4 ขั้นตอน ระบบคำนวณระดับความเสี่ยงให้อัตโนมัติ</p>
               </div>
             </div>
+            <div class="prm-hero-actions">
+              <div class="prm-sync">
+                <div id="riskSyncBadge"><span style="color:#9ca3af;font-size:12px">📴 ออฟไลน์</span></div>
+                <button type="button" class="prm-sync-btn" onclick="loadAllRiskFromGAS()" title="ดึงข้อมูลล่าสุดจาก Google Sheets"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>Sync</button>
+              </div>
+              <button class="btn btn-pdf" onclick="exportRiskPDF()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Export PDF</button>
+              <button class="btn btn-primary risk-edit-only" onclick="openAddRiskModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เพิ่มรายการใหม่</button>
+            </div>
           </div>
+          <ol class="prm-flow" aria-label="ขั้นตอนการทำแผนบริหารความเสี่ยง">
+            <li><b>1</b><div><strong>ระบุความเสี่ยง</strong><span>PRM 01 · กิจกรรมและปัจจัยเสี่ยง</span></div></li>
+            <li><b>2</b><div><strong>ประเมินโอกาส × ผลกระทบ</strong><span>PRM 02 · ให้คะแนน 1–5</span></div></li>
+            <li><b>3</b><div><strong>สรุประดับความเสี่ยง</strong><span>PRM 03 · คำนวณให้อัตโนมัติ</span></div></li>
+            <li><b>4</b><div><strong>วางแผนจัดการ</strong><span>PRM 04 · มาตรการ ระยะเวลา ผู้รับผิดชอบ</span></div></li>
+          </ol>
+          <div class="risk-readonly-banner" id="riskReadonlyBanner">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            โหมดดูอย่างเดียว — ผู้เยี่ยมชมดูและพรีวิวได้ แต่เพิ่ม แก้ไข หรือลบข้อมูลไม่ได้
+          </div>
+          <!-- ตัวเลือก/ชิปรายการแบบเดิม: ซ่อนไว้ (ยังใช้เก็บสถานะในโค้ด) — รายการทั้งหมดแสดงในตารางด้านล่างแทน -->
+          <div hidden>
+            <select id="riskProjectSelect" onchange="loadRiskProject()"><option value="">— เปิดรายการที่บันทึกไว้ —</option></select>
+            <div id="riskRecordChips"></div>
+          </div>
+        </section>
+
+        <!-- ตัวเลขสรุป -->
+        <div class="prm-kpis" id="riskKpis"></div>
+
+        <!-- รายการทั้งหมด -->
+        <div id="risk-dashboard-panel" class="card prm-list">
+          <div class="card-header">
+            <span class="card-title">รายการบริหารความเสี่ยง <span id="riskDashCount" class="prm-count"></span></span>
+            <div class="prm-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" id="riskDashSearch" placeholder="ค้นหาชื่อโครงการ / กลุ่มงาน" oninput="renderRiskDashboard()"></div>
+          </div>
+          <div id="riskDashGrid" class="risk-dash-grid"></div>
         </div>
 
-        <!-- Tabs -->
-        <div class="risk-tabs">
-          <button class="risk-tab active" onclick="switchRiskTab('prm01',this)">📋 PRM 01 · ประเมินความเสี่ยง</button>
-          <button class="risk-tab" onclick="switchRiskTab('prm02',this)">📊 PRM 02 · วิเคราะห์ความเสี่ยง</button>
-          <button class="risk-tab" onclick="switchRiskTab('prm03',this)">📈 PRM 03 · สรุประดับความเสี่ยง</button>
-          <button class="risk-tab" onclick="switchRiskTab('prm04',this)">🗂️ PRM 04 · แผนบริหารความเสี่ยง</button>
-          <button class="risk-tab" onclick="switchRiskTab('matrix',this)">🎯 Risk Matrix</button>
+        <!-- ยังไม่ได้เปิดรายการ -->
+        <div id="riskEmptyState" class="prm-empty">
+          <div class="prm-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <h3>เลือกรายการเพื่อเริ่มกรอกแบบ PRM</h3>
+          <p>กด <b>เปิด</b> ที่รายการในตารางด้านบนเพื่อกรอกหรือแก้ไขต่อ หรือเพิ่มรายการใหม่จากโครงการในระบบ ระบบจะดึงชื่อโครงการ วัตถุประสงค์ และกิจกรรมมาให้</p>
+          <button class="btn btn-primary risk-edit-only" onclick="openAddRiskModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เพิ่มรายการใหม่</button>
         </div>
+
+        <!-- พื้นที่ทำงานของรายการที่เปิดอยู่ -->
+        <div id="riskWorkspace" class="prm-workspace">
+          <div class="prm-ws-head">
+            <div class="prm-ws-info">
+              <span class="prm-ws-label">กำลังทำงานกับ</span>
+              <div id="riskCurrentName" class="prm-ws-name">— ยังไม่ได้เลือกรายการ —</div>
+              <div id="riskCurrentMeta" class="prm-ws-meta"></div>
+            </div>
+            <div class="prm-ws-actions">
+              <button class="btn btn-sm" onclick="openRiskPreview(currentRiskId)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>พรีวิว</button>
+              <button class="btn btn-sm" onclick="closeRiskWorkspace()" title="ปิดรายการนี้"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>ปิดรายการ</button>
+            </div>
+          </div>
+          <div class="risk-tabs prm-stepper" role="tablist">
+            <button class="risk-tab active" data-step="prm01" onclick="switchRiskTab('prm01',this)"><b>1</b><span><strong>ระบุความเสี่ยง</strong><em>PRM 01</em></span><i class="st"></i></button>
+            <button class="risk-tab" data-step="prm02" onclick="switchRiskTab('prm02',this)"><b>2</b><span><strong>ประเมินความเสี่ยง</strong><em>PRM 02</em></span><i class="st"></i></button>
+            <button class="risk-tab" data-step="prm03" onclick="switchRiskTab('prm03',this)"><b>3</b><span><strong>สรุประดับความเสี่ยง</strong><em>PRM 03</em></span><i class="st"></i></button>
+            <button class="risk-tab" data-step="prm04" onclick="switchRiskTab('prm04',this)"><b>4</b><span><strong>วางแผนจัดการ</strong><em>PRM 04</em></span><i class="st"></i></button>
+            <button class="risk-tab prm-tab-matrix" data-step="matrix" onclick="switchRiskTab('matrix',this)"><b><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></b><span><strong>Risk Matrix</strong><em>ตารางอ้างอิง</em></span></button>
+          </div>
 
         <!-- PRM 01: แบบประเมินความเสี่ยงของโครงการ -->
         <div id="risk-prm01" class="risk-panel active">
@@ -941,21 +958,6 @@
               <button class="add-row-btn" onclick="addPRM01Row()">+ เพิ่มกิจกรรม</button>
             </div>
           </div>
-          <!-- Bottom action bar PRM01 -->
-          <div class="risk-action-bar">
-            <div id="riskCurrentLabel" style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px">
-              <span id="riskCurrentName" style="font-weight:600;color:var(--text)">— ยังไม่ได้เลือกรายการ —</span>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap" class="risk-edit-only">
-              <button class="btn btn-sm" onclick="cancelEditRisk()" style="color:var(--text2);border-color:var(--border2)">
-                ↩ ยกเลิก
-              </button>
-              <button class="btn btn-sm" onclick="saveRiskData()" style="background:var(--accent);color:#fff;border-color:var(--accent);display:flex;align-items:center;gap:5px">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                💾 บันทึก
-              </button>
-            </div>
-          </div>
         </div>
 
         <!-- PRM 02: แบบวิเคราะห์ความเสี่ยง -->
@@ -970,12 +972,6 @@
                 <div style="text-align:center;padding:2rem;color:var(--text3)">กรุณากรอกข้อมูล PRM 01 ก่อน แล้วคลิก "บันทึก"</div>
               </div>
             </div>
-          </div>
-          <div class="risk-action-bar">
-            <div style="font-size:12px;color:var(--text2)">PRM 02 · ประเมินโอกาสและผลกระทบของแต่ละปัจจัยความเสี่ยง</div>
-            <button class="btn btn-sm" onclick="saveRiskData()" style="background:var(--accent);color:#fff;border-color:var(--accent)">
-              💾 บันทึกการประเมิน
-            </button>
           </div>
         </div>
 
@@ -1034,12 +1030,6 @@
               </div>
               <div style="margin-top:.5rem;font-size:12px;color:var(--text2)">* แถวจะปรากฏโดยอัตโนมัติจากข้อมูล PRM 01-03 — กรอกแผนการจัดการในแต่ละแถว</div>
             </div>
-          </div>
-          <div class="risk-action-bar">
-            <div style="font-size:12px;color:var(--text2)">PRM 04 · กรอกแผนจัดการแล้วบันทึก</div>
-            <button class="btn btn-sm" onclick="saveRiskData()" style="background:var(--accent);color:#fff;border-color:var(--accent)">
-              💾 บันทึกแผนบริหารความเสี่ยง
-            </button>
           </div>
         </div>
 
@@ -1107,6 +1097,14 @@
           </div>
         </div>
 
+          <div class="prm-savebar risk-edit-only">
+            <div class="prm-savebar-hint" id="riskSaveHint">กดบันทึกหลังกรอกแต่ละขั้น ข้อมูลจะ Sync ขึ้น Google Sheets ให้อัตโนมัติ</div>
+            <div class="prm-savebar-btns">
+              <button class="btn btn-sm" onclick="cancelEditRisk()">ยกเลิกการแก้ไข</button>
+              <button class="btn btn-primary" onclick="saveRiskData()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>บันทึก</button>
+            </div>
+          </div>
+        </div><!-- /riskWorkspace -->
       </div><!-- /page-risk -->
 
 <!-- RISK: Preview Modal -->
@@ -2127,7 +2125,7 @@
 
 <script src="assets/app-pdf-select.js?v=20260916V.3"></script>
 
-<script src="assets/app-pdf-export.js?v=20261002P.2"></script>
+<script src="assets/app-pdf-export.js?v=20261002P.3"></script>
 <!-- ══ AUTH MODAL ══ -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-bg" aria-hidden="true">
@@ -2351,13 +2349,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="assets/app-auth-risk.js?v=20261002P.2"></script>
+<script src="assets/app-auth-risk.js?v=20261002P.3"></script>
 
 <!-- app-core.js ต้องโหลดหลังสุด (หลัง app-auth-risk.js) เพราะ initApp() ที่ท้ายไฟล์
      เรียก renderTable() ทันทีตอนโหลดหน้า ซึ่งเรียกใช้ _isEditable() ที่นิยามอยู่ใน
      app-auth-risk.js — ถ้าโหลดก่อนจะเกิด ReferenceError: _isEditable is not defined
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
-<script src="assets/app-core.js?v=20261002P.2"></script>
+<script src="assets/app-core.js?v=20261002P.3"></script>
 <script src="assets/app-riskregister.js?v=20260916V.3"></script>
 <script src="assets/app-annual-report.js?v=20260923A"></script>
 
