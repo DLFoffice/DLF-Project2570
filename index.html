@@ -9,8 +9,10 @@
 <!-- GitHub Pages CDN cache: force reload ด้วย Ctrl+Shift+R หรือเพิ่ม ?v=XXX ใน URL -->
 <title>ระบบรายงาน พ.ศ. 2570 | มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20260916V.3">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Bai+Jamjuree:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v=20261002P.1">
+<!-- ธีม "Pastel Sky" (ทับธีมหลัก) — เปลี่ยนเป็น theme-lagoon.css เพื่อใช้ธีมน้ำทะเลลึก หรือลบบรรทัดนี้เพื่อใช้ธีมน้ำเงินกรมท่า -->
+<link rel="stylesheet" href="assets/theme-pastel.css?v=20261002P.1">
 </head>
 <body>
 <div class="layout">
@@ -18,11 +20,11 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-logo">
-         <img class="org-logo"src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" style="width: 90px; height: auto;" alt="">
+         <img class="org-logo" src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" style="width: 90px; height: auto;" alt="">
     <div>
       <div class="org">มูลนิธิการศึกษาทางไกลผ่านดาวเทียม<br>ในพระบรมราชูปถัมภ์</div>
       <div class="title">ระบบรายงานแผนปฏิบัติการประจำ</div>
-      <span class="badge-year badge-year-2570" id="sidebarYearBadge" style="color: #1b0d6d;">ปีงบประมาณ พ.ศ. 2570</span>
+      <span class="badge-year badge-year-2570" id="sidebarYearBadge">ปีงบประมาณ พ.ศ. 2570</span>
     </div>
     </div>
     <div class="sidebar-nav">
@@ -93,7 +95,7 @@
       <div class="topbar-left" style="flex:1;min-width:200px">
         <div>
           <div class="topbar-title" id="topbar-title">Dashboard สรุปภาพรวม</div>
-          <div class="topbar-sub" id="topbar-sub" style="font-size:11px;color:var(--sidebar-text)">ปีงบประมาณ พ.ศ. <span id="topbarYear">2570</span></div>
+          <div class="topbar-sub" id="topbar-sub">ปีงบประมาณ พ.ศ. <span id="topbarYear">2570</span></div>
         </div>
       </div>
       <div class="topbar-actions" style="gap:6px">
@@ -112,14 +114,14 @@
           <option value="3">Q3 เม.ย.–มิ.ย.</option>
           <option value="4">Q4 ก.ค.–ก.ย.</option>
         </select>
-        <button class="btn btn-sm" onclick="window.print()" title="พิมพ์">
+        <button class="btn btn-sm" onclick="window.print()" title="พิมพ์" aria-label="พิมพ์">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         </button>
-        <button class="btn btn-sm" onclick="openPdfSelectModal()" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(220,38,38,.3)" title="Export รายงาน PDF">
+        <button class="btn btn-sm btn-pdf" onclick="openPdfSelectModal()" title="Export รายงาน PDF">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h6M9 9h1"/></svg>
           Export PDF
         </button>
-        <button class="btn btn-sm btn-teal" onclick="showPage('gsheet')" title="Google Sheets">
+        <button class="btn btn-sm btn-teal" onclick="showPage('gsheet')" title="Google Sheets" aria-label="Google Sheets">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </button>
         <button class="btn btn-sm btn-primary" id="topbarAddBtn" onclick="openAdd()" style="display:none">
@@ -331,7 +333,7 @@
           <div class="card-body" style="padding:.875rem 1.25rem">
 
             <!-- Committee metric cards -->
-            <div id="committeeMetrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem"></div>
+            <div id="committeeMetrics" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem"></div>
 
             <!-- Committee bar chart + table side by side -->
             <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:14px;align-items:start">
@@ -2129,13 +2131,36 @@
 <script src="assets/app-pdf-export.js?v=20260916V.3"></script>
 <!-- ══ AUTH MODAL ══ -->
 <div class="auth-overlay" id="authOverlay">
+  <div class="auth-bg" aria-hidden="true">
+    <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span>
+    <div class="auth-dots"></div>
+    <div class="auth-sparkles"><i style="left:59%;top:74%;--s:12px;animation-delay:2.26s"></i><i style="left:77%;top:27%;--s:8px;animation-delay:4.02s"></i><i style="left:62%;top:83%;--s:8px;animation-delay:0.47s"></i><i style="left:40%;top:21%;--s:6px;animation-delay:2.69s"></i><i style="left:90%;top:84%;--s:6px;animation-delay:2.98s"></i><i style="left:52%;top:60%;--s:8px;animation-delay:3.12s"></i><i style="left:69%;top:11%;--s:6px;animation-delay:0.18s"></i><i style="left:32%;top:79%;--s:6px;animation-delay:3.89s"></i><i style="left:43%;top:59%;--s:8px;animation-delay:2.60s"></i><i style="left:83%;top:40%;--s:12px;animation-delay:0.02s"></i><i style="left:12%;top:61%;--s:10px;animation-delay:2.03s"></i><i style="left:72%;top:13%;--s:10px;animation-delay:1.58s"></i><i style="left:31%;top:68%;--s:10px;animation-delay:0.15s"></i><i style="left:74%;top:16%;--s:12px;animation-delay:0.54s"></i><i style="left:39%;top:52%;--s:6px;animation-delay:4.79s"></i><i style="left:89%;top:3%;--s:8px;animation-delay:1.05s"></i></div>
+  </div>
+  <div class="auth-shell">
+  <section class="auth-hero">
+    <div class="auth-brand">
+      <div class="auth-orbit"><span class="ring"><i class="sat"></i></span><span class="ring r2"><i class="sat"></i></span><span class="logo"><img src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" alt=""></span></div>
+      <div><div class="brand-name">มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</div><div class="brand-sub">ในพระบรมราชูปถัมภ์</div></div>
+    </div>
+    <div class="auth-tag"><span class="pulse"></span>ปีงบประมาณ พ.ศ. 2570</div>
+    <h1 class="auth-headline"><span class="line"><span>ระบบรายงานผล</span></span><span class="line"><span>แผน<span class="accent">ปฏิบัติการ</span></span></span></h1>
+    <p class="auth-sub">บันทึกโครงการตามยุทธศาสตร์ รายงานผลการดำเนินงานรายไตรมาส ติดตามงบประมาณและความเสี่ยง ในระบบเดียวที่ทุกฝ่ายเห็นข้อมูลชุดเดียวกัน</p>
+    <div class="auth-feats"><div class="auth-feat"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></span><div><b>โครงการตามยุทธศาสตร์</b><span>บันทึกโครงการ 4 ยุทธศาสตร์ และงบบริหารสำนักงาน</span></div></div><div class="auth-feat"><span class="ic"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></span><div><b>รายงานผลรายไตรมาส</b><span>รายงาน Q1–Q4 พร้อมสรุปผลรวมทั้งปี</span></div></div><div class="auth-feat"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><div><b>งบประมาณ & PO</b><span>ติดตามงบอนุมัติ ใช้จริง และ PO ผูกพัน</span></div></div><div class="auth-feat"><span class="ic"><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg></span><div><b>บริหารความเสี่ยง</b><span>แผน PRM และ Heat Map ความเสี่ยง</span></div></div></div>
+    <div class="auth-stats">
+      <div><b data-count="4">4</b><span>ยุทธศาสตร์</span></div>
+      <div><b data-count="5">5</b><span>คณะอนุกรรมการ</span></div>
+      <div><b data-count="4">4</b><span>ไตรมาสต่อปี</span></div>
+    </div>
+  </section>
+  <div class="auth-card-wrap">
   <div class="auth-box">
+    <div class="auth-card-top"><span class="mini"><img src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" alt="">ระบบรายงานฯ</span><span class="year">ปีงบ 2570</span></div>
     <div class="auth-logo">
       <div class="auth-logo-icon">
         <img src="https://dltv.ac.th/upload/data/users/0/316/CMS/images/logo%20dlf%20%E0%B8%AA%E0%B8%A1%E0%B8%9A%E0%B8%B9%E0%B8%A3%E0%B8%93%E0%B9%8C.png" alt="Logo" width="44" style="object-fit:contain">
       </div>
-      <div class="auth-logo-title">ระบบรายงานผลการแผนปฏิบัติการ</div>
-      <div class="auth-logo-sub">มูลนิธิการศึกษาทางไกลผ่านดาวเทียม · ปีงบประมาณ พ.ศ. 2570</div>
+      <div class="auth-logo-title">ยินดีต้อนรับ <span class="wave" aria-hidden="true">👋</span></div>
+      <div class="auth-logo-sub">เข้าสู่ระบบเพื่อบันทึกรายงาน หรือเข้าชมแบบดูอย่างเดียว</div>
     </div>
 
     <!-- Tabs -->
@@ -2149,12 +2174,14 @@
       <div class="auth-error" id="loginError"></div>
       <div class="auth-field">
         <label class="auth-label">อีเมล</label>
+        <div class="ctl"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg></span>
         <input type="email" class="auth-input" id="loginEmail" placeholder="your@email.com" autocomplete="email"
                onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('loginPassword').focus();}">
+        </div>
       </div>
       <div class="auth-field">
         <label class="auth-label">รหัสผ่าน</label>
-        <div class="password-wrapper">
+        <div class="password-wrapper ctl"><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
           <input type="password" class="auth-input has-icon" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
                  onkeydown="if(event.key==='Enter'){event.preventDefault();authLogin();}">
           <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword')">
@@ -2280,19 +2307,58 @@
     </div>
 
   </div><!-- /.auth-box -->
+  <p class="auth-copy">© มูลนิธิการศึกษาทางไกลผ่านดาวเทียม ในพระบรมราชูปถัมภ์</p>
+  </div><!-- /.auth-card-wrap -->
+  </div><!-- /.auth-shell -->
 </div><!-- /.auth-overlay -->
+<script>
+/* ลูกเล่นหน้าเข้าสู่ระบบ: นับตัวเลข, การ์ดเอียงตามเมาส์, แสงตามเมาส์บนการ์ดฟีเจอร์, การ์ดสั่นเมื่อกรอกผิด
+   ทุกอย่างปิดเองเมื่อผู้ใช้ตั้งค่าลดการเคลื่อนไหว */
+(function(){
+  var ov=document.getElementById('authOverlay'); if(!ov) return;
+  var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var box=ov.querySelector('.auth-box'), wrap=ov.querySelector('.auth-card-wrap');
+  function countUp(){
+    ov.querySelectorAll('[data-count]').forEach(function(el){
+      var to=+el.getAttribute('data-count'); if(reduce){el.textContent=to;return;}
+      var t0=performance.now();
+      (function tick(n){var k=Math.min(1,(n-t0)/1100),e=1-Math.pow(1-k,3);el.textContent=Math.round(to*e);if(k<1)requestAnimationFrame(tick);})(t0);
+    });
+  }
+  var wasOpen=false;
+  function sync(){var o=ov.classList.contains('open'); if(o&&!wasOpen) setTimeout(countUp,500); wasOpen=o;}
+  new MutationObserver(sync).observe(ov,{attributes:true,attributeFilter:['class']}); sync();
+  if(!reduce && wrap && box){
+    wrap.addEventListener('mousemove',function(e){
+      if(window.innerWidth<1000) return;
+      var r=box.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+      box.style.transform='rotateY('+(x*5).toFixed(2)+'deg) rotateX('+(-y*5).toFixed(2)+'deg)';
+    });
+    wrap.addEventListener('mouseleave',function(){box.style.transform='';});
+  }
+  ov.querySelectorAll('.auth-feat').forEach(function(f){
+    f.addEventListener('mousemove',function(e){var r=f.getBoundingClientRect();f.style.setProperty('--mx',(e.clientX-r.left)+'px');f.style.setProperty('--my',(e.clientY-r.top)+'px');});
+  });
+  ov.querySelectorAll('.auth-error').forEach(function(err){
+    new MutationObserver(function(){
+      if(err.classList.contains('show') && box && !reduce){ box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); }
+    }).observe(err,{attributes:true,attributeFilter:['class']});
+  });
+  if(box) box.addEventListener('animationend',function(e){ if(e.animationName==='authCardShake') box.classList.remove('shake'); });
+})();
+</script>
 
 <!-- ══ Firebase Auth + Firestore ══ -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="assets/app-auth-risk.js?v=20260916V.3"></script>
+<script src="assets/app-auth-risk.js?v=20261002P.1"></script>
 
 <!-- app-core.js ต้องโหลดหลังสุด (หลัง app-auth-risk.js) เพราะ initApp() ที่ท้ายไฟล์
      เรียก renderTable() ทันทีตอนโหลดหน้า ซึ่งเรียกใช้ _isEditable() ที่นิยามอยู่ใน
      app-auth-risk.js — ถ้าโหลดก่อนจะเกิด ReferenceError: _isEditable is not defined
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
-<script src="assets/app-core.js?v=20260916V.3"></script>
+<script src="assets/app-core.js?v=20261002P.1"></script>
 <script src="assets/app-riskregister.js?v=20260916V.3"></script>
 <script src="assets/app-annual-report.js?v=20260923A"></script>
 

@@ -1668,214 +1668,6 @@ body.is-guest .risk-dash-row { cursor:default; }
 
 
 /* ══════════════════════════════════════════════════════════════════
-   V2 REDESIGN — Modern Indigo/Purple UI + Motion
-   (แนวทาง UI จากภาพตัวอย่าง: การ์ดโค้งมน, กราเดียนต์ม่วง-น้ำเงิน, เงานุ่ม,
-   และเพิ่ม motion/transition ให้ทั้งแดชบอร์ดดูมีชีวิตชีวาขึ้น)
-   ══════════════════════════════════════════════════════════════════ */
-
-:root {
-  --accent: #5b52f3;
-  --accent-2: #4338ca;
-  --accent-light: #eef0ff;
-  --radius: 12px;
-  --radius-lg: 18px;
-  --shadow: 0 1px 3px rgba(30,20,90,.05), 0 4px 14px rgba(30,20,90,.05);
-  --shadow-lg: 0 10px 28px -6px rgba(59,45,180,.16);
-  --shadow-hover: 0 14px 32px -8px rgba(59,45,180,.22);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
-}
-
-/* ── Global smoothing ── */
-.card, .metric-card, .strategy-card, .pipeline-item, .btn, .nav-item,
-tbody tr, .badge, .quarter-select, .user-pill {
-  transition: transform .22s cubic-bezier(.22,.68,0,1), box-shadow .22s ease, background .2s ease, border-color .2s ease, color .2s ease;
-}
-
-/* ── Page transition: fade + slide-up whenever a page becomes visible ── */
-@keyframes pageFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.content > [id^="page-"] { animation: pageFadeIn .45s cubic-bezier(.22,.68,0,1) both; }
-
-/* ── Card entrance stagger (plays automatically each time a page toggles to display:block) ── */
-@keyframes cardIn { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-.metrics-top .metric-card,
-.metrics-mid .metric-card,
-.status-pipeline .pipeline-item {
-  animation: cardIn .5s cubic-bezier(.22,.68,0,1) both;
-}
-.metrics-top .metric-card:nth-child(1), .metrics-mid .metric-card:nth-child(1), .status-pipeline .pipeline-item:nth-child(1) { animation-delay: .02s; }
-.metrics-top .metric-card:nth-child(2), .metrics-mid .metric-card:nth-child(2), .status-pipeline .pipeline-item:nth-child(2) { animation-delay: .08s; }
-.metrics-top .metric-card:nth-child(3), .metrics-mid .metric-card:nth-child(3), .status-pipeline .pipeline-item:nth-child(3) { animation-delay: .14s; }
-.metrics-top .metric-card:nth-child(4) { animation-delay: .2s; }
-
-.charts-grid > .card { animation: cardIn .55s cubic-bezier(.22,.68,0,1) both; }
-.charts-grid > .card:nth-child(1) { animation-delay: .06s; }
-.charts-grid > .card:nth-child(2) { animation-delay: .13s; }
-.charts-grid > .card:nth-child(3) { animation-delay: .2s; }
-
-/* ── Cards: rounder, softer, lift on hover ── */
-.card {
-  border-radius: var(--radius-lg);
-  border-color: rgba(91,82,243,.08);
-  box-shadow: var(--shadow);
-}
-.card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
-.card-header { border-bottom-color: rgba(91,82,243,.08); }
-
-/* ── Metric cards: lift + icon pop on hover ── */
-.metric-card { border-radius: var(--radius-lg); }
-.metric-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
-.metric-icon { transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
-.metric-card:hover .metric-icon { transform: scale(1.12) rotate(-4deg); }
-
-/* ── Pipeline & strategy cards: rounder ── */
-.pipeline-item, .strategy-card { border-radius: var(--radius-lg); }
-.pipeline-dot { transition: transform .25s cubic-bezier(.34,1.56,.64,1); }
-.pipeline-item:hover .pipeline-dot { transform: scale(1.1) rotate(-4deg); }
-
-/* ── Topbar → gradient hero bar (โทนม่วง-น้ำเงินตามภาพตัวอย่าง) ── */
-.topbar {
-  margin: 14px 18px 0 18px;
-  border-radius: 20px;
-  border: none;
-  background: linear-gradient(120deg, #6E68F7 0%, #5B52F3 45%, #4338CA 100%);
-  box-shadow: 0 14px 32px -10px rgba(67,56,202,.45);
-  backdrop-filter: none;
-}
-.topbar-title { color: #fff; }
-.topbar-sub { color: rgba(255,255,255,.78); }
-.topbar .btn:not(.btn-primary):not(.btn-teal):not([style*="background"]) {
-  background: rgba(255,255,255,.92);
-  border-color: transparent;
-  color: var(--accent-2);
-  box-shadow: 0 2px 8px rgba(30,20,90,.12);
-}
-.topbar .btn:not(.btn-primary):not(.btn-teal):not([style*="background"]):hover {
-  background: #fff;
-  color: var(--accent-2);
-  transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 16px rgba(30,20,90,.22);
-}
-.topbar .quarter-select {
-  background: rgba(255,255,255,.92);
-  border-color: transparent;
-  color: var(--accent-2);
-}
-.topbar .quarter-select:hover { box-shadow: 0 4px 12px rgba(30,20,90,.18); }
-.topbar .user-pill {
-  background: rgba(255,255,255,.16);
-  border-color: rgba(255,255,255,.35);
-  color: #fff;
-}
-.topbar .user-pill:hover { background: rgba(255,255,255,.28); border-color: rgba(255,255,255,.6); color: #fff; }
-.topbar .btn-primary, .topbar .btn-teal { box-shadow: 0 4px 14px rgba(0,0,0,.18); }
-.topbar .btn-primary:hover, .topbar .btn-teal:hover { transform: translateY(-2px) scale(1.03); }
-
-/* Icon buttons: a little bounce on click */
-.topbar .btn:active, .btn-icon:active { transform: scale(.92) !important; }
-
-/* ── Sidebar: rounded floating nav items with gradient active state ── */
-.sidebar-logo { background: linear-gradient(180deg, rgba(91,82,243,.06), transparent); }
-.nav-item {
-  border-radius: 10px;
-  width: calc(100% - 20px);
-  margin: 2px 10px;
-}
-.nav-item:hover { transform: translateX(3px); }
-.nav-item.active {
-  background: linear-gradient(120deg, #6E68F7, #4338CA);
-  color: #fff;
-  border-right: none;
-  box-shadow: 0 6px 16px -4px rgba(67,56,202,.45);
-}
-.nav-item.active svg { color: #fff; }
-.nav-item.active:hover { transform: translateX(3px) scale(1.01); }
-
-/* ── Buttons: livelier feedback ── */
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 3px 12px rgba(67,56,202,.35);
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, #6E68F7, #4338CA);
-  box-shadow: 0 6px 18px rgba(67,56,202,.45);
-  transform: translateY(-2px);
-}
-.btn:hover { border-color: var(--accent); color: var(--accent); }
-.btn:active { transform: scale(.96); }
-.quarter-select:focus { box-shadow: 0 0 0 3px rgba(91,82,243,.15); }
-
-/* ── Tables: subtle row motion ── */
-tbody tr { }
-tbody tr:hover td { background: rgba(91,82,243,.05); }
-.summary-table-wrap table, table { border-radius: var(--radius); overflow: hidden; }
-.metric-progress-fill, td [style*="border-radius:99px"] > div { transition: width .6s cubic-bezier(.22,.68,0,1); }
-
-/* ── Year banner / badges: gentle pop on load ── */
-@keyframes badgePop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
-.year-banner, .badge-year { animation: badgePop .4s cubic-bezier(.34,1.56,.64,1) both; }
-
-/* ── Chart cards: subtle zoom on hover for canvases ── */
-.charts-grid > .card canvas, .card canvas { transition: transform .3s ease; }
-.charts-grid > .card:hover canvas { transform: scale(1.015); }
-
-/* ── Thin, tinted scrollbars ── */
-.sidebar-nav::-webkit-scrollbar, .content::-webkit-scrollbar { width: 8px; height: 8px; }
-.sidebar-nav::-webkit-scrollbar-thumb, .content::-webkit-scrollbar-thumb { background: rgba(91,82,243,.25); border-radius: 99px; }
-.sidebar-nav::-webkit-scrollbar-thumb:hover, .content::-webkit-scrollbar-thumb:hover { background: rgba(91,82,243,.45); }
-
-/* ── Loading spinner accent ── */
-@keyframes spin { to { transform: rotate(360deg); } }
-
-
-/* ══════════════════════════════════════════════════════════════════
-   V3 REFINEMENT — Metric cards แบบคลีน (พื้นขาว + สีเป็นตัวบอกหมวดหมู่)
-   ตัดพื้นหลังไล่สีเข้ม/สดออกทั้งหมด เหลือแค่ "แถบสีบนซ้าย" + "ไอคอนชิพสี" +
-   "ตัวเลขสี" เป็นตัวบ่งบอกความต่างของแต่ละการ์ด ให้ดูสบายตาและเป็นมืออาชีพขึ้น
-   ══════════════════════════════════════════════════════════════════ */
-
-.metric-card.c-blue, .metric-card.c-green, .metric-card.c-amber,
-.metric-card.c-purple, .metric-card.c-teal, .metric-card.c-red,
-.metric-card.c-done, .metric-card.c-progress, .metric-card.c-pending,
-.metric-card.c-blue-deep, .metric-card.c-amber-deep, .metric-card.c-green-deep, .metric-card.c-red-deep {
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-/* hover: ใส่ tint อ่อนๆ ตามสีหมวดแทนการเปลี่ยนพื้นหลังทั้งใบ */
-.metric-card.c-blue:hover, .metric-card.c-progress:hover, .metric-card.c-blue-deep:hover { background: var(--accent-light); }
-.metric-card.c-green:hover, .metric-card.c-done:hover, .metric-card.c-green-deep:hover   { background: var(--green-light); }
-.metric-card.c-amber:hover, .metric-card.c-amber-deep:hover                              { background: var(--amber-light); }
-.metric-card.c-purple:hover                                                              { background: var(--purple-light); }
-.metric-card.c-teal:hover                                                                { background: var(--s5-light); }
-.metric-card.c-red:hover, .metric-card.c-red-deep:hover                                  { background: var(--red-light); }
-.metric-card.c-pending:hover                                                             { background: var(--surface2); }
-
-/* การ์ด "งบจัดสรร vs กรอกแล้ว vs คงเหลือ" (deep variant) — ปรับไอคอนชิพให้เป็นสีอ่อนแบบเดียวกับการ์ดอื่น
-   แทนชิพขาวโปร่งแสงบนพื้นสีเข้มเดิม เพื่อให้กลมกลืนกับพื้นขาวใหม่ */
-.metric-card.c-blue-deep .metric-icon   { background: var(--accent-light); color: #1d3f9e; }
-.metric-card.c-amber-deep .metric-icon  { background: var(--amber-light); color: #8a5405; }
-.metric-card.c-green-deep .metric-icon  { background: var(--green-light); color: #0f5c34; }
-.metric-card.c-red-deep .metric-icon    { background: var(--red-light); color: #8f1717; }
-
-.metric-card.c-blue-deep .metric-label, .metric-card.c-blue-deep .metric-sub,
-.metric-card.c-amber-deep .metric-label, .metric-card.c-amber-deep .metric-sub,
-.metric-card.c-green-deep .metric-label, .metric-card.c-green-deep .metric-sub,
-.metric-card.c-red-deep .metric-label, .metric-card.c-red-deep .metric-sub {
-  color: var(--text2);
-}
-
-/* แถบ progress ด้านในการ์ด (เช่น "91%") ให้บางเรียบและใช้สีเดียวกับ accent ของการ์ดนั้นๆ ไม่ทึบเข้ม */
-.metric-card .metric-progress-track { background: var(--surface2); }
-
-/* เส้นขอบให้จางลงอีกนิด ให้พื้นขาว+แถบสีเด่นเป็นตัวนำสายตาแทน */
-.metric-card { border-color: var(--border); }
-
-
-/* ══════════════════════════════════════════════════════════════════
    RISK REGISTER MODULE (Heat Map) — ปีงบประมาณ 2570
    ฟีเจอร์ใหม่ แยกจากระบบบริหารความเสี่ยงเดิม — ใช้ prefix "rrg-" ทั้งหมด
    ══════════════════════════════════════════════════════════════════ */
@@ -2247,3 +2039,650 @@ tbody tr:hover td { background: rgba(91,82,243,.05); }
 #ganttTableModal .gf-lane-td { height: 42px; }
 #ganttTableModal .gf-lane-td > .gf-lane { position: absolute; inset: 0; height: auto; }
 #ganttTableModal thead th:last-child { background: var(--surface2); }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   THEME 2570 · "Orbit Navy & Royal Gold"
+   แนวคิด: มูลนิธิฯ ในพระบรมราชูปถัมภ์ ที่ส่งสัญญาณการศึกษาผ่านดาวเทียม
+   - แถบเมนูสีน้ำเงินกรมท่า (ท้องฟ้ายามค่ำที่ดาวเทียมโคจร) + เส้นวงโคจรสีทอง
+   - พื้นที่ทำงานสีขาวอมฟ้าเย็น อ่านตัวเลขได้สบายตา
+   - สีทองใช้น้อยที่สุด: เมนูที่เลือก, ป้ายปีงบประมาณ เท่านั้น
+   - ตัวอักษร: Sarabun (ฟอนต์ราชการ) สำหรับเนื้อหา + Bai Jamjuree สำหรับหัวข้อ/ตัวเลข
+   (บล็อกนี้วางท้ายไฟล์เพื่อทับค่าเดิมทั้งหมด — ชื่อ class เดิมไม่เปลี่ยน JS ทำงานได้เหมือนเดิม)
+   ══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* palette */
+  --navy-900: #0B1838;
+  --navy-800: #102352;
+  --navy-700: #1A3270;
+  --navy-500: #3B5297;
+  --gold: #C8961E;
+  --gold-soft: #F4E7C6;
+  --gold-ink: #7A5A0E;
+
+  --bg: #F2F4F8;
+  --surface: #FFFFFF;
+  --surface2: #F5F7FA;
+  --border: #E3E7EF;
+  --border2: #D3D9E4;
+  --text: #15203A;
+  --text2: #4C5873;
+  --text3: #7B859B;
+
+  --accent: #2456C9;
+  --accent-2: #1A3F9A;
+  --accent-light: #EAF0FC;
+  --green: #13865B;   --green-light: #E5F4EC;
+  --amber: #B7791F;   --amber-light: #FBF2E0;
+  --red: #C2362F;     --red-light: #FCEBEA;
+  --purple: #7A4CC2;  --purple-light: #F1EBFA;
+
+  --s1: #2456C9; --s1-light: #EAF0FC;
+  --s2: #13865B; --s2-light: #E5F4EC;
+  --s3: #B7791F; --s3-light: #FBF2E0;
+  --s4: #7A4CC2; --s4-light: #F1EBFA;
+  --s5: #52627F; --s5-light: #EDF0F5;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 1px 2px rgba(16,35,82,.05);
+  --shadow-lg: 0 18px 40px -12px rgba(11,24,56,.28);
+
+  --font-display: 'Bai Jamjuree', 'Sarabun', sans-serif;
+
+  /* sidebar */
+  --sidebar-grad: var(--navy-800);
+  --sidebar-border: rgba(255,255,255,.08);
+  --sidebar-text: #FFFFFF;
+  --sidebar-text-muted: #C3CCE3;
+  --sidebar-text-faint: #7F8DB5;
+  --sidebar-hover-bg: rgba(255,255,255,.06);
+  --sidebar-active-bg: rgba(255,255,255,.10);
+  --sidebar-active-text: #FFFFFF;
+  --sidebar-active-accent: var(--gold);
+}
+
+/* ปีงบ 2570 เดิมสลับ accent เป็นสีเขียว — ให้คงสีน้ำเงินสัญญาณเดียวทั้งระบบ */
+body.year-2570 { --accent: #2456C9; --accent-light: #EAF0FC; }
+body.year-2570 .topbar { border-bottom-color: var(--border); }
+body.year-2570 #page-dashboard::before { display: none; }
+
+body {
+  background: var(--bg);
+  background-image: none;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .topbar-title, .card-title, .modal-title, .auth-logo-title,
+.metric-value, .pipeline-count, .strategy-pct, .plan-stat-val, .rrg-metric-value,
+.rrg-header h2, .year-banner-year, .yc-year, .init-loading-title, .risk-modal-title,
+.rrg-matrix-title, .ar-card-value, .rrg-score-num {
+  font-family: var(--font-display);
+}
+.metric-value, .pipeline-count, .strategy-pct, .plan-stat-val, .rrg-metric-value,
+.ar-card-value, .td-num, .rq-chip-value { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Sidebar ─────────────────────────────────────────────────────── */
+.sidebar {
+  width: 248px;
+  background: var(--navy-800);
+  border-right: none;
+  box-shadow: none;
+}
+/* เส้นวงโคจร: เส้นโค้งสีทองบางๆ พร้อมจุดดาวเทียม ใช้แทนเส้นคั่นใต้โลโก้ — จุดเด่นเดียวของธีม */
+.sidebar::before, .sidebar::after { content: none; }
+.sidebar-logo::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 30px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 248 30' preserveAspectRatio='none'%3E%3Cpath d='M0 29.5 C 70 29, 150 22, 248 4' fill='none' stroke='%23C8961E' stroke-opacity='.55' stroke-width='1'/%3E%3Cpath d='M0 29.5 H248' stroke='%23FFFFFF' stroke-opacity='.08' stroke-width='1'/%3E%3Ccircle cx='185.8' cy='14.3' r='8' fill='%23C8961E' fill-opacity='.2'/%3E%3Ccircle cx='185.8' cy='14.3' r='3.5' fill='%23C8961E'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+  pointer-events: none;
+}
+.sidebar-logo::before { content: none; }
+.sidebar-logo {
+  position: relative;
+  padding: 1.5rem 1.25rem 2.25rem;
+  border-bottom: none;
+  background: linear-gradient(180deg, var(--navy-900) 0%, var(--navy-800) 100%);
+  text-align: left;
+}
+.sidebar-logo .org-logo {
+  display: block;
+  width: 64px !important;
+  margin: 0 0 14px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 12px;
+  position: relative;
+}
+.sidebar-logo .org { font-size: 11px; color: var(--sidebar-text-muted); line-height: 1.5; margin-bottom: 6px; }
+.sidebar-logo .title { font-family: var(--font-display); font-size: 14.5px; font-weight: 600; color: #fff; line-height: 1.35; }
+.sidebar-logo .badge-year,
+.sidebar-logo .badge-year.badge-year-2570,
+.sidebar-logo .badge-year.badge-year-2569 {
+  margin-top: 10px;
+  background: transparent;
+  color: var(--gold) !important;
+  border: 1px solid rgba(200,150,30,.55);
+  font-family: var(--font-display);
+  font-size: 11.5px; font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 6px;
+  animation: none;
+}
+
+.sidebar-nav { padding: .75rem 0 1rem; }
+.sidebar-nav::-webkit-scrollbar { width: 6px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 99px; }
+
+.nav-section {
+  padding: 1rem 1.25rem .35rem;
+  font-family: var(--font-display);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--sidebar-text-faint);
+}
+.nav-item {
+  position: relative;
+  width: calc(100% - 20px);
+  margin: 1px 10px;
+  padding: .5rem .75rem;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--sidebar-text-muted);
+  border-right: none;
+  transition: background .15s, color .15s;
+}
+.nav-item svg { width: 17px; height: 17px; opacity: .85; }
+.nav-item:hover { background: var(--sidebar-hover-bg); color: #fff; transform: none; }
+.nav-item.active {
+  background: var(--sidebar-active-bg);
+  color: #fff;
+  font-weight: 600;
+  border-right: none;
+  box-shadow: none;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: -10px; top: 8px; bottom: 8px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--gold);
+}
+.nav-item.active svg { color: var(--gold); opacity: 1; }
+.nav-item:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+.sidebar-footer {
+  padding: .875rem 1.25rem;
+  border-top: 1px solid var(--sidebar-border);
+  font-size: 11.5px;
+  color: var(--sidebar-text-faint);
+}
+
+/* ── Main + Topbar ──────────────────────────────────────────────── */
+.main { margin-left: 248px; }
+.topbar {
+  margin: 0;
+  border-radius: 0;
+  background: rgba(255,255,255,.94);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: none;
+  padding: .875rem 1.75rem;
+}
+.topbar-title { font-size: 19px; font-weight: 600; color: var(--text); letter-spacing: -.005em; line-height: 1.3; }
+.topbar-sub, #topbar-sub { color: var(--text3) !important; font-size: 12px !important; margin-top: 0; }
+.topbar .btn { background: var(--surface); color: var(--text2); border-color: var(--border2); box-shadow: none; }
+.topbar .btn:hover { background: var(--surface2); color: var(--accent); border-color: var(--accent); transform: none; }
+.topbar .btn.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.topbar .btn.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.topbar .btn.btn-teal { background: var(--surface); color: var(--green); border-color: #B9DDCB; }
+.topbar .btn.btn-teal:hover { background: var(--green-light); color: var(--green); border-color: var(--green); }
+.topbar .btn.btn-pdf { background: var(--surface); color: var(--red); border-color: #EBC2BF; }
+.topbar .btn.btn-pdf:hover { background: var(--red-light); color: var(--red); border-color: var(--red); }
+
+.quarter-select,
+.topbar .quarter-select {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-weight: 600;
+  padding: 6px 10px !important;
+  font-size: 12.5px !important;
+}
+.quarter-select:hover { border-color: var(--accent); }
+.quarter-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(36,86,201,.14); }
+
+/* ปีงบในแถบบน: ป้ายเรียบ ขอบทอง */
+.year-card,
+.year-card.y2569, .year-card.y2570 {
+  flex-direction: row;
+  gap: 6px;
+  min-width: 0;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  background: var(--gold-soft);
+  border: 1px solid rgba(200,150,30,.45);
+  box-shadow: none;
+}
+.year-card::before { display: none; }
+.year-card.y2569:hover, .year-card.y2570:hover { box-shadow: none; transform: none; }
+.year-card .yc-label, .year-card.y2569 .yc-label, .year-card.y2570 .yc-label {
+  color: var(--gold-ink); font-size: 11px; text-transform: none; letter-spacing: 0; margin: 0;
+}
+.year-card .yc-year, .year-card.y2569 .yc-year, .year-card.y2570 .yc-year { color: var(--gold-ink); font-size: 15px; font-weight: 700; }
+.year-card .yc-badge { display: none; }
+
+.user-pill, .topbar .user-pill {
+  background: var(--surface); border: 1px solid var(--border2); color: var(--text);
+}
+.user-pill:hover, .topbar .user-pill:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.user-avatar { background: var(--navy-700); }
+.readonly-badge { border-radius: var(--radius); border-width: 1px; background: var(--gold-soft); border-color: rgba(200,150,30,.45); color: var(--gold-ink); }
+
+.content { padding: 1.75rem; max-width: 1560px; width: 100%; }
+.content > [id^="page-"] { animation: none; }
+
+/* ── Year banner บน dashboard ─────────────────────────────────── */
+.year-banner, .year-banner.banner-2570, .year-banner.banner-2569 {
+  background: var(--navy-800);
+  border: none;
+  color: #DCE3F4;
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  margin-bottom: 1.25rem;
+  font-size: 13px;
+  font-weight: 500;
+  animation: none;
+}
+.year-banner-icon { display: none; }
+.year-banner-year, .year-banner-year.y2570 {
+  background: none;
+  -webkit-text-fill-color: var(--gold);
+  color: var(--gold);
+  font-size: 26px; font-weight: 700; line-height: 1;
+}
+#quarterLabel { color: #9FACCF; opacity: 1 !important; }
+#quarterBadge {
+  background: rgba(255,255,255,.1) !important;
+  color: #fff;
+  border-radius: 6px !important;
+  padding: 3px 10px !important;
+  font-weight: 600 !important;
+}
+
+/* ── Cards ──────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.card:hover { transform: none; box-shadow: var(--shadow); }
+.card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.card-body { padding: 1.25rem; }
+
+/* ส่วนฟอร์มรายงาน: ใช้แถบสีด้านซ้ายบอกหมวด พื้นหัวการ์ดเป็นกลาง */
+.card.section-kpi, .card.section-progress, .card.section-editor, .card.section-images { border-left-width: 3px; }
+.card.section-kpi      { border-left-color: var(--purple); }
+.card.section-progress { border-left-color: var(--green); }
+.card.section-editor   { border-left-color: var(--accent); }
+.card.section-images   { border-left-color: var(--amber); }
+.card.section-kpi .card-header, .card.section-progress .card-header,
+.card.section-editor .card-header, .card.section-images .card-header { background: var(--surface2); }
+.card.section-kpi .card-title      { color: var(--purple); }
+.card.section-progress .card-title { color: var(--green); }
+.card.section-editor .card-title   { color: var(--accent); }
+.card.section-images .card-title   { color: var(--amber); }
+
+/* ── Metric cards: พื้นขาว ตัวเลขใหญ่ สีบอกหมวดผ่านไอคอน+ตัวเลข ── */
+.metrics-top, .metrics-mid, .metrics-status { gap: 12px; }
+.metric-card,
+.metric-card.c-blue, .metric-card.c-green, .metric-card.c-amber, .metric-card.c-purple,
+.metric-card.c-teal, .metric-card.c-red, .metric-card.c-done, .metric-card.c-progress,
+.metric-card.c-pending, .metric-card.c-blue-deep, .metric-card.c-amber-deep,
+.metric-card.c-green-deep, .metric-card.c-red-deep {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.125rem 1.05rem;
+  animation: none;
+}
+.metric-card:hover { transform: none; box-shadow: var(--shadow); }
+.metric-card::before { width: 3px; border-radius: 0; top: 14px; height: 28px; }
+.metric-card.c-blue::before, .metric-card.c-progress::before, .metric-card.c-blue-deep::before { background: var(--accent); }
+.metric-card.c-green::before, .metric-card.c-done::before, .metric-card.c-green-deep::before   { background: var(--green); }
+.metric-card.c-amber::before, .metric-card.c-amber-deep::before { background: var(--amber); }
+.metric-card.c-purple::before { background: var(--purple); }
+.metric-card.c-teal::before   { background: var(--s5); }
+.metric-card.c-red::before, .metric-card.c-red-deep::before { background: var(--red); }
+.metric-card.c-pending::before { background: var(--text3); }
+
+.metric-icon { width: 30px; height: 30px; border-radius: 8px; margin-bottom: 12px; transition: none; }
+.metric-icon svg { width: 16px; height: 16px; }
+.metric-card:hover .metric-icon { transform: none; }
+.metric-card.c-blue .metric-icon, .metric-card.c-progress .metric-icon, .metric-card.c-blue-deep .metric-icon { background: var(--accent-light); color: var(--accent); }
+.metric-card.c-green .metric-icon, .metric-card.c-done .metric-icon, .metric-card.c-green-deep .metric-icon  { background: var(--green-light); color: var(--green); }
+.metric-card.c-amber .metric-icon, .metric-card.c-amber-deep .metric-icon { background: var(--amber-light); color: var(--amber); }
+.metric-card.c-purple .metric-icon { background: var(--purple-light); color: var(--purple); }
+.metric-card.c-teal .metric-icon   { background: var(--s5-light); color: var(--s5); }
+.metric-card.c-red .metric-icon, .metric-card.c-red-deep .metric-icon { background: var(--red-light); color: var(--red); }
+.metric-card.c-pending .metric-icon { background: var(--surface2); color: var(--text3); }
+
+.metric-label,
+.metric-card.c-blue-deep .metric-label, .metric-card.c-amber-deep .metric-label,
+.metric-card.c-green-deep .metric-label, .metric-card.c-red-deep .metric-label {
+  font-size: 12.5px; font-weight: 600; color: var(--text2);
+  text-transform: none; letter-spacing: 0; margin-bottom: 4px;
+}
+.metric-value { font-size: 26px; font-weight: 600; line-height: 1.15; letter-spacing: -.01em; color: var(--text); }
+.metric-card.c-blue .metric-value, .metric-card.c-progress .metric-value { color: var(--text); }
+.metric-card.c-green .metric-value, .metric-card.c-done .metric-value  { color: var(--text); }
+.metric-card.c-amber .metric-value  { color: var(--text); }
+.metric-card.c-purple .metric-value { color: var(--text); }
+.metric-card.c-teal .metric-value   { color: var(--text); }
+.metric-card.c-red .metric-value    { color: var(--red); }
+.metric-card.c-pending .metric-value { color: var(--text3); }
+/* การ์ดงบจัดสรร: ตัวเลขหลักใช้สีกรมท่า ส่วนต่างใช้สีสถานะ */
+.metric-card.c-blue-deep .metric-value  { color: var(--navy-800); }
+.metric-card.c-amber-deep .metric-value { color: var(--text); }
+.metric-card.c-green-deep .metric-value { color: var(--green); }
+.metric-card.c-red-deep .metric-value   { color: var(--red); }
+.metric-sub,
+.metric-card.c-blue-deep .metric-sub, .metric-card.c-amber-deep .metric-sub,
+.metric-card.c-green-deep .metric-sub, .metric-card.c-red-deep .metric-sub { font-size: 12px; color: var(--text3); }
+
+.metric-progress { margin-top: 10px; }
+.metric-progress-track, .metric-card .metric-progress-track { height: 4px; background: #EBEEF4; }
+
+/* ── Status pipeline: แถบสถานะแบบเรียบ ── */
+.status-pipeline { gap: 12px; }
+.pipeline-item,
+.pipeline-item.done, .pipeline-item.progress, .pipeline-item.pending {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.25rem;
+  animation: none;
+  transition: border-color .15s, background .15s;
+}
+.pipeline-item:hover { transform: none; box-shadow: var(--shadow); border-color: var(--accent); background: #FBFCFE; }
+.pipeline-dot { width: 42px; height: 42px; border-radius: 10px; font-size: 18px; box-shadow: none; transition: none; }
+.pipeline-item:hover .pipeline-dot { transform: none; }
+.pipeline-dot.done     { background: var(--green-light); }
+.pipeline-dot.progress { background: var(--accent-light); }
+.pipeline-dot.pending  { background: var(--surface2); }
+.pipeline-count { font-size: 30px; font-weight: 600; }
+.pipeline-count.done     { color: var(--green); }
+.pipeline-count.progress { color: var(--accent); }
+.pipeline-count.pending  { color: var(--text3); }
+.pipeline-label { font-size: 13px; color: var(--text2); }
+
+/* ── สรุปตามยุทธศาสตร์ (render จาก JS ด้วย inline style) ── */
+#strategy-summary-top > div { border-radius: var(--radius-lg) !important; padding: 1.125rem 1.25rem !important; box-shadow: var(--shadow); }
+#strategy-summary-top > div > div:first-child > span:nth-child(2) { font-family: var(--font-display); font-size: 15px !important; font-weight: 600 !important; }
+#strategy-summary-top [onclick^="goToStrategy"] {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+}
+#strategy-summary-top [onclick^="goToStrategy"]:hover { border-color: var(--accent) !important; box-shadow: none !important; transform: none !important; }
+#strategy-summary-top [onclick^="goToStrategy"] > div:first-child { width: 100% !important; height: 3px !important; border-radius: 0 !important; }
+#strategy-summary-top [onclick^="goToStrategy"] span[style*="font-size:26px"] { font-family: var(--font-display); font-weight: 600 !important; }
+
+.strategy-card { border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+.strategy-card:hover { transform: none; box-shadow: var(--shadow); border-color: var(--accent); }
+.strategy-pct { font-weight: 600; }
+
+/* ── Badges ─────────────────────────────────────────────────────── */
+.badge { border-radius: 6px; padding: 2px 8px; font-weight: 600; animation: none; }
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+.btn {
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  font-weight: 600;
+  padding: 7px 14px;
+  box-shadow: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); transform: none; }
+.btn:active { transform: translateY(1px); }
+.btn-sm { padding: 5px 10px; font-size: 12.5px; }
+.btn-primary, .btn-primary:hover,
+.btn-success, .btn-warning, .btn-teal { box-shadow: none; transform: none; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.btn-success { background: var(--green); border-color: var(--green); color: #fff; }
+.btn-success:hover { background: #0E6D49; border-color: #0E6D49; color: #fff; transform: none; }
+.btn-warning { background: var(--amber); border-color: var(--amber); color: #fff; }
+.btn-warning:hover { background: #95621A; border-color: #95621A; color: #fff; transform: none; }
+.btn-teal { background: var(--s5); border-color: var(--s5); color: #fff; }
+.btn-teal:hover { background: #3F4D67; border-color: #3F4D67; color: #fff; transform: none; }
+.btn-danger { color: var(--red); border-color: #EBC2BF; background: var(--surface); }
+.btn-danger:hover { background: var(--red-light); color: var(--red); border-color: var(--red); }
+.btn-add { background: var(--green-light); color: var(--green); border-color: #B9DDCB; }
+.btn-add:hover { background: var(--green); color: #fff; border-color: var(--green); }
+.add-row-btn { border-radius: var(--radius); border-width: 1px; }
+
+/* ── Tables ─────────────────────────────────────────────────────── */
+.table-wrap { border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+table { border-radius: 0; overflow: visible; }
+th {
+  background: var(--surface2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 12px; border-bottom: 1px solid #EDF0F5; }
+tbody tr:hover td { background: transparent; }
+tbody tr.data-row:hover td { background: #F6F8FD; }
+tbody tr.data-row:hover .td-name span:first-child { color: var(--accent); }
+tbody tr.data-row:active td { background: var(--accent-light); }
+tbody tr.report-row-active td { background: var(--accent-light) !important; box-shadow: inset 3px 0 0 var(--accent); }
+.report-groups-table thead th { background: var(--surface2); color: var(--text2); }
+.toolbar { padding: .875rem 1.25rem; background: var(--surface); }
+.search-input, .select-filter {
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+.search-input:focus, .select-filter:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(36,86,201,.14); }
+.page-btn { border-radius: 6px; }
+.page-btn.active { background: var(--navy-800); border-color: var(--navy-800); }
+.mini-table-wrap { border-color: var(--border); }
+.mini-table th { text-transform: none; letter-spacing: 0; }
+
+/* ── Forms ──────────────────────────────────────────────────────── */
+.form-label, .auth-label {
+  font-size: 12.5px; font-weight: 600; color: var(--text2);
+  text-transform: none; letter-spacing: 0;
+}
+.form-input, .form-select, .form-textarea, .com-trigger, .auth-input, .risk-input, .risk-select, .risk-textarea {
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.form-input:hover, .form-select:hover, .form-textarea:hover, .auth-input:hover { border-color: #B9C2D3; }
+.form-input:focus, .form-select:focus, .form-textarea:focus, .auth-input:focus,
+.risk-input:focus, .risk-textarea:focus, .com-trigger.open {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(36,86,201,.14);
+  background: var(--surface);
+}
+.form-section, .form-section-header, .detail-section-title, .risk-preview-section-title {
+  font-family: var(--font-display);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.form-section { color: var(--navy-700); }
+.detail-section-title { color: var(--text2); }
+.com-tag, .kpi-tag { border-radius: 6px; }
+
+/* ── Modals ─────────────────────────────────────────────────────── */
+.modal-overlay, .risk-modal-overlay, .risk-preview-modal { background: rgba(11,24,56,.52); backdrop-filter: blur(3px); }
+.modal, .risk-modal, .risk-preview-box { border-radius: 14px; box-shadow: var(--shadow-lg); border: none; }
+.modal-header { padding: 1.1rem 1.5rem; }
+.modal-title { font-size: 17px; font-weight: 600; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; background: var(--surface2); border-radius: 0 0 14px 14px; }
+
+/* ── Auth ───────────────────────────────────────────────────────── */
+.auth-overlay { background: rgba(11,24,56,.72); backdrop-filter: blur(6px); }
+.auth-box {
+  border-radius: 16px;
+  padding: 0 0 1.75rem;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,.45);
+}
+.auth-box > *:not(.auth-logo) { margin-left: 2.25rem; margin-right: 2.25rem; }
+.auth-logo {
+  position: relative;
+  background: var(--navy-800);
+  padding: 1.75rem 2.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.auth-logo::before {
+  content: '';
+  position: absolute; width: 520px; height: 180px; left: -60px; top: 20px;
+  border: 1px solid rgba(200,150,30,.4); border-radius: 50%;
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+.auth-logo-icon { background: #fff; box-shadow: none; border-radius: 12px; position: relative; }
+.auth-logo-title { color: #fff; font-size: 18px; font-weight: 600; position: relative; }
+.auth-logo-sub { color: #AEB9D6; position: relative; }
+.auth-tabs { border-radius: var(--radius); background: var(--surface2); border: 1px solid var(--border); }
+.auth-tab { border-radius: 6px; }
+.auth-tab.active { color: var(--navy-800); box-shadow: 0 1px 2px rgba(16,35,82,.12); }
+.auth-btn {
+  background: var(--accent);
+  box-shadow: none;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+}
+.auth-btn:hover { background: var(--accent-2); transform: none; box-shadow: none; }
+.auth-guest-btn { border-width: 1px; border-color: var(--border2); }
+.auth-forgot-link { color: var(--accent); }
+
+/* ── Chips, tabs, misc ──────────────────────────────────────────── */
+.risk-tab { border-radius: var(--radius); border-width: 1px; }
+.risk-tab.active { background: var(--navy-800); border-color: var(--navy-800); }
+.risk-chip, .risk-chip.active { border-radius: var(--radius); box-shadow: none; }
+.risk-chip.active { background: var(--accent); border-color: var(--accent); }
+.mode-switcher { border-radius: var(--radius); border-width: 1px; }
+.mode-btn { border-radius: 6px; }
+.rq-chip { border-radius: var(--radius); border-width: 1px; }
+
+.gs-box { border-radius: var(--radius-lg); }
+.status-msg { border-radius: var(--radius); }
+.toast { background: var(--navy-900); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; box-shadow: var(--shadow-lg); }
+
+/* ── Risk register header: จากแดง-ส้มไล่สี เป็นกรมท่า + ขอบแดงบอกหมวด ── */
+.rrg-header {
+  background: var(--navy-800);
+  box-shadow: none;
+  border-left: 4px solid var(--red);
+}
+.rrg-metric, .rrg-metric.total, .rrg-metric.high, .rrg-metric.med, .rrg-metric.low, .rrg-metric.done {
+  background: var(--surface); border-color: var(--border); border-radius: var(--radius-lg);
+}
+.rrg-metric::before { width: 3px; top: 14px; height: 26px; border-radius: 0; }
+.rrg-metric-label { text-transform: none; letter-spacing: 0; font-size: 12.5px; font-weight: 600; color: var(--text2); }
+.rrg-metric-value { font-weight: 600; }
+.rrg-proj-head { background: var(--surface2); }
+
+/* ── Gantt ──────────────────────────────────────────────────────── */
+.gantt-table th { text-transform: none; letter-spacing: 0; font-size: 11.5px; font-weight: 600; }
+.gantt-quarter-header { background: var(--navy-800); }
+
+/* ── Loading overlay ────────────────────────────────────────────── */
+#initLoadingOverlay { background: rgba(242,244,248,.94) !important; }
+.init-loading-orbit-ring { border-color: var(--border2); border-top-color: var(--navy-800); border-right-color: var(--gold); }
+.init-loading-orbit-core { background: var(--gold); box-shadow: 0 0 0 7px var(--gold-soft); }
+.init-loading-dots span { background: var(--navy-700); }
+.init-loading-title { font-weight: 600; }
+
+/* ── Scrollbars ─────────────────────────────────────────────────── */
+.content::-webkit-scrollbar { width: 8px; height: 8px; }
+.content::-webkit-scrollbar-thumb { background: #CBD2DF; border-radius: 99px; }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  #strategy-summary-top [style*="grid-template-columns:repeat(5,1fr)"] { grid-template-columns: repeat(3,1fr) !important; }
+}
+@media (max-width: 900px) {
+  .sidebar { width: 200px; }
+  .sidebar::before, .sidebar::after { display: none; }
+  .main { margin-left: 200px; }
+  .content { padding: 1.25rem; }
+  .topbar { padding: .75rem 1.25rem; }
+}
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .content { padding: 1rem; }
+  .topbar-title { font-size: 16px; }
+  .metric-value { font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+
+@media print {
+  body { background: #fff; }
+  .card, .metric-card, .pipeline-item { box-shadow: none; }
+  .year-banner { background: #fff; color: var(--text); border: 1px solid var(--border); }
+}
+
+/* ── การ์ดอนุกรรมการ (render จาก JS) — ให้เป็นภาษาเดียวกับการ์ดยุทธศาสตร์ ── */
+#committeeMetrics > div {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+}
+#committeeMetrics > div:hover { border-color: var(--accent) !important; box-shadow: none !important; transform: none !important; }
+#committeeMetrics > div > div:first-child { width: 100% !important; height: 3px !important; border-radius: 0 !important; }
+#committeeMetrics > div > div[style*="font-size:22px"] { font-family: var(--font-display); font-weight: 600 !important; }
+#committeeSummaryCard .summary-table-wrap, #committeeSummaryCard [style*="overflow"] { max-width: 100%; }
+
+#committeeSummaryCard .card-body > div[style*="1fr 1.6fr"] > * { min-width: 0; }
+@media (max-width: 1100px) { #committeeMetrics { grid-template-columns: repeat(3,1fr) !important; } }
+@media (max-width: 900px) { .sidebar-logo::after { display: none; } .sidebar-logo { padding-bottom: 1.25rem; border-bottom: 1px solid var(--sidebar-border); } }
+/* ชื่อโครงการ: ใช้แถบสีซ้ายบอกยุทธศาสตร์ พื้นเซลล์คงความขาว อ่านง่ายกว่า */
+td.td-name { background: transparent !important; font-weight: 500; }
+.password-wrapper .auth-input { width: 100%; }
+@media (max-width: 640px) {
+  .topbar-actions { flex-wrap: wrap; }
+  .metrics-mid, .metrics-status, .status-pipeline { grid-template-columns: 1fr !important; }
+  .year-banner { flex-wrap: wrap; row-gap: 4px; }
+  .year-banner-year { font-size: 22px; }
+  #quarterLabel { display: none; }
+  #committeeMetrics, #strategy-summary-top [style*="grid-template-columns:repeat(5,1fr)"] { grid-template-columns: 1fr 1fr !important; }
+}
