@@ -1313,6 +1313,8 @@ function saveProject(){
   }
 
   const gv=(id,def='')=>{const el=document.getElementById(id);return el?(el.value.trim()||def):def;};
+  // ช่องข้อความยาว: ห้าม trim หัวข้อความ ไม่งั้น Tab ย่อหน้าของย่อหน้าแรกจะหายตอนบันทึก (ตัดเฉพาะช่องว่างท้าย)
+  const gvRich=(id,def='')=>{const el=document.getElementById(id);if(!el)return def;const v=el.value.replace(/\s+$/,'');return v.trim()?v:def;};
   const gn=(id)=>parseFloat(document.getElementById(id)&&document.getElementById(id).value)||0;
 
   // sync tables → hidden fields before reading
@@ -1335,10 +1337,10 @@ function saveProject(){
   const data={
     name,
     subStrategy:     gv('fSubStrategy'),
-    rationale:       gv('fRationale'),
-    objective:       gv('fObjective'),
-    targetQuantity:  gv('fTargetQuantity'),
-    target:          gv('fTarget'),
+    rationale:       gvRich('fRationale'),
+    objective:       gvRich('fObjective'),
+    targetQuantity:  gvRich('fTargetQuantity'),
+    target:          gvRich('fTarget'),
     strategy:        gv('fStrategy','1'),
     owner:           gv('fOwner'),
     dept:            gv('fDept'),
@@ -1365,7 +1367,7 @@ function saveProject(){
     evalMethod:      evalData.map(r=>r.method),
     evaluator:       evalData.map(r=>r.tool),
     risk:            '',
-    expectedBenefit: gv('fExpectedBenefit'),
+    expectedBenefit: gvRich('fExpectedBenefit'),
     progress:        0,
     kpi:             kpiFromEval,
     committees:      getComCheckboxes(),
@@ -2024,9 +2026,9 @@ function saveResultReport(){
     quarter:   qVal,
     spent:     parseFloat(document.getElementById('fSpent').value)||0,
     po:        parseFloat(document.getElementById('fPO').value)||0,
-    result:    document.getElementById('fResult').value.trim(),
-    problems:  document.getElementById('fProblems').value.trim(),
-    solutions: document.getElementById('fSolutions').value.trim(),
+    result:    document.getElementById('fResult').value.replace(/\s+$/,''),
+    problems:  document.getElementById('fProblems').value.replace(/\s+$/,''),
+    solutions: document.getElementById('fSolutions').value.replace(/\s+$/,''),
     images:    cleanImages,
     kpiResults: reportTempKpiResults.map(_reportKpiObj).filter(k=>k.indicator.trim()!=='' || k.target.trim()!=='' || k.achieved!==''),
     quarterActivities: reportTempActivities.filter(a=>(a.name||'').trim()!=='' || (a.budget||0)!==0 || (a.spent||0)!==0),
@@ -2120,12 +2122,13 @@ function openDetail(id){
   // ให้ตรวจจับแล้วแสดงผลอย่างเหมาะสมแทน — ถ้าโครงสร้างตรงกับตารางงบประมาณ {name,comp,op,mat} จะ
   // render เป็นตารางงบให้เลย พร้อมข้อความเตือนให้ไปแก้ที่ต้นทาง (กด "แก้ไข" แล้วย้ายไปช่องที่ถูกต้อง)
   function renderFreeText(text){
-    const t = (text||'').trim();
+    const raw = (text===null||text===undefined) ? '' : String(text).replace(/\s+$/,'');
+    const t = raw.trim();
     if(!t) return '';
     const looksJson = t.length>=20 && ((t.startsWith('[')&&t.endsWith(']'))||(t.startsWith('{')&&t.endsWith('}')));
-    if(!looksJson) return `<div class="detail-text">${_rtHtml(t)}</div>`;
+    if(!looksJson) return `<div class="detail-text">${_rtHtml(raw)}</div>`;
     let parsed=null;
-    try { parsed = JSON.parse(t); } catch(e){ return `<div class="detail-text">${_rtHtml(t)}</div>`; }
+    try { parsed = JSON.parse(t); } catch(e){ return `<div class="detail-text">${_rtHtml(raw)}</div>`; }
     const warn = `<div style="font-size:11.5px;color:var(--red);background:var(--red-light);border:1px solid #ffd0d0;border-radius:6px;padding:6px 10px;margin-bottom:8px">⚠️ ข้อความนี้ดูเหมือนถูกวางผิดช่อง (เป็นข้อมูล JSON ไม่ใช่ข้อความปกติ) — กด "แก้ไข" ด้านล่างเพื่อย้ายไปช่องที่ถูกต้อง</div>`;
     const isBudgetShape = Array.isArray(parsed) && parsed.length && parsed.every(r=>r && typeof r==='object' && 'name' in r && ('comp' in r || 'op' in r || 'mat' in r));
     if(isBudgetShape){
