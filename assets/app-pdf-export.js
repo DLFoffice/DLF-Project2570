@@ -8,6 +8,8 @@ const _DLF_LOGO_SRC = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOoAAAEECAY
 // ทำให้ export PDF ทั้งก้อนหยุดเงียบๆ (โดยเฉพาะรายงานที่ดึงรายละเอียดโครงการทีละตัว เช่น "รูปเล่ม
 // ฉบับสมบูรณ์" / "รายโครงการ" / "ฉบับสมบูรณ์") แก้โดยแปลงเป็น String() ก่อนเสมอ กันพังทุกกรณี
 function _nl2br(s){ s = (s===null||s===undefined) ? '' : String(s); return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+// ข้อความยาวพร้อมรูปแบบ (เดิม _nl2br(_esc(x)) ซึ่ง escape ซ้ำสองครั้ง ทำให้ & กลายเป็น &amp; ในเอกสาร)
+function _rich(s){ return (typeof dlfRich==='function') ? dlfRich(s) : _nl2br(s); }
 function _esc(s){ s = (s===null||s===undefined) ? '' : String(s); return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function _fmt(n){ return Number(n||0).toLocaleString('th-TH'); }
 // ── สีอ่อนๆ (rgba) จาก hex ไว้ทำพื้นหลัง/ไล่สีบนหน้าปก/หน้าคั่นต่างๆ ในไฟล์ PDF นี้ ──────
@@ -94,7 +96,7 @@ function _buildActivitiesTable(activities, strategy) {
     const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
     return `<tr style="page-break-inside:avoid">
     <td style="border:1px solid ${_PDF_BORDER};padding:5px 3px;text-align:center;font-size:10px;background:${zebra}">${i+1}</td>
-    <td style="border:1px solid ${_PDF_BORDER};padding:5px 7px;font-size:10px;line-height:1.55;background:${zebra}">${_nl2br(_esc(row.name||''))}</td>
+    <td style="border:1px solid ${_PDF_BORDER};padding:5px 7px;font-size:10px;line-height:1.55;background:${zebra}">${_rich((row.name||''))}</td>
     <td style="border:1px solid ${_PDF_BORDER};padding:5px 7px;font-size:10px;line-height:1.55;background:${zebra};color:#374151">${_esc(row.person||'')}</td>
     ${_pdfActMonthCells(row.months, color)}
   </tr>`;
@@ -192,9 +194,9 @@ function _buildEvalTable(evalRowsData) {
     const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
     return `<tr>
     ${_pdfCell(i+1,{center:true,bg:zebra})}
-    ${_pdfCell(_nl2br(_esc(String(_unwrapMaybeJsonArrayString(r.kpi)||''))),{bg:zebra})}
-    ${_pdfCell(_nl2br(_esc(String(_unwrapMaybeJsonArrayString(r.method)||''))),{bg:zebra})}
-    ${_pdfCell(_nl2br(_esc(String(_unwrapMaybeJsonArrayString(r.tool)||''))),{bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.kpi)||''))),{bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.method)||''))),{bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.tool)||''))),{bg:zebra})}
   </tr>`;
   }).join('');
 
@@ -301,7 +303,7 @@ function _buildFormHTML(p, logoSrc, opts) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 20px;font-size:10.5px;margin-bottom:6px">
       ${[1,2,3,4].map(n=>`<div>${n===s?'<strong>☑':'☐'} ยุทธศาสตร์ที่ ${n} ${_esc(stratNames[n])}${n===s?'</strong>':''}</div>`).join('')}
     </div>
-    <div style="font-size:10.5px"><strong>กลยุทธ์ที่ :</strong> ${_nl2br(_esc(p.subStrategy||''))}</div>
+    <div style="font-size:10.5px"><strong>กลยุทธ์ที่ :</strong> ${_rich((p.subStrategy||''))}</div>
   </div>
   </div>
 
@@ -331,22 +333,22 @@ function _buildFormHTML(p, logoSrc, opts) {
 
   <div class="pdf-noBreak">
     ${_sectionHeader(1,'หลักการและเหตุผล','#5A4CB0')}
-    <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:60px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.rationale||''))}</div>
+    <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:60px;font-size:10.5px;text-align:justify">${_rich((p.rationale||''))}</div>
   </div>
 
   <div class="pdf-noBreak">
     ${_sectionHeader(2,'วัตถุประสงค์','#5A4CB0')}
-    <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:44px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.objective||''))}</div>
+    <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:44px;font-size:10.5px;text-align:justify">${_rich((p.objective||''))}</div>
   </div>
 
   <div class="pdf-noBreak">
   ${_sectionHeader(3,'เป้าหมาย','#5A4CB0')}
   <div style="font-size:10.5px;font-weight:600;margin:4px 0 2px;margin-left:8px">3.1 เชิงปริมาณ</div>
-  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;margin-bottom:6px;text-align:justify">${_nl2br(_esc(p.targetQuantity||''))}</div>
+  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;margin-bottom:6px;text-align:justify">${_rich((p.targetQuantity||''))}</div>
   </div>
   <div class="pdf-noBreak">
   <div style="font-size:10.5px;font-weight:600;margin:4px 0 2px;margin-left:8px">3.2 เชิงคุณภาพ</div>
-  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.target||''))}</div>
+  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:36px;font-size:10.5px;text-align:justify">${_rich((p.target||''))}</div>
   </div>
 
   ${_sectionHeader(4,'การดำเนินงาน (กิจกรรม / ขั้นตอน)','#5A4CB0')}
@@ -360,11 +362,11 @@ function _buildFormHTML(p, logoSrc, opts) {
 
   ${_sectionHeader(6,'การวัดและประเมินผล','#5A4CB0')}
   ${_buildEvalTable(evalData)}
-  ${p.risk?`<div style="font-size:10.5px;margin-top:6px"><strong>ความเสี่ยงและการจัดการ :</strong> ${_nl2br(_esc(p.risk))}</div>`:''}
+  ${p.risk?`<div style="font-size:10.5px;margin-top:6px"><strong>ความเสี่ยงและการจัดการ :</strong> ${_rich((p.risk))}</div>`:''}
 
   <div class="pdf-noBreak">
   ${_sectionHeader(7,'ผลที่คาดว่าจะได้รับ','#5A4CB0')}
-  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:50px;font-size:10.5px;text-align:justify">${_nl2br(_esc(p.expectedBenefit||''))}</div>
+  <div style="border:1px solid ${_PDF_BORDER};padding:8px 10px;min-height:50px;font-size:10.5px;text-align:justify">${_rich((p.expectedBenefit||''))}</div>
   </div>
 
   ${_buildSignatureBlock(p.proposer,p.proposerPos,p.approver,p.approverPos,p.authorizer,p.authorizerPos)}
@@ -474,6 +476,7 @@ async function _runPdfExport(htmlContentOrBlocks, filenameBase, headerOpts, orie
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   @page { size: ${pageSize}; margin: 14mm 12mm 16mm; }
+  ${(typeof dlfPdfPageCss==='function') ? dlfPdfPageCss(pageSize) : ''}
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   html, body { margin:0; padding:0; background:#ecebf3; font-family:'Sarabun',sans-serif; color:#161c26; }
   table.pdf-print-table { width:100%; border-collapse:collapse;table-layout:fixed; page-break-before: always; background:#fff; }
@@ -1107,16 +1110,16 @@ function _buildQuarterReportHTML(p, quarter, r, logoSrc){
   const textBlock = (title, text, bg)=> text ? `
     <div class="pdf-noBreak" style="margin-bottom:12px">
       <div style="font-weight:700;font-size:11px;margin-bottom:4px">${title}</div>
-      <div style="border:1px solid ${_PDF_BORDER_DARK};padding:8px 10px;font-size:10.5px;line-height:1.7;background:${bg||'transparent'};white-space:pre-wrap;text-align:justify">${_nl2br(_esc(text))}</div>
+      <div style="border:1px solid ${_PDF_BORDER_DARK};padding:8px 10px;font-size:10.5px;line-height:1.7;background:${bg||'transparent'};white-space:pre-wrap;text-align:justify">${_rich((text))}</div>
     </div>` : '';
 
   // 1. วัตถุประสงค์ / 2. เป้าหมาย — ข้อมูลจากแผนโครงการ (เหมือนกันทุกไตรมาส ไม่ได้ขึ้นกับ r)
   const refBlock = (p.objective || p.targetQuantity || p.target) ? `
     <div class="pdf-noBreak" style="margin-bottom:12px">
-      ${p.objective?`<div style="margin-bottom:8px"><div style="font-weight:700;font-size:11px;margin-bottom:4px">1. วัตถุประสงค์</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_nl2br(_esc(p.objective))}</div></div>`:''}
+      ${p.objective?`<div style="margin-bottom:8px"><div style="font-weight:700;font-size:11px;margin-bottom:4px">1. วัตถุประสงค์</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_rich((p.objective))}</div></div>`:''}
       ${(p.targetQuantity||p.target)?`<div style="font-weight:700;font-size:11px;margin-bottom:4px">2. เป้าหมาย</div>`:''}
-      ${p.targetQuantity?`<div style="margin-bottom:6px"><div style="font-size:10.5px;font-weight:600;margin-bottom:2px">2.1 เป้าหมายเชิงปริมาณ</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_nl2br(_esc(p.targetQuantity))}</div></div>`:''}
-      ${p.target?`<div><div style="font-size:10.5px;font-weight:600;margin-bottom:2px">2.2 เป้าหมายเชิงคุณภาพ</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_nl2br(_esc(p.target))}</div></div>`:''}
+      ${p.targetQuantity?`<div style="margin-bottom:6px"><div style="font-size:10.5px;font-weight:600;margin-bottom:2px">2.1 เป้าหมายเชิงปริมาณ</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_rich((p.targetQuantity))}</div></div>`:''}
+      ${p.target?`<div><div style="font-size:10.5px;font-weight:600;margin-bottom:2px">2.2 เป้าหมายเชิงคุณภาพ</div><div style="font-size:10.5px;line-height:1.7;text-align:justify">${_rich((p.target))}</div></div>`:''}
     </div>` : '';
 
   const actTotalBudget = quarterActivities.reduce((a,x)=>a+(Number(x.budget)||0),0);

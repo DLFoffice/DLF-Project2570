@@ -10,9 +10,9 @@
 <title>ระบบรายงาน พ.ศ. 2570 | มูลนิธิการศึกษาทางไกลผ่านดาวเทียม</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Bai+Jamjuree:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=20261002P.3">
+<link rel="stylesheet" href="assets/style.css?v=20261003R.1">
 <!-- ธีม "Pastel Sky" (ทับธีมหลัก) — เปลี่ยนเป็น theme-lagoon.css เพื่อใช้ธีมน้ำทะเลลึก หรือลบบรรทัดนี้เพื่อใช้ธีมน้ำเงินกรมท่า -->
-<link rel="stylesheet" href="assets/theme-pastel.css?v=20261002P.3">
+<link rel="stylesheet" href="assets/theme-pastel.css?v=20261003R.1">
 </head>
 <body>
 <div class="layout">
@@ -2123,9 +2123,10 @@
   </div>
 </div>
 
-<script src="assets/app-pdf-select.js?v=20260916V.3"></script>
+<script src="assets/app-richtext.js?v=20261003R.1"></script>
+<script src="assets/app-pdf-select.js?v=20261003R.1"></script>
 
-<script src="assets/app-pdf-export.js?v=20261002P.3"></script>
+<script src="assets/app-pdf-export.js?v=20261003R.1"></script>
 <!-- ══ AUTH MODAL ══ -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-bg" aria-hidden="true">
@@ -2349,15 +2350,15 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="assets/app-auth-risk.js?v=20261002P.3"></script>
+<script src="assets/app-auth-risk.js?v=20261003R.1"></script>
 
 <!-- app-core.js ต้องโหลดหลังสุด (หลัง app-auth-risk.js) เพราะ initApp() ที่ท้ายไฟล์
      เรียก renderTable() ทันทีตอนโหลดหน้า ซึ่งเรียกใช้ _isEditable() ที่นิยามอยู่ใน
      app-auth-risk.js — ถ้าโหลดก่อนจะเกิด ReferenceError: _isEditable is not defined
      และทำให้โค้ดส่วนที่เหลือใน initApp() (รวมถึงการ sync จาก Google Sheet) ไม่ทำงานเลย -->
-<script src="assets/app-core.js?v=20261002P.3"></script>
-<script src="assets/app-riskregister.js?v=20260916V.3"></script>
-<script src="assets/app-annual-report.js?v=20260923A"></script>
+<script src="assets/app-core.js?v=20261003R.1"></script>
+<script src="assets/app-riskregister.js?v=20261003R.1"></script>
+<script src="assets/app-annual-report.js?v=20261003R.1"></script>
 
 </body>
 </html>

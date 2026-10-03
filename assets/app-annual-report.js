@@ -16,6 +16,7 @@ const _AR_STATUS_TEXT = { done:'แล้วเสร็จ', progress:'อย�
 const _AR_STATUS_COLOR = { done:'#059669', progress:'#d97706', pending:'#6b7280' };
 
 function _arEsc(s){ s = (s===null||s===undefined) ? '' : String(s); return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _arRich(s){ return (typeof dlfRich==='function') ? dlfRich(s) : _arNl2br(s); }
 function _arNl2br(s){ return _arEsc(s).replace(/\n/g,'<br>'); }
 function _arNum(v){ const n = Number(v); return isFinite(n) ? n : 0; }
 function _arFmt(n){ return _arNum(n).toLocaleString('th-TH'); }
@@ -292,9 +293,9 @@ function openAnnualSummary(projectId){
         <div class="ar-q-block${x.reported?'':' ar-q-empty'}">
           <div class="ar-q-head"><strong>${_arEsc(_arQLabel(x.q))}</strong> ${_arStatusBadge(x.status)}</div>
           ${!x.reported ? '<div class="ar-muted">ยังไม่มีการรายงานผลของไตรมาสนี้</div>' : `
-            ${x.r.result ? `<div class="ar-q-row"><span class="ar-q-label">ผลการดำเนินงาน</span><div>${_arNl2br(x.r.result)}</div></div>` : ''}
-            ${x.r.problems ? `<div class="ar-q-row"><span class="ar-q-label">ปัญหาและอุปสรรค</span><div>${_arNl2br(x.r.problems)}</div></div>` : ''}
-            ${x.r.solutions ? `<div class="ar-q-row"><span class="ar-q-label">แนวทางแก้ไข</span><div>${_arNl2br(x.r.solutions)}</div></div>` : ''}
+            ${x.r.result ? `<div class="ar-q-row"><span class="ar-q-label">ผลการดำเนินงาน</span><div>${_arRich(x.r.result)}</div></div>` : ''}
+            ${x.r.problems ? `<div class="ar-q-row"><span class="ar-q-label">ปัญหาและอุปสรรค</span><div>${_arRich(x.r.problems)}</div></div>` : ''}
+            ${x.r.solutions ? `<div class="ar-q-row"><span class="ar-q-label">แนวทางแก้ไข</span><div>${_arRich(x.r.solutions)}</div></div>` : ''}
             ${(!x.r.result && !x.r.problems && !x.r.solutions) ? '<div class="ar-muted">— ไม่ได้ระบุรายละเอียด —</div>' : ''}
           `}
         </div>`).join('')}
