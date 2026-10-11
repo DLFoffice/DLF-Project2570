@@ -725,3 +725,4 @@ tbody tr.data-row:hover td { background: #FAF8FF; }
 }
 #detailBody .detail-section-title { justify-content: flex-start !important; }
 #detailBody .detail-section-title > span:first-child { margin-right: auto; }
+:root { --ov-hero-end: #7A5A9E; --ov-art-bar: #8FD3B8; --ov-art-bar-dk: #2E9A76; }
