@@ -32,8 +32,8 @@ function renderPdfReportTypeList() {
   el.innerHTML = PDF_REPORT_TYPES.map(t => {
     const active = t.key === sel;
     return `
-    <div onclick="selectPdfReportType('${t.key}')" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;border:1.5px solid ${active?'#ef4444':'#e4e7ed'};background:${active?'#fff5f5':'#fff'};margin-bottom:10px;transition:.15s">
-      <div style="width:38px;height:38px;border-radius:8px;background:#fde3e3;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${t.icon}</div>
+    <div onclick="selectPdfReportType('${t.key}')" style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:10px;cursor:pointer;border:1.5px solid ${active?'var(--accent)':'#e4e7ed'};background:${active?'var(--accent-light)':'#fff'};margin-bottom:10px;transition:.15s">
+      <div style="width:38px;height:38px;border-radius:8px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${t.icon}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:13.5px;color:#1c2333">${t.title}</div>
         <div style="font-size:11.5px;color:#8a92a3;margin-top:3px;line-height:1.5">${t.desc}</div>

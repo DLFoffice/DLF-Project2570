@@ -614,7 +614,53 @@ function loadRiskRecord(id){
 
 function updateCurrentLabel(name){
   const el = document.getElementById('riskCurrentName');
-  if(el) el.textContent = name ? '✏️ ' + name : '— ยังไม่ได้เลือกรายการ —';
+  if(el) el.textContent = name ? name : '— ยังไม่ได้เลือกรายการ —';
+  // แสดงพื้นที่ทำงานเฉพาะตอนเปิดรายการอยู่ ไม่งั้นแสดงคำแนะนำว่าต้องทำอะไรต่อ
+  const page = document.getElementById('page-risk');
+  const has = !!(currentRiskId && riskData[currentRiskId]);
+  if(page) page.classList.toggle('prm-has-record', has);
+  const metaEl = document.getElementById('riskCurrentMeta');
+  if(metaEl){
+    const m = has ? (riskData[currentRiskId].meta||{}) : {};
+    const _S = typeof S_NAMES!=='undefined' ? S_NAMES : {};
+    const parts = [];
+    if(m.strategy) parts.push(_S[m.strategy] || ('ยุทธศาสตร์ที่ '+m.strategy));
+    if(m.dept) parts.push(m.dept);
+    metaEl.textContent = parts.join(' • ');
+  }
+  updateRiskStepper();
+}
+
+// สถานะของแต่ละขั้นบนแถบขั้นตอน (ครบ / บางส่วน / ยังไม่ทำ) — คำนวณจากข้อมูลที่บันทึกแล้ว
+function updateRiskStepper(){
+  const rec = currentRiskId && riskData[currentRiskId];
+  const c = rec ? calcRiskCompletion(rec) : null;
+  const st = pct => !c ? '' : pct>=100 ? 'done' : pct>0 ? 'partial' : 'todo';
+  const map = { prm01: c&&c.prm01, prm02: c&&c.prm02, prm03: c&&c.prm03, prm04: c&&c.prm04 };
+  document.querySelectorAll('.prm-stepper .risk-tab[data-step]').forEach(b=>{
+    const k = b.getAttribute('data-step');
+    if(!(k in map)) return;
+    b.setAttribute('data-state', st(map[k]||0));
+    const i = b.querySelector('.st');
+    if(i) i.textContent = !c ? '' : (map[k]>=100 ? 'ครบ' : map[k]>0 ? map[k]+'%' : 'ยังไม่ทำ');
+  });
+}
+
+// เปิดรายการจากตาราง: โหลดข้อมูล กลับไปขั้นที่ 1 แล้วเลื่อนลงไปที่พื้นที่ทำงาน
+function openRiskWorkspace(id){
+  loadRiskRecord(id);
+  const first = document.querySelector('.prm-stepper .risk-tab[data-step="prm01"]');
+  switchRiskTab('prm01', first);
+  const ws = document.getElementById('riskWorkspace');
+  if(ws) setTimeout(()=>ws.scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'}), 60);
+}
+function closeRiskWorkspace(){
+  currentRiskId = null;
+  const sel=document.getElementById('riskProjectSelect'); if(sel) sel.value='';
+  clearRiskForms();
+  renderRiskChips();
+  const list = document.getElementById('risk-dashboard-panel');
+  if(list) list.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 // ── Record chips (top bar) ───────────────────────────────────────
@@ -648,72 +694,75 @@ function calcRiskCompletion(rec){
 function pillClass(pct){ return pct>=100?'filled':pct>0?'partial':'empty'; }
 function pillLabel(pct){ return pct>=100?'✅ ครบ':pct>0?`⏳ ${pct}%`:'❌ ยังไม่กรอก'; }
 
-// สถานะรายการบริหารความเสี่ยง — แสดงเป็น list ตารางแถวๆ (แทนการ์ดกริดเดิม)
+// รายการบริหารความเสี่ยง + ตัวเลขสรุปด้านบน
+function renderRiskKpis(){
+  const el = document.getElementById('riskKpis');
+  if(!el) return;
+  const recs = Object.values(riskData);
+  let complete=0, partial=0, notStarted=0, high=0, risks=0;
+  recs.forEach(rec=>{
+    const c = calcRiskCompletion(rec);
+    if(c.total && c.overall>=100) complete++; else if(c.overall>0 && c.total) partial++; else notStarted++;
+    const a = rec.analysis||{};
+    (rec.rows||[]).forEach((r,i)=>{ if(!(r.activity||r.riskFactor)) return; risks++; const x=a[i]||{}; if((x.likelihood||0)*(x.impact||0)>=10) high++; });
+  });
+  const ic = d => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  el.innerHTML = `
+    <div class="prm-kpi k1"><span class="ic">${ic('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')}</span><div><b>${recs.length}</b><em>รายการทั้งหมด</em></div></div>
+    <div class="prm-kpi k2"><span class="ic">${ic('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>')}</span><div><b>${complete}</b><em>ครบทุกขั้นตอน</em></div></div>
+    <div class="prm-kpi k3"><span class="ic">${ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')}</span><div><b>${partial}</b><em>อยู่ระหว่างกรอก</em></div></div>
+    <div class="prm-kpi k4"><span class="ic">${ic('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>')}</span><div><b>${high}<small> / ${risks}</small></b><em>ความเสี่ยงระดับสูงขึ้นไป</em></div></div>`;
+}
+
 function renderRiskDashboard(){
+  renderRiskKpis();
+  updateRiskStepper();
   const grid  = document.getElementById('riskDashGrid');
   const count = document.getElementById('riskDashCount');
   if(!grid) return;
-  const keys = Object.keys(riskData);
-  if(count) count.textContent = keys.length ? `(${keys.length} รายการ)` : '';
-  if(!keys.length){
-    grid.innerHTML='<div style="color:var(--text3);font-size:13px;padding:.5rem 0">ยังไม่มีรายการ — กด "+ เพิ่มรายการใหม่" เพื่อเริ่มต้น</div>';
+  const allKeys = Object.keys(riskData);
+  const q = ((document.getElementById('riskDashSearch')||{}).value||'').trim().toLowerCase();
+  const keys = q ? allKeys.filter(id=>{ const r=riskData[id]; return ((r.name||'')+' '+((r.meta||{}).dept||'')).toLowerCase().includes(q); }) : allKeys;
+  if(count) count.textContent = allKeys.length ? allKeys.length : '';
+  const canEdit = typeof _isEditable === 'function' ? _isEditable() : true;
+  if(!allKeys.length){
+    grid.innerHTML = `<div class="prm-list-empty">ยังไม่มีรายการ${canEdit?' — กด <b>เพิ่มรายการใหม่</b> เพื่อเริ่มจากโครงการในระบบ':''}</div>`;
     return;
   }
+  if(!keys.length){ grid.innerHTML = '<div class="prm-list-empty">ไม่พบรายการที่ตรงกับคำค้นหา</div>'; return; }
   const _esc = typeof escapeHtml==='function' ? escapeHtml : (s)=>String(s==null?'':s);
   const _S_NAMES = typeof S_NAMES!=='undefined' ? S_NAMES : {};
+  const _S_BADGE = typeof S_BADGE!=='undefined' ? S_BADGE : {};
+  const stepState = pct => pct>=100 ? 'done' : pct>0 ? 'partial' : 'todo';
 
   const rowsHtml = keys.map((id,idx)=>{
     const rec  = riskData[id];
     const c    = calcRiskCompletion(rec);
-    const name = rec.name||id;
     const meta = rec.meta||{};
     const isActive = id===currentRiskId;
-    const stratLabel = meta.strategy ? (_S_NAMES[meta.strategy]||('ยุทธศาสตร์ที่ '+meta.strategy)) : '—';
-    return `<tr class="data-row risk-dash-row${isActive?' report-row-active':''}" onclick="loadRiskRecord('${id}')">
-      <td style="text-align:center;color:var(--text3);font-size:12px;width:32px">${idx+1}</td>
-      <td class="td-name">
-        <div style="font-weight:600">${_esc(name)}</div>
-        ${meta.dept?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${_esc(meta.dept)}</div>`:''}
-      </td>
-      <td style="font-size:12px;color:var(--text2);white-space:nowrap">${_esc(stratLabel)}</td>
-      <td style="text-align:center;font-size:12.5px">${c.total}</td>
-      <td style="text-align:center"><span class="risk-dash-pill ${pillClass(c.prm01)}">${pillLabel(c.prm01)}</span></td>
-      <td style="text-align:center"><span class="risk-dash-pill ${pillClass(c.prm02)}">${pillLabel(c.prm02)}</span></td>
-      <td style="text-align:center"><span class="risk-dash-pill ${pillClass(c.prm04)}">${pillLabel(c.prm04)}</span></td>
-      <td style="min-width:120px">
-        <div class="risk-dash-progress"><div class="risk-dash-progress-bar" style="width:${c.overall}%"></div></div>
-        <div style="font-size:11px;color:var(--text2);margin-top:2px;text-align:right">${c.overall}%</div>
-      </td>
-      <td style="text-align:center;white-space:nowrap">
-        <button onclick="event.stopPropagation();openRiskPreview('${id}')"
-          style="padding:3px 9px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surface);font-size:11px;color:var(--text2);cursor:pointer;margin-right:4px">
-          👁 พรีวิว
-        </button>
-        <button onclick="event.stopPropagation();loadRiskRecord('${id}')"
-          class="risk-edit-only"
-          style="padding:3px 9px;border-radius:6px;border:1.5px solid var(--accent);background:var(--accent-light);font-size:11px;color:var(--accent);cursor:pointer;font-weight:600">
-          ✏️ แก้ไข
-        </button>
-      </td>
-    </tr>`;
+    const steps = [['1',c.prm01,'ระบุความเสี่ยง'],['2',c.prm02,'ประเมินโอกาส × ผลกระทบ'],['3',c.prm03,'สรุประดับความเสี่ยง'],['4',c.prm04,'วางแผนจัดการ']];
+    const deg = Math.round((c.overall||0)*3.6);
+    return `<div class="prm-row${isActive?' active':''}" onclick="openRiskWorkspace('${id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openRiskWorkspace('${id}')">
+      <div class="prm-row-idx">${idx+1}</div>
+      <div class="prm-row-main">
+        <div class="prm-row-name">${_esc(rec.name||id)}</div>
+        <div class="prm-row-meta">
+          ${meta.strategy?`<span class="badge ${_S_BADGE[meta.strategy]||''}">${_esc(_S_NAMES[meta.strategy]||('ยุทธศาสตร์ที่ '+meta.strategy))}</span>`:''}
+          ${meta.dept?`<span>${_esc(meta.dept)}</span>`:''}
+          <span>${c.total} กิจกรรม</span>
+        </div>
+      </div>
+      <ol class="prm-steps">${steps.map(([n,pct,label])=>`<li class="${stepState(pct)}" title="ขั้นที่ ${n} ${label}: ${pct>=100?'ครบ':pct>0?pct+'%':'ยังไม่ทำ'}"><b>${pct>=100?'✓':n}</b></li>`).join('')}</ol>
+      <div class="prm-ring" style="--deg:${deg}deg" title="ความคืบหน้ารวม ${c.overall}%"><span>${c.overall}%</span></div>
+      <div class="prm-row-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="openRiskPreview('${id}')" title="พรีวิว">พรีวิว</button>
+        <button class="btn btn-sm prm-open" onclick="openRiskWorkspace('${id}')">${isActive?'กำลังเปิด':(canEdit?'เปิด / แก้ไข':'เปิดดู')}</button>
+        ${canEdit?`<button class="btn btn-sm btn-icon prm-del" onclick="deleteRiskRecord('${id}')" title="ลบรายการนี้" aria-label="ลบรายการ"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>`:''}
+      </div>
+    </div>`;
   }).join('');
 
-  grid.innerHTML = `<div style="overflow-x:auto"><table class="risk-dash-table">
-    <thead>
-      <tr>
-        <th style="width:32px">#</th>
-        <th>ชื่อโครงการ / รายการ</th>
-        <th>ยุทธศาสตร์</th>
-        <th style="text-align:center">กิจกรรม</th>
-        <th style="text-align:center">PRM01</th>
-        <th style="text-align:center">PRM02</th>
-        <th style="text-align:center">PRM04</th>
-        <th>ความคืบหน้า</th>
-        <th style="text-align:center">การดำเนินการ</th>
-      </tr>
-    </thead>
-    <tbody>${rowsHtml}</tbody>
-  </table></div>`;
+  grid.innerHTML = `<div class="prm-rows-head"><span></span><span>โครงการ / รายการ</span><span>ขั้นตอน 1 – 4</span><span>รวม</span><span></span></div>${rowsHtml}`;
 }
 
 function renderRiskChips(){
@@ -776,6 +825,7 @@ function switchRiskTab(tab, btn){
   if(tab==='prm03') collectAndRenderPRM03();
   if(tab==='prm04') collectAndRenderPRM04();
   if(tab==='matrix') collectAndRenderMatrix();
+  updateRiskStepper();
 }
 
 // ── PRM 01 Rows ──────────────────────────────────────────────────
