@@ -7,7 +7,7 @@ let projects = [];
 // ===== CONSTANTS =====
 const S_NAMES = {1:'ยุทธศาสตร์ที่ 1',2:'ยุทธศาสตร์ที่ 2',3:'ยุทธศาสตร์ที่ 3',4:'ยุทธศาสตร์ที่ 4',5:'งบบริหารสำนักงาน'};
 const S_FULL  = {1:'การพัฒนาการจัดการศึกษาทางไกล',2:'การพัฒนาครูและโรงเรียนต้นทาง',3:'การพัฒนาครูและโรงเรียนปลายทาง',4:'การพัฒนาระบบการบริหารจัดการ',5:'งบดำเนินการสำนักงาน'};
-const S_COLORS= {1:'#6F93E2',2:'#4DB08C',3:'#E38F5E',4:'#A18AE3',5:'#8D92B5'};
+const S_COLORS= {1:'#3b72f0',2:'#059669',3:'#d97706',4:'#9333ea',5:'#0891b2'};
 const S_BADGE = {1:'badge-s1',2:'badge-s2',3:'badge-s3',4:'badge-s4',5:'badge-s5'};
 const S_KEYS  = [1,2,3,4,5];
 // ── หน่วยนับ ─────────────────────────────────────────────────────────
@@ -279,86 +279,81 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
         65% { transform:translateY(-6px) scale(1.01) }
         100%{ opacity:1; transform:translateY(0) scale(1) }
       }
-      @keyframes _wlcCardOut { 0%{ opacity:1; transform:scale(1) } 100%{ opacity:0; transform:scale(.92) translateY(18px) } }
-      @keyframes _wlcSpin { to { transform:rotate(360deg) } }
-      @keyframes _wlcRise { from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
-      @keyframes _wlcDrift { 50% { transform:translate(18px,-10px) scale(1.12) } }
+      @keyframes _wlcCardOut {
+        0%  { opacity:1; transform:scale(1) }
+        100%{ opacity:0; transform:scale(.9) translateY(20px) }
+      }
+      @keyframes _wlcShimmer {
+        0%  { background-position:200% center }
+        100%{ background-position:-200% center }
+      }
+      @keyframes _wlcPulse {
+        0%,100%{ box-shadow:0 0 0 0 rgba(34,197,94,.4) }
+        50%    { box-shadow:0 0 0 10px rgba(34,197,94,0) }
+      }
       @keyframes _wlcBar { from{width:0} to{width:100%} }
-      @keyframes _wlcWave { 0%,60%,100%{transform:rotate(0)} 10%,30%{transform:rotate(14deg)} 20%{transform:rotate(-8deg)} 40%{transform:rotate(-4deg)} 50%{transform:rotate(10deg)} }
       ._wlc-overlay {
         position:fixed;inset:0;z-index:99999;
-        display:flex;align-items:center;justify-content:center;padding:16px;
-        background:rgba(58,52,104,.28);
-        backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+        display:flex;align-items:center;justify-content:center;
+        background:rgba(15,23,42,.55);
+        backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
         animation:_wlcOverlayIn .3s ease forwards;
       }
       ._wlc-card {
-        position:relative;width:360px;max-width:100%;overflow:hidden;
-        background:#fff;border-radius:24px;
-        box-shadow:0 40px 80px -30px rgba(74,62,150,.55),0 0 0 1px rgba(255,255,255,.8) inset;
-        animation:_wlcCardIn .5s cubic-bezier(.22,.68,0,1.15) forwards;
-        font-family:'Noto Sans Thai','Sarabun',sans-serif;color:#2E2A4A;
+        background:#fff;
+        border-radius:20px;
+        box-shadow:0 24px 64px rgba(0,0,0,.22),0 4px 16px rgba(0,0,0,.1);
+        width:340px;
+        overflow:hidden;
+        animation:_wlcCardIn .45s cubic-bezier(.22,.68,0,1.15) forwards;
+        font-family:'Sarabun',sans-serif;
       }
       ._wlc-header {
-        position:relative;overflow:hidden;text-align:center;
-        padding:30px 24px 22px;
-        background:linear-gradient(140deg,#E6E0FC 0%,#E4EEFC 55%,#FBE7EE 100%);
+        padding:28px 24px 20px;
+        background:linear-gradient(135deg,#0f4c81 0%,#1a6bb0 50%,#0d7a4e 100%);
+        background-size:200% auto;
+        animation:_wlcShimmer 3s linear infinite;
+        text-align:center;position:relative;
       }
-      ._wlc-header::before,._wlc-header::after {
-        content:'';position:absolute;border-radius:50%;filter:blur(26px);opacity:.85;
-        animation:_wlcDrift 7s ease-in-out infinite;
-      }
-      ._wlc-header::before { width:150px;height:150px;left:-40px;top:-50px;background:#CFC6F5; }
-      ._wlc-header::after  { width:130px;height:130px;right:-30px;bottom:-60px;background:#FAD2C2;animation-delay:-3s; }
-      ._wlc-orbit { position:relative;z-index:1;width:84px;height:84px;margin:0 auto 14px; }
-      ._wlc-orbit .ring { position:absolute;inset:0;border-radius:50%;border:1.5px dashed rgba(106,92,216,.4);animation:_wlcSpin 12s linear infinite; }
-      ._wlc-orbit .ring i { position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#F29BB8;box-shadow:0 0 0 3px rgba(242,155,184,.3); }
       ._wlc-avatar {
-        position:absolute;inset:10px;border-radius:50%;
+        width:64px;height:64px;border-radius:50%;
+        background:rgba(255,255,255,.2);
+        border:3px solid rgba(255,255,255,.6);
         display:flex;align-items:center;justify-content:center;
-        background:#fff;box-shadow:0 10px 22px -10px rgba(106,92,216,.6);
-        font-family:'Anuphan','Noto Sans Thai',sans-serif;font-size:28px;font-weight:700;
-        background-clip:padding-box;color:#6A5CD8;
+        font-size:26px;font-weight:700;color:#fff;
+        margin:0 auto 12px;
+        animation:_wlcPulse 2s ease infinite;
       }
-      ._wlc-greeting { position:relative;z-index:1;font-size:13px;color:#5F5A80;margin-bottom:2px;animation:_wlcRise .5s .15s both; }
-      ._wlc-greeting span { display:inline-block;transform-origin:70% 70%;animation:_wlcWave 2.2s ease-in-out .6s 2; }
-      ._wlc-name { position:relative;z-index:1;font-family:'Anuphan','Noto Sans Thai',sans-serif;font-size:21px;font-weight:700;color:#2E2A4A;line-height:1.3;animation:_wlcRise .5s .22s both; }
-      ._wlc-body { padding:18px 22px 6px; }
+      ._wlc-greeting { font-size:13px;color:rgba(255,255,255,.8);margin-bottom:4px;letter-spacing:.3px; }
+      ._wlc-name { font-size:18px;font-weight:700;color:#fff;line-height:1.3; }
+      ._wlc-body { padding:20px 24px 8px; }
       ._wlc-row {
-        display:flex;align-items:center;gap:12px;
-        padding:11px 14px;margin-bottom:9px;border-radius:14px;
-        background:#FAF9FE;border:1px solid #ECE9F6;
-        animation:_wlcRise .5s both;
+        display:flex;align-items:center;gap:10px;
+        padding:10px 14px;border-radius:10px;
+        background:#f8fafc;border:1px solid #e2e8f0;
+        margin-bottom:8px;
       }
-      ._wlc-row:nth-child(1){ animation-delay:.3s } ._wlc-row:nth-child(2){ animation-delay:.38s }
-      ._wlc-row-icon { flex:none;width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center; }
-      ._wlc-row-icon svg { width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round; }
-      ._wlc-row-icon.pos  { background:#EEEBFC;color:#6A5CD8; }
-      ._wlc-row-icon.dept { background:#E8F7F1;color:#2E9A76; }
-      ._wlc-row-label { font-size:11.5px;color:#8E89AA;margin-bottom:1px; }
-      ._wlc-row-val { font-size:14px;font-weight:600;color:#2E2A4A;line-height:1.35; }
+      ._wlc-row-icon { font-size:18px;flex-shrink:0; }
+      ._wlc-row-label { font-size:10.5px;color:#94a3b8;margin-bottom:1px; }
+      ._wlc-row-val { font-size:13.5px;font-weight:600;color:#1e293b;line-height:1.3; }
       ._wlc-offline {
-        margin:0 22px 12px;padding:8px 12px;border-radius:11px;
-        background:#FDF7E0;border:1px solid #F7E4A6;
-        font-size:12px;color:#8A6417;text-align:center;
+        margin:0 24px 12px;padding:7px 12px;border-radius:8px;
+        background:#fffbeb;border:1px solid #fde68a;
+        font-size:11.5px;color:#92400e;text-align:center;
       }
-      ._wlc-footer { padding:4px 22px 20px; }
+      ._wlc-footer { padding:0 24px 20px;margin-top:4px; }
       ._wlc-btn {
-        position:relative;overflow:hidden;width:100%;height:48px;border:none;border-radius:14px;
-        background:linear-gradient(100deg,#8E80EE 0%,#6A5CD8 50%,#5546C4 100%);
-        box-shadow:0 14px 26px -12px rgba(106,92,216,.75);
-        color:#fff;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;
-        transition:transform .2s,box-shadow .2s;
+        width:100%;padding:11px;border:none;border-radius:10px;
+        background:linear-gradient(135deg,#0f4c81,#1a6bb0);
+        color:#fff;font-size:14px;font-weight:600;
+        font-family:'Sarabun',sans-serif;cursor:pointer;
+        transition:opacity .15s,transform .15s;
       }
-      ._wlc-btn::after { content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;transform:skewX(-20deg);
-        background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transition:left .7s cubic-bezier(.16,1,.3,1); }
-      ._wlc-btn:hover { transform:translateY(-2px);box-shadow:0 18px 30px -12px rgba(106,92,216,.85); }
-      ._wlc-btn:hover::after { left:120%; }
-      ._wlc-btn:focus-visible { outline:3px solid rgba(106,92,216,.35);outline-offset:3px; }
-      ._wlc-progress { height:4px;background:#F0EEF8; }
-      ._wlc-progress-fill { height:100%;background:linear-gradient(90deg,#B9AEF2,#F29BB8,#F6C08E,#8FD3B8);animation:_wlcBar var(--d,3.5s) linear forwards; }
-      @media (prefers-reduced-motion: reduce) {
-        ._wlc-card,._wlc-row,._wlc-name,._wlc-greeting,._wlc-header::before,._wlc-header::after,._wlc-orbit .ring,._wlc-greeting span { animation:none !important; }
+      ._wlc-btn:hover { opacity:.9;transform:translateY(-1px); }
+      ._wlc-progress { height:3px;background:#f1f5f9; }
+      ._wlc-progress-fill {
+        height:100%;background:linear-gradient(90deg,#0f4c81,#22c55e);
+        animation:_wlcBar var(--d,3.5s) linear forwards;
       }
     `;
     document.head.appendChild(s);
@@ -372,12 +367,12 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
 
   const posRow = position ? `
     <div class="_wlc-row">
-      <div class="_wlc-row-icon pos"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+      <div class="_wlc-row-icon">💼</div>
       <div><div class="_wlc-row-label">ตำแหน่ง</div><div class="_wlc-row-val">${position}</div></div>
     </div>` : '';
   const deptRow = dept ? `
     <div class="_wlc-row">
-      <div class="_wlc-row-icon dept"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M14 9h1M9 13h1M14 13h1M10 21v-4h4v4"/></svg></div>
+      <div class="_wlc-row-icon">🏢</div>
       <div><div class="_wlc-row-label">สังกัด</div><div class="_wlc-row-val">${dept}</div></div>
     </div>` : '';
   const offlineBadge = isOffline ? '<div class="_wlc-offline">⚠️ ใช้ข้อมูลในเครื่อง (ไม่ได้เชื่อมต่อเซิร์ฟเวอร์)</div>' : '';
@@ -385,8 +380,8 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
   overlay.innerHTML = `
     <div class="_wlc-card">
       <div class="_wlc-header">
-        <div class="_wlc-orbit"><span class="ring"><i></i></span><div class="_wlc-avatar">${initial}</div></div>
-        <div class="_wlc-greeting">ยินดีต้อนรับเข้าสู่ระบบ <span>👋</span></div>
+        <div class="_wlc-avatar">${initial}</div>
+        <div class="_wlc-greeting">ยินดีต้อนรับเข้าสู่ระบบ</div>
         <div class="_wlc-name">${name}</div>
       </div>
       <div class="_wlc-body">
@@ -394,7 +389,7 @@ function _showLoginSuccess(name, position, dept, isOffline=false) {
       </div>
       ${offlineBadge}
       <div class="_wlc-footer">
-        <button class="_wlc-btn" id="_wlcCloseBtn">เริ่มใช้งาน</button>
+        <button class="_wlc-btn" id="_wlcCloseBtn">เข้าสู่ระบบ →</button>
       </div>
       <div class="_wlc-progress"><div class="_wlc-progress-fill" style="--d:${dur/1000}s"></div></div>
     </div>
@@ -544,18 +539,8 @@ function showPage(page, strategyFilter, navEl) {
     if (el) el.style.display = p===page ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  let activeEl = navEl || (typeof event !== 'undefined' && event && event.currentTarget) || null;
-  // ไม่มีปุ่มที่ถูกกด (เช่น เปิดหน้าจากโค้ด) → หาเมนูที่ตรงกับหน้านั้นให้อัตโนมัติ เพื่อให้แถบเมนูแสดงตำแหน่งปัจจุบันเสมอ
-  if(!activeEl || !activeEl.classList || !activeEl.classList.contains('nav-item')){
-    const sf = (strategyFilter===undefined || strategyFilter===null) ? null : String(strategyFilter);
-    activeEl = Array.from(document.querySelectorAll('.nav-item')).find(el=>{
-      const oc = el.getAttribute('onclick')||'';
-      if(oc.indexOf("showPage('"+page+"'")!==0) return false;
-      if(page!=='projects') return true;
-      return sf!==null && oc.indexOf("'"+page+"','"+sf+"'")===9;
-    }) || activeEl;
-  }
-  if(activeEl && activeEl.classList) activeEl.classList.add('active');
+  const activeEl = navEl || (typeof event !== 'undefined' && event && event.currentTarget) || null;
+  if(activeEl) activeEl.classList.add('active');
 
   const titles = {
     dashboard: ['Dashboard สรุปภาพรวม','รายงานแผนปฏิบัติการประจำปี งบประมาณ พ.ศ. '+currentYear],
@@ -701,15 +686,15 @@ function renderBudgetBar(fp, tb, ts, tp, rem) {
   const poPct     = tb>0 ? Math.max((tp/tb)*100, 0) : 0;
   const remPct    = tb>0 ? Math.max((Math.max(rem,0)/tb)*100, 0) : 100;
   bar.innerHTML = `
-    <div style="width:${spentPct.toFixed(1)}%;background:#8FD3B8;transition:width .6s;min-width:${spentPct>0?2:0}px" title="ใช้ไปแล้ว ${spentPct.toFixed(1)}%"></div>
-    <div style="width:${poPct.toFixed(1)}%;background:#F7D58E;transition:width .6s;min-width:${poPct>0?2:0}px" title="PO ผูกพัน ${poPct.toFixed(1)}%"></div>
+    <div style="width:${spentPct.toFixed(1)}%;background:linear-gradient(90deg,#059669,#34c179);transition:width .6s;min-width:${spentPct>0?2:0}px" title="ใช้ไปแล้ว ${spentPct.toFixed(1)}%"></div>
+    <div style="width:${poPct.toFixed(1)}%;background:linear-gradient(90deg,#d97706,#f59e0b);transition:width .6s;min-width:${poPct>0?2:0}px" title="PO ผูกพัน ${poPct.toFixed(1)}%"></div>
     <div style="flex:1;background:var(--surface2)"></div>
   `;
   const usedTotal = ts + tp;
   const usedPct = tb>0?((usedTotal/tb)*100).toFixed(1):0;
   leg.innerHTML = `
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#8FD3B8;display:inline-block"></span>ใช้ไปแล้ว <strong>${fmtFull(ts)} บาท</strong> (${spentPct.toFixed(1)}%)</span>
-    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#F7D58E;display:inline-block"></span>PO ผูกพัน <strong>${fmtFull(tp)} บาท</strong> (${poPct.toFixed(1)}%)</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:linear-gradient(90deg,#059669,#34c179);display:inline-block"></span>ใช้ไปแล้ว <strong>${fmtFull(ts)} บาท</strong> (${spentPct.toFixed(1)}%)</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:linear-gradient(90deg,#d97706,#f59e0b);display:inline-block"></span>PO ผูกพัน <strong>${fmtFull(tp)} บาท</strong> (${poPct.toFixed(1)}%)</span>
     <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--surface2);border:1px solid var(--border2);display:inline-block"></span>คงเหลือ <strong style="color:${rem<0?'var(--red)':'var(--text)'}">${fmtFull(rem)} บาท</strong> (${remPct.toFixed(1)}%)</span>
     <span style="margin-left:auto;font-weight:700;color:var(--accent)">รวมเบิกจ่าย+PO: ${usedPct}% จากงบ ${fmtFull(tb)} บาท</span>
   `;
@@ -757,7 +742,7 @@ function renderAllocatedBudgetCard(fp) {
           <div class="metric-label">ยอดรวมงบที่กรอกเข้าระบบ</div>
           <div class="metric-value">${fmtFull(entered)}</div>
           <div class="metric-sub">บาท · คิดเป็น ${usedPct}% ของงบจัดสรร</div>
-          <div class="metric-progress"><div class="metric-progress-track"><div class="metric-progress-fill" style="width:${usedPctClamped}%;background:${over?'#E07A8F':'#F7D58E'}"></div></div></div>
+          <div class="metric-progress"><div class="metric-progress-track"><div class="metric-progress-fill" style="width:${usedPctClamped}%;background:${over?'#b91c1c':'#b26e07'}"></div></div></div>
         </div>
         <div class="metric-card ${over?'c-red-deep':'c-green-deep'}">
           <div class="metric-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${diffIcon}</svg></div>
@@ -771,7 +756,7 @@ function renderAllocatedBudgetCard(fp) {
         <span style="font-size:11.5px;font-weight:700;color:${over?'var(--red)':'var(--text)'}">${usedPct}%</span>
       </div>
       <div style="height:14px;border-radius:99px;overflow:hidden;background:var(--surface2)">
-        <div style="height:100%;width:${usedPctClamped}%;background:${over?'#E07A8F':'linear-gradient(90deg,#B9AEF2,#8E80EE)'};border-radius:99px;transition:width .6s"></div>
+        <div style="height:100%;width:${usedPctClamped}%;background:linear-gradient(90deg,${over?'#b91c1c,#dc2626':'#1d3f9e,#2554c7'});border-radius:99px;transition:width .6s"></div>
       </div>
     </div>
   </div>`;
@@ -873,7 +858,7 @@ function renderCharts(fp) {
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'rgba(58,52,104,.94)', padding:10, cornerRadius:8,
+          backgroundColor:'rgba(28,35,51,.92)', padding:10, cornerRadius:8,
           callbacks:{ label:ctx=>`  ${fmtFull(ctx.parsed)} บาท  (${tb>0?Math.round(ctx.parsed/tb*100):0}%)` },
           bodyFont:chartFont, titleFont:{...chartFont,weight:'700'}
         }
@@ -905,10 +890,10 @@ function renderCharts(fp) {
       labels:['แล้วเสร็จ','กำลังดำเนิน','ยังไม่เริ่ม'],
       datasets:[{
         data:[done,prog,pend],
-        backgroundColor:['#8FD3B8','#B9AEF2','#F7DFA0'],
+        backgroundColor:['rgba(132,177,121,.8)','rgba(229,186,65,.8)','rgba(255,147,126,.8)'],
         borderColor:['#A2CB8B','#F08787','#6D94C5'],
         borderWidth:0, borderRadius:10, borderSkipped:false,
-        hoverBackgroundColor:['#6CC3A3','#9B8CE8','#F2CC72']
+        hoverBackgroundColor:['rgba(26,154,92,0.3)','rgba(59,114,240,0.3)','rgba(154,163,178,0.3)']
       }]
     },
     options:{
@@ -916,7 +901,7 @@ function renderCharts(fp) {
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'rgba(58,52,104,.94)', padding:10, cornerRadius:8,
+          backgroundColor:'rgba(28,35,51,.92)', padding:10, cornerRadius:8,
           callbacks:{ label:ctx=>`  ${ctx.parsed.y} โครงการ` },
           bodyFont:chartFont, titleFont:{...chartFont,weight:'700'}
         }
@@ -957,7 +942,7 @@ function renderCharts(fp) {
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'rgba(58,52,104,.94)', padding:10, cornerRadius:8,
+          backgroundColor:'rgba(28,35,51,.92)', padding:10, cornerRadius:8,
           callbacks:{ label:ctx=>`  ${fmtFull(ctx.parsed)} บาท` },
           bodyFont:chartFont, titleFont:{...chartFont,weight:'700'}
         }
@@ -1006,7 +991,7 @@ function renderUtilizationChart(fp) {
       plugins:{
         legend:{ position:'bottom', labels:{ font:chartFont, boxWidth:10, padding:16, usePointStyle:true, pointStyle:'circle' } },
         tooltip:{
-          backgroundColor:'rgba(58,52,104,.94)', padding:10, cornerRadius:8,
+          backgroundColor:'rgba(28,35,51,.92)', padding:10, cornerRadius:8,
           callbacks:{
             label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('th-TH')} บาท`,
             afterBody:ctx=>{
@@ -1313,8 +1298,6 @@ function saveProject(){
   }
 
   const gv=(id,def='')=>{const el=document.getElementById(id);return el?(el.value.trim()||def):def;};
-  // ช่องข้อความยาว: ห้าม trim หัวข้อความ ไม่งั้น Tab ย่อหน้าของย่อหน้าแรกจะหายตอนบันทึก (ตัดเฉพาะช่องว่างท้าย)
-  const gvRich=(id,def='')=>{const el=document.getElementById(id);if(!el)return def;const v=el.value.replace(/\s+$/,'');return v.trim()?v:def;};
   const gn=(id)=>parseFloat(document.getElementById(id)&&document.getElementById(id).value)||0;
 
   // sync tables → hidden fields before reading
@@ -1337,10 +1320,10 @@ function saveProject(){
   const data={
     name,
     subStrategy:     gv('fSubStrategy'),
-    rationale:       gvRich('fRationale'),
-    objective:       gvRich('fObjective'),
-    targetQuantity:  gvRich('fTargetQuantity'),
-    target:          gvRich('fTarget'),
+    rationale:       gv('fRationale'),
+    objective:       gv('fObjective'),
+    targetQuantity:  gv('fTargetQuantity'),
+    target:          gv('fTarget'),
     strategy:        gv('fStrategy','1'),
     owner:           gv('fOwner'),
     dept:            gv('fDept'),
@@ -1367,7 +1350,7 @@ function saveProject(){
     evalMethod:      evalData.map(r=>r.method),
     evaluator:       evalData.map(r=>r.tool),
     risk:            '',
-    expectedBenefit: gvRich('fExpectedBenefit'),
+    expectedBenefit: gv('fExpectedBenefit'),
     progress:        0,
     kpi:             kpiFromEval,
     committees:      getComCheckboxes(),
@@ -1562,7 +1545,7 @@ function renderReportProjectGroups(){
 
     const sColor = S_COLORS[s];
     return `
-      <div class="card" style="margin-bottom:1.25rem;position:relative;overflow:hidden">
+      <div class="card" style="margin-bottom:1.25rem;position:relative;overflow:hidden;border-left:6px solid ${sColor}">
         <div class="card-header" style="background:${sColor};color:#fff">
           <span class="card-title" style="color:#fff"><span class="badge" style="background:rgba(255,255,255,.25);color:#fff">${S_NAMES[s]}</span> — ${escapeHtml(S_FULL[s])}</span>
           <span style="font-size:11px;color:rgba(255,255,255,.9)">${ps.length} ${S_UNIT[s]}</span>
@@ -1608,9 +1591,9 @@ function openQuarterReportPreview(projectId, quarter){
   // 1. วัตถุประสงค์ / 2. เป้าหมาย — อ้างอิงจากแผนโครงการ ไม่ขึ้นกับไตรมาส แสดงเสมอถ้ามีข้อมูล
   const refBlock = (p.objective || p.targetQuantity || p.target) ? `
     <div style="margin-bottom:14px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius)">
-      ${p.objective?`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">1. วัตถุประสงค์</div><div style="font-size:12.5px;line-height:1.6">${_rtHtml(p.objective)}</div></div>`:''}
-      ${p.targetQuantity?`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">2.1 เป้าหมายเชิงปริมาณ</div><div style="font-size:12.5px;line-height:1.6">${_rtHtml(p.targetQuantity)}</div></div>`:''}
-      ${p.target?`<div><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">2.2 เป้าหมายเชิงคุณภาพ</div><div style="font-size:12.5px;line-height:1.6">${_rtHtml(p.target)}</div></div>`:''}
+      ${p.objective?`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">1. วัตถุประสงค์</div><div style="font-size:12.5px;line-height:1.6">${escapeHtml(p.objective)}</div></div>`:''}
+      ${p.targetQuantity?`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">2.1 เป้าหมายเชิงปริมาณ</div><div style="font-size:12.5px;line-height:1.6">${escapeHtml(p.targetQuantity)}</div></div>`:''}
+      ${p.target?`<div><div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:2px">2.2 เป้าหมายเชิงคุณภาพ</div><div style="font-size:12.5px;line-height:1.6">${escapeHtml(p.target)}</div></div>`:''}
     </div>` : '';
 
   if(!r){
@@ -1655,11 +1638,11 @@ function openQuarterReportPreview(projectId, quarter){
         <div class="detail-item"><div class="detail-item-label">ใช้ไปสะสม (ถึงไตรมาสนี้)</div><div class="detail-item-value">${fmtFull(cumulative)} บาท</div></div>
         <div class="detail-item"><div class="detail-item-label">คงเหลือ</div><div class="detail-item-value" style="color:${remaining<0?'var(--red)':'var(--text)'}">${fmtFull(remaining)} บาท</div></div>
       </div>
-      ${r.result?`<div style="margin-bottom:12px"><div class="form-label">3. ผลการดำเนินงาน (สรุปภาพรวม)</div><div class="problem-box" style="background:var(--surface2);border-color:var(--border2);color:var(--text)">${_rtHtml(r.result)}</div></div>`:''}
+      ${r.result?`<div style="margin-bottom:12px"><div class="form-label">3. ผลการดำเนินงาน (สรุปภาพรวม)</div><div class="problem-box" style="background:var(--surface2);border-color:var(--border2);color:var(--text)">${escapeHtml(r.result)}</div></div>`:''}
       ${activitiesBlock}
       ${kpiTableBlock}
-      ${r.problems?`<div style="margin-bottom:12px"><div class="form-label">ปัญหาและอุปสรรค</div><div class="problem-box">${_rtHtml(r.problems)}</div></div>`:''}
-      ${r.solutions?`<div style="margin-bottom:12px"><div class="form-label">แนวทางแก้ไข / ข้อเสนอแนะ</div><div class="problem-box" style="background:var(--green-light);border-color:#a7f3d0;color:var(--green)">${_rtHtml(r.solutions)}</div></div>`:''}
+      ${r.problems?`<div style="margin-bottom:12px"><div class="form-label">ปัญหาและอุปสรรค</div><div class="problem-box">${escapeHtml(r.problems)}</div></div>`:''}
+      ${r.solutions?`<div style="margin-bottom:12px"><div class="form-label">แนวทางแก้ไข / ข้อเสนอแนะ</div><div class="problem-box" style="background:var(--green-light);border-color:#a7f3d0;color:var(--green)">${escapeHtml(r.solutions)}</div></div>`:''}
       ${imgs.length?`<div><div class="form-label">รูปภาพประกอบ (${imgs.length})</div><div style="display:flex;flex-wrap:wrap;gap:8px">${imgs.map(img=>`<img src="${img.url}" style="width:96px;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--border2)">`).join('')}</div></div>`:''}
     `;
   }
@@ -1965,9 +1948,9 @@ function renderReportRefInfo(p){
   const oEl  = document.getElementById('reportRefObjectiveText');
   const gqEl = document.getElementById('reportRefGoalQuantText');
   const glEl = document.getElementById('reportRefGoalQualText');
-  if(oEl)  oEl.innerHTML  = p.objective ? _rtHtml(p.objective) : '<span style="color:var(--text3)">ยังไม่ได้กรอกวัตถุประสงค์ไว้ในแผนโครงการ</span>';
-  if(gqEl) gqEl.innerHTML = p.targetQuantity ? _rtHtml(p.targetQuantity) : '<span style="color:var(--text3)">ยังไม่ได้กรอกเป้าหมายเชิงปริมาณไว้ในแผนโครงการ</span>';
-  if(glEl) glEl.innerHTML = p.target ? _rtHtml(p.target) : '<span style="color:var(--text3)">ยังไม่ได้กรอกเป้าหมายเชิงคุณภาพไว้ในแผนโครงการ</span>';
+  if(oEl)  oEl.innerHTML  = p.objective ? escapeHtml(p.objective) : '<span style="color:var(--text3)">ยังไม่ได้กรอกวัตถุประสงค์ไว้ในแผนโครงการ</span>';
+  if(gqEl) gqEl.innerHTML = p.targetQuantity ? escapeHtml(p.targetQuantity) : '<span style="color:var(--text3)">ยังไม่ได้กรอกเป้าหมายเชิงปริมาณไว้ในแผนโครงการ</span>';
+  if(glEl) glEl.innerHTML = p.target ? escapeHtml(p.target) : '<span style="color:var(--text3)">ยังไม่ได้กรอกเป้าหมายเชิงคุณภาพไว้ในแผนโครงการ</span>';
 }
 
 // ── รายชื่อตัวชี้วัด (KPI) ที่กรอกไว้ตอนวางแผนโครงการ (ข้อ "การวัดและประเมินผล" ในรายละเอียดโครงการ) ──
@@ -2026,9 +2009,9 @@ function saveResultReport(){
     quarter:   qVal,
     spent:     parseFloat(document.getElementById('fSpent').value)||0,
     po:        parseFloat(document.getElementById('fPO').value)||0,
-    result:    document.getElementById('fResult').value.replace(/\s+$/,''),
-    problems:  document.getElementById('fProblems').value.replace(/\s+$/,''),
-    solutions: document.getElementById('fSolutions').value.replace(/\s+$/,''),
+    result:    document.getElementById('fResult').value.trim(),
+    problems:  document.getElementById('fProblems').value.trim(),
+    solutions: document.getElementById('fSolutions').value.trim(),
     images:    cleanImages,
     kpiResults: reportTempKpiResults.map(_reportKpiObj).filter(k=>k.indicator.trim()!=='' || k.target.trim()!=='' || k.achieved!==''),
     quarterActivities: reportTempActivities.filter(a=>(a.name||'').trim()!=='' || (a.budget||0)!==0 || (a.spent||0)!==0),
@@ -2089,10 +2072,8 @@ function openDetail(id){
   const p=projects.find(x=>x.id==id); if(!p) return;
   document.getElementById('detailTitle').textContent=p.name;
   // สีอ่อนๆ ตามยุทธศาสตร์ของโครงการ ไว้ที่หัวข้อชื่อโครงการ ให้แยกแต่ละโครงการออกจากกันชัดเจนขึ้น
-  document.getElementById('detailTitle').style.cssText = '';
-  // สีประจำยุทธศาสตร์ของโครงการ → ใช้แต่งหัว modal และแถบความคืบหน้า (CSS อ่านจาก --sc)
-  const _dm = document.querySelector('#detailOverlay .modal');
-  if(_dm){ _dm.style.setProperty('--sc', S_COLORS[p.strategy]||'#9B8CE8'); _dm.style.setProperty('--sc-lt', _lightBg(S_COLORS[p.strategy],0.16)); }
+  document.getElementById('detailTitle').style.cssText =
+    `padding:3px 12px;border-radius:7px;background:${_lightBg(S_COLORS[p.strategy],0.14)};border-left:4px solid ${S_COLORS[p.strategy]||'transparent'}`;
   document.getElementById('detailEditBtn').onclick=()=>openEdit(id);
   document.getElementById('detailExportPdfBtn').onclick=()=>exportFormPDF(id);
   const remaining=(p.budget||0)-(p.spent||0)-(p.po||0);
@@ -2122,13 +2103,12 @@ function openDetail(id){
   // ให้ตรวจจับแล้วแสดงผลอย่างเหมาะสมแทน — ถ้าโครงสร้างตรงกับตารางงบประมาณ {name,comp,op,mat} จะ
   // render เป็นตารางงบให้เลย พร้อมข้อความเตือนให้ไปแก้ที่ต้นทาง (กด "แก้ไข" แล้วย้ายไปช่องที่ถูกต้อง)
   function renderFreeText(text){
-    const raw = (text===null||text===undefined) ? '' : String(text).replace(/\s+$/,'');
-    const t = raw.trim();
+    const t = (text||'').trim();
     if(!t) return '';
     const looksJson = t.length>=20 && ((t.startsWith('[')&&t.endsWith(']'))||(t.startsWith('{')&&t.endsWith('}')));
-    if(!looksJson) return `<div class="detail-text">${_rtHtml(raw)}</div>`;
+    if(!looksJson) return `<div class="detail-text">${escapeHtml(t)}</div>`;
     let parsed=null;
-    try { parsed = JSON.parse(t); } catch(e){ return `<div class="detail-text">${_rtHtml(raw)}</div>`; }
+    try { parsed = JSON.parse(t); } catch(e){ return `<div class="detail-text">${escapeHtml(t)}</div>`; }
     const warn = `<div style="font-size:11.5px;color:var(--red);background:var(--red-light);border:1px solid #ffd0d0;border-radius:6px;padding:6px 10px;margin-bottom:8px">⚠️ ข้อความนี้ดูเหมือนถูกวางผิดช่อง (เป็นข้อมูล JSON ไม่ใช่ข้อความปกติ) — กด "แก้ไข" ด้านล่างเพื่อย้ายไปช่องที่ถูกต้อง</div>`;
     const isBudgetShape = Array.isArray(parsed) && parsed.length && parsed.every(r=>r && typeof r==='object' && 'name' in r && ('comp' in r || 'op' in r || 'mat' in r));
     if(isBudgetShape){
@@ -2243,9 +2223,9 @@ function openDetail(id){
               <div class="detail-item"><div class="detail-item-label">ใช้ไปสะสม</div><div class="detail-item-value" style="font-size:13px">${fmtFull(cumulative)} บ.</div></div>
               <div class="detail-item"><div class="detail-item-label">คงเหลือ</div><div class="detail-item-value" style="font-size:13px">${fmtFull((p.budget||0)-cumulative)} บ.</div></div>
             </div>
-            ${r.result?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">ผลการดำเนินงาน:</strong> ${_rtHtml(r.result)}</div>`:''}
-            ${r.problems?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">ปัญหาและอุปสรรค:</strong> ${_rtHtml(r.problems)}</div>`:''}
-            ${r.solutions?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">แนวทางแก้ไข:</strong> ${_rtHtml(r.solutions)}</div>`:''}
+            ${r.result?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">ผลการดำเนินงาน:</strong> ${escapeHtml(r.result)}</div>`:''}
+            ${r.problems?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">ปัญหาและอุปสรรค:</strong> ${escapeHtml(r.problems)}</div>`:''}
+            ${r.solutions?`<div style="font-size:12px;margin-bottom:4px"><strong style="color:var(--text2)">แนวทางแก้ไข:</strong> ${escapeHtml(r.solutions)}</div>`:''}
             <div style="text-align:right;font-size:10.5px;color:var(--text3);margin-top:6px">
               ✏️ แก้ไขล่าสุด ${escapeHtml(formatLastEdited(r.lastEditedAt))}${r.lastEditedBy?` โดย ${escapeHtml(r.lastEditedBy)}`:''}
             </div>
@@ -2295,39 +2275,44 @@ function openDetail(id){
       </div>
     </div>` : '';
 
-  const _usedPct = (p.budget||0)>0 ? Math.round(((p.spent||0)+(p.po||0))/(p.budget)*100) : 0;
-  const _spentPct = (p.budget||0)>0 ? Math.min(100,((p.spent||0)/(p.budget))*100) : 0;
-  const _poPct = (p.budget||0)>0 ? Math.min(100-_spentPct,((p.po||0)/(p.budget))*100) : 0;
-  const _comChips = (p.committees&&p.committees.length)
-    ? p.committees.map(c=>`<span class="dt-chip">${escapeHtml(c)}</span>`).join('')
-    : '<span class="dt-muted">ไม่ได้ระบุ</span>';
   document.getElementById('detailBody').innerHTML=`
-    <div class="dt-hero">
-      <div class="dt-tags">
-        <span class="badge ${S_BADGE[p.strategy]}">${S_NAMES[p.strategy]}</span>
-        <span class="badge ${STATUS_CLASS[p.status]}">${STATUS_LABEL[p.status]}</span>
-        <span class="dt-tag">${escapeHtml(p.projectType||'ต่อเนื่อง')}</span>
-        ${p.duration?`<span class="dt-tag"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${escapeHtml(p.duration)}</span>`:''}
-      </div>
-      <div class="dt-stats">
-        <div class="dt-stat dt-main"><span>งบประมาณที่อนุมัติ</span><b>${fmtFull(p.budget)}</b><small>บาท</small></div>
-        <div class="dt-stat"><span>ใช้ไปแล้ว</span><b class="c-spent">${fmtFull(p.spent)}</b><small>บาท</small></div>
-        <div class="dt-stat"><span>PO ผูกพัน</span><b class="c-po">${fmtFull(p.po)}</b><small>บาท</small></div>
-        <div class="dt-stat"><span>คงเหลือสุทธิ</span><b class="${remaining<0?'c-neg':'c-rem'}">${fmtFull(remaining)}</b><small>บาท</small></div>
-      </div>
-      <div class="dt-bar" title="ใช้ไป+PO ${_usedPct}%"><i class="s" style="width:${_spentPct.toFixed(1)}%"></i><i class="p" style="width:${_poPct.toFixed(1)}%"></i></div>
-      <div class="dt-bar-legend"><span><i class="s"></i>ใช้ไป</span><span><i class="p"></i>PO ผูกพัน</span><span class="dt-bar-pct">ใช้ไป + PO <b>${_usedPct}%</b> ของงบอนุมัติ</span></div>
-    </div>
     <div class="detail-section">
-      <div class="detail-section-title">ข้อมูลโครงการ</div>
+      <div class="detail-section-title">ข้อมูลทั่วไป</div>
       <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">ยุทธศาสตร์</div><div class="detail-item-value"><span class="badge ${S_BADGE[p.strategy]}">${S_NAMES[p.strategy]}</span></div></div>
+        <div class="detail-item"><div class="detail-item-label">สถานะ</div><div class="detail-item-value"><span class="badge ${STATUS_CLASS[p.status]}">${STATUS_LABEL[p.status]}</span></div></div>
+        <div class="detail-item"><div class="detail-item-label">ไตรมาส</div><div class="detail-item-value">${Q_LABEL[p.quarter||'all']}</div></div>
+        <div class="detail-item"><div class="detail-item-label">ลักษณะโครงการ</div><div class="detail-item-value">${escapeHtml(p.projectType||'ต่อเนื่อง')}</div></div>
         <div class="detail-item"><div class="detail-item-label">ฝ่าย / กลุ่มงาน</div><div class="detail-item-value">${escapeHtml(p.owner||'—')}</div></div>
         <div class="detail-item"><div class="detail-item-label">หน่วยงาน</div><div class="detail-item-value">${escapeHtml(p.dept||'—')}</div></div>
-        <div class="detail-item"><div class="detail-item-label">ไตรมาส</div><div class="detail-item-value">${Q_LABEL[p.quarter||'all']}</div></div>
         <div class="detail-item"><div class="detail-item-label">ผู้รับผิดชอบ</div><div class="detail-item-value">${escapeHtml(p.coordinator||'—')}</div></div>
         <div class="detail-item"><div class="detail-item-label">ตำแหน่งงาน</div><div class="detail-item-value">${escapeHtml(p.position||'—')}</div></div>
-        ${p.budgetSource?`<div class="detail-item"><div class="detail-item-label">แหล่งงบประมาณ</div><div class="detail-item-value">${escapeHtml(p.budgetSource)}</div></div>`:''}
-        <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">อนุกรรมการที่เกี่ยวข้อง</div><div class="detail-item-value dt-chips">${_comChips}</div></div>
+        <div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">ระยะเวลาดำเนินการ</div><div class="detail-item-value">${escapeHtml(p.duration||'—')}</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">💰 งบประมาณ</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">งบประมาณที่อนุมัติ</div><div class="detail-item-value" style="font-size:15px;font-weight:700;color:var(--accent)">${fmtFull(p.budget)} บาท</div></div>
+        <div class="detail-item"><div class="detail-item-label">งบประมาณที่ใช้ไป</div><div class="detail-item-value">${fmtFull(p.spent)} บาท</div></div>
+        <div class="detail-item"><div class="detail-item-label">PO ผูกพัน</div><div class="detail-item-value">${fmtFull(p.po)} บาท</div></div>
+        <div class="detail-item"><div class="detail-item-label">งบประมาณคงเหลือสุทธิ</div><div class="detail-item-value" style="${remaining<0?'color:var(--red);font-weight:700':''}">${fmtFull(remaining)} บาท</div></div>
+        ${p.budgetSource?`<div class="detail-item" style="grid-column:1/-1"><div class="detail-item-label">แหล่งงบประมาณ</div><div class="detail-item-value">${escapeHtml(p.budgetSource)}</div></div>`:''}
+      </div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">👥 ผู้รับผิดชอบและอนุกรรมการ</div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="detail-item-label">ฝ่าย / กลุ่มงาน</div><div class="detail-item-value">${escapeHtml(p.owner||'—')}</div></div>
+        <div class="detail-item"><div class="detail-item-label">ผู้รับผิดชอบ</div><div class="detail-item-value">${escapeHtml(p.coordinator||'—')}</div></div>
+        <div class="detail-item" style="grid-column:1/-1">
+          <div class="detail-item-label">อนุกรรมการที่เกี่ยวข้อง</div>
+          <div class="detail-item-value" style="margin-top:4px">
+            ${(p.committees&&p.committees.length)
+              ? p.committees.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;background:var(--accent-light);color:var(--accent);margin:2px 3px 2px 0">🏛 ${escapeHtml(c)}</span>`).join('')
+              : '<span style="color:var(--text3);font-weight:400;font-size:12px">ไม่ได้ระบุ</span>'}
+          </div>
+        </div>
       </div>
     </div>
     ${p.rationale?`<div class="detail-section"><div class="detail-section-title">📝 หลักการและเหตุผล</div>${renderFreeText(p.rationale)}</div>`:''}
@@ -2404,8 +2389,6 @@ function _unwrapMaybeJsonArrayString(v){
   }
   return t;
 }
-// แสดงข้อความยาวพร้อมรูปแบบ (ตัวหนา/เอียง/ขีดเส้นใต้/ย่อหน้า) — ดู assets/app-richtext.js
-function _rtHtml(t){ return (typeof dlfRich==='function') ? dlfRich(t) : escapeHtml(t); }
 function escapeHtml(str){
   // กัน error กรณีค่าที่ส่งเข้ามาไม่ใช่ string (เช่น array/object ที่หลุดมาจากข้อมูลผิดรูปแบบ)
   // แต่ก่อนถ้า str เป็น array/object จะเรียก .replace() ไม่ได้แล้วทำให้หน้าเว็บพังทั้งหน้า (เช่น กดดูรายละเอียดโครงการไม่ได้เลย)
@@ -2727,14 +2710,14 @@ document.addEventListener('click', e=>{
 // ===== COMMITTEE SUMMARY =====
 
 const COM_LIST = [
-  { key: 'นโยบายและแผนงาน',           label: 'ด้านนโยบายและแผนงาน',           color: '#6F93E2', colorLight: '#EAF3FD', icon: '📋' },
-  { key: 'วิชาการ',                    label: 'ด้านวิชาการ',                   color: '#4DB08C', colorLight: '#E8F7F1', icon: '📚' },
-  { key: 'เทคนิคและเทคโนโลยีดิจิทัล', label: 'ด้านเทคนิคและเทคโนโลยีดิจิทัล', color: '#E3A24F', colorLight: '#FDF7E0', icon: '💻' },
-  { key: 'บริหารงานบุคคล',             label: 'ด้านบริหารงานบุคคล',             color: '#A18AE3', colorLight: '#EEEBFC', icon: '👥' },
-  { key: 'DLTV Plus',                  label: 'ด้าน DLTV Plus',                color: '#E58BAE', colorLight: '#FDEEF4', icon: '📡' },
+  { key: 'นโยบายและแผนงาน',           label: 'ด้านนโยบายและแผนงาน',           color: '#3b72f0', colorLight: '#eef2fd', icon: '📋' },
+  { key: 'วิชาการ',                    label: 'ด้านวิชาการ',                   color: '#059669', colorLight: '#ecfdf5', icon: '📚' },
+  { key: 'เทคนิคและเทคโนโลยีดิจิทัล', label: 'ด้านเทคนิคและเทคโนโลยีดิจิทัล', color: '#d97706', colorLight: '#fffbeb', icon: '💻' },
+  { key: 'บริหารงานบุคคล',             label: 'ด้านบริหารงานบุคคล',             color: '#9333ea', colorLight: '#faf5ff', icon: '👥' },
+  { key: 'DLTV Plus',                  label: 'ด้าน DLTV Plus',                color: '#0891b2', colorLight: '#ecfeff', icon: '📡' },
 ];
 // โครงการที่ไม่ถูก assign อนุกรรมการ
-const COM_UNASSIGNED = { key: '__none__', label: 'ไม่ได้ระบุอนุกรรมการ', color: '#7B859B', colorLight: '#F5F7FA', icon: '—' };
+const COM_UNASSIGNED = { key: '__none__', label: 'ไม่ได้ระบุอนุกรรมการ', color: '#9aa3b2', colorLight: '#f9fafb', icon: '—' };
 
 function _getCommittees(p) {
   // committees อาจเป็น array ของ string หรือ object {name, role}
@@ -3496,20 +3479,66 @@ function _writeActlog(logs) {
 }
 
 // ── diff สองโครงการ หา field ที่เปลี่ยน ────────────────────
+// ฟิลด์ข้อความ/ตัวเลข: เก็บค่าก่อน/หลัง
+// ฟิลด์ที่เป็นรายการ (กิจกรรม งบ ตัวชี้วัด รูป ฯลฯ): เก็บว่าเพิ่ม/ลบ/แก้ไขรายการไหน (แทน "(เดิม)" → "(ใหม่)" แบบเก่า)
+const _AL_NUM_KEYS  = ['budget','spent','po','progress'];
+const _AL_LIST_KEYS = ['activities','budgetDetail','evalRows','images','docFiles','kpi','committees'];
+const _AL_MONTHS = ['ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.'];
+
+function _alEmptyish(key, v){
+  const s = String(v ?? '').trim();
+  if (s === '' || s === '—' || s === '-') return true;
+  return _AL_NUM_KEYS.includes(key) && Number(s) === 0;
+}
+function _alItemLabel(key, it){
+  if (it == null) return '';
+  if (typeof it !== 'object') return String(it);
+  if (key === 'activities') {
+    const ms = Array.isArray(it.months) ? it.months.map((v,i)=>v?_AL_MONTHS[i]:null).filter(Boolean) : [];
+    return (it.name || '(ไม่มีชื่อกิจกรรม)') + (ms.length ? ` (${ms[0]}${ms.length>1?' – '+ms[ms.length-1]:''})` : '');
+  }
+  if (key === 'budgetDetail') {
+    const t = (Number(it.comp)||0)+(Number(it.op)||0)+(Number(it.mat)||0);
+    return (it.name || '(ไม่มีชื่อรายการ)') + ` — ${t.toLocaleString('th-TH')} บาท`;
+  }
+  if (key === 'evalRows') return it.kpi || it.indicator || '(ตัวชี้วัด)';
+  return it.name || it.title || it.fileName || it.kpi || it.label || (it.url ? String(it.url).split('/').pop().slice(0,40) : JSON.stringify(it).slice(0,60));
+}
+function _alItemKey(key, it){
+  if (it == null) return '';
+  if (typeof it !== 'object') return String(it).trim();
+  if (key === 'images' || key === 'docFiles') return it.url || it.id || it.name || JSON.stringify(it);
+  return String(it.name || it.kpi || it.indicator || it.title || JSON.stringify(it)).trim();
+}
+function _alListDiff(key, oldArr, newArr){
+  const oa = Array.isArray(oldArr) ? oldArr.filter(x=>x!=null&&x!=='') : [];
+  const na = Array.isArray(newArr) ? newArr.filter(x=>x!=null&&x!=='') : [];
+  const om = new Map(oa.map(x=>[_alItemKey(key,x), x]));
+  const nm = new Map(na.map(x=>[_alItemKey(key,x), x]));
+  const items = [];
+  nm.forEach((v,k)=>{ if(!om.has(k)) items.push({t:'add', s:_alItemLabel(key,v)}); else if(JSON.stringify(om.get(k))!==JSON.stringify(v)) items.push({t:'chg', s:_alItemLabel(key,v), o:_alItemLabel(key,om.get(k))}); });
+  om.forEach((v,k)=>{ if(!nm.has(k)) items.push({t:'del', s:_alItemLabel(key,v)}); });
+  // ลำดับเปลี่ยนอย่างเดียว
+  if (!items.length && JSON.stringify(oa)!==JSON.stringify(na)) items.push({t:'chg', s:'สลับลำดับรายการ'});
+  return { from: oa.length+' รายการ', to: na.length+' รายการ', items: items.slice(0,12), more: Math.max(0, items.length-12) };
+}
+
 function _diffProject(oldP, newP) {
   const changed = [];
-  const SKIP = ['id','images','docFiles','activities','budgetDetail','evalRows','committees'];
   for (const key of Object.keys(FIELD_LABELS)) {
-    if (SKIP.includes(key)) continue;
-    const ov = Array.isArray(oldP[key]) ? oldP[key].join(', ') : String(oldP[key] ?? '');
-    const nv = Array.isArray(newP[key]) ? newP[key].join(', ') : String(newP[key] ?? '');
-    if (ov !== nv) changed.push({ key, label: FIELD_LABELS[key], from: ov, to: nv });
-  }
-  // ตรวจ array fields แบบ shallow (เปรียบเทียบ JSON)
-  const ARR = ['images','activities','budgetDetail','evalRows'];
-  for (const key of ARR) {
-    if (JSON.stringify(oldP[key]) !== JSON.stringify(newP[key]))
-      changed.push({ key, label: FIELD_LABELS[key], from: '(เดิม)', to: '(ใหม่)' });
+    if (key === 'id') continue;
+    const ov = oldP[key], nv = newP[key];
+    if (_AL_LIST_KEYS.includes(key) || Array.isArray(ov) || Array.isArray(nv)) {
+      if (JSON.stringify(ov ?? []) === JSON.stringify(nv ?? [])) continue;
+      const d = _alListDiff(key, ov, nv);
+      if (!d.items.length) continue;
+      changed.push({ key, label: FIELD_LABELS[key], kind:'list', ...d });
+      continue;
+    }
+    const os = String(ov ?? ''), ns = String(nv ?? '');
+    if (os === ns) continue;
+    if (_alEmptyish(key, os) && _alEmptyish(key, ns)) continue; // ว่าง ↔ 0 ไม่นับว่าเปลี่ยน
+    changed.push({ key, label: FIELD_LABELS[key], from: os, to: ns });
   }
   return changed;
 }
@@ -3569,153 +3598,269 @@ function _syncActlogFromGAS() {
   }).catch(()=>{ _actlogSyncing = false; _actlogRemoteLoaded = true; /* ดึงไม่สำเร็จ ใช้ local cache ต่อไป */ });
 }
 
-// ── render ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// ── หน้าประวัติการแก้ไข: ไทม์ไลน์จัดกลุ่มตามวัน + หน้าต่างรายละเอียดแบบเปรียบเทียบ ──
+// ══════════════════════════════════════════════════════════════
+const _AL_ACTIONS = {
+  'เพิ่ม':     { icon:'＋', verb:'เพิ่มโครงการ',     c:'#059669', bg:'#e6f7ef' },
+  'แก้ไข':    { icon:'✎',  verb:'แก้ไขโครงการ',     c:'#d97706', bg:'#fff8e6' },
+  'ลบ':       { icon:'🗑',  verb:'ลบโครงการ',        c:'#dc2626', bg:'#fff0f0' },
+  'รายงานผล': { icon:'📊', verb:'รายงานผลโครงการ',  c:'#3b72f0', bg:'#eef2fd' },
+};
+function _alAct(a){
+  if (_AL_ACTIONS[a]) return _AL_ACTIONS[a];
+  if (String(a).startsWith('ลบรายงานผล')) return { icon:'↺', verb:a, c:'#7c3aed', bg:'#f3effe' };
+  return { icon:'•', verb:a, c:'#6b7280', bg:'#f3f4f6' };
+}
+const _AL_STATUS = { done:['แล้วเสร็จ','#059669'], progress:['กำลังดำเนินการ','#d97706'], pending:['ยังไม่เริ่ม','#6b7280'] };
+const _AL_AVATAR_COLORS = ['#3b72f0','#059669','#d97706','#7c3aed','#0891b2','#db2777','#4f46e5','#0d9488'];
+function _alEsc(s){ return (typeof escapeHtml==='function') ? escapeHtml(String(s ?? '')) : String(s ?? '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function _alAvatar(name, size){
+  size = size || 34;
+  const n = String(name||'?');
+  if (n === 'ผู้เยี่ยมชม') return `<span class="al-avatar" style="width:${size}px;height:${size}px;background:#9aa3b2">👁</span>`;
+  let h = 0; for (const ch of n) h = (h*31 + ch.codePointAt(0)) >>> 0;
+  const clean = n.replace(/^(นาย|นางสาว|นาง|น\.ส\.|ดร\.|Mr\.?|Ms\.?|Mrs\.?)\s*/,'');
+  return `<span class="al-avatar" style="width:${size}px;height:${size}px;background:${_AL_AVATAR_COLORS[h%_AL_AVATAR_COLORS.length]};font-size:${Math.round(size*0.42)}px">${_alEsc(clean.slice(0,1).toUpperCase())}</span>`;
+}
+function _alDayKey(d){ return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate(); }
+function _alDayLabel(d){
+  const today = new Date(); const y = new Date(); y.setDate(today.getDate()-1);
+  if (_alDayKey(d)===_alDayKey(today)) return 'วันนี้';
+  if (_alDayKey(d)===_alDayKey(y)) return 'เมื่อวาน';
+  return d.toLocaleDateString('th-TH',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+}
+function _alRelTime(d){
+  const s = (Date.now()-d.getTime())/1000;
+  if (s < 60) return 'เมื่อสักครู่';
+  if (s < 3600) return Math.floor(s/60)+' นาทีที่แล้ว';
+  if (s < 86400) return Math.floor(s/3600)+' ชั่วโมงที่แล้ว';
+  if (s < 86400*7) return Math.floor(s/86400)+' วันที่แล้ว';
+  return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'});
+}
+// ฟิลด์ที่แสดงจริง (ตัดรายการ "ว่าง → 0" ที่บันทึกไว้ในประวัติรุ่นเก่าออก)
+function _alVisibleFields(l){
+  return (l.fields||[]).filter(f => f.kind==='list' || !( _alEmptyish(f.key, f.from) && _alEmptyish(f.key, f.to) ));
+}
+
+let _alFiltered = [];   // รายการที่แสดงอยู่ (หลังกรอง) ใช้สำหรับปุ่มก่อนหน้า/ถัดไปในหน้าต่างรายละเอียด
+
 function renderActlog() {
   _syncActlogFromGAS(); // โหลดประวัติของทุกคนจาก Sheet ครั้งแรกที่เปิดหน้านี้ (พอโหลดเสร็จจะเรียก renderActlog() ให้เองอีกครั้ง)
   const syncNote = document.getElementById('actlogSyncingNote');
   if (syncNote) syncNote.style.display = (_actlogSyncing && !_actlogRemoteLoaded) ? '' : 'none';
-  const search   = (document.getElementById('actlogSearch')?.value || '').toLowerCase();
+  const search   = (document.getElementById('actlogSearch')?.value || '').toLowerCase().trim();
   const filterAc = document.getElementById('actlogFilterAction')?.value || '';
 
-  let logs = _readActlog().reverse(); // ใหม่ก่อน
-
+  const all = _readActlog();
+  let logs = all.slice().reverse(); // ใหม่ก่อน
   if (search) logs = logs.filter(l =>
-    l.user.toLowerCase().includes(search) ||
-    l.projectName.toLowerCase().includes(search) ||
-    (l.email || '').toLowerCase().includes(search)
+    String(l.user||'').toLowerCase().includes(search) ||
+    String(l.projectName||'').toLowerCase().includes(search) ||
+    String(l.email||'').toLowerCase().includes(search) ||
+    (l.fields||[]).some(f => String(f.label||'').toLowerCase().includes(search))
   );
-  if (filterAc) logs = logs.filter(l => l.action === filterAc);
+  if (filterAc) logs = logs.filter(l => filterAc==='ลบรายงานผล' ? String(l.action).startsWith('ลบรายงานผล') : l.action === filterAc);
+  _alFiltered = logs;
 
-  // Summary bar
-  const all   = _readActlog();
+  // ── แถบสรุป: กดที่ชิปเพื่อกรองได้ ──
   const sumEl = document.getElementById('actlogSummaryBar');
   if (sumEl) {
-    const cnt = (a) => all.filter(l=>l.action===a).length;
-    const uniqueUsers = [...new Set(all.map(l=>l.user))];
-    sumEl.innerHTML = [
-      `<span style="font-size:12px;color:var(--text2)">รายการทั้งหมด <strong style="color:var(--text)">${all.length}</strong> รายการ</span>`,
-      `<span style="background:var(--green-light);color:var(--green);border:1px solid #86d9b0;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600">➕ เพิ่ม ${cnt('เพิ่ม')}</span>`,
-      `<span style="background:var(--amber-light);color:var(--amber);border:1px solid #f6cc70;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600">✏️ แก้ไข ${cnt('แก้ไข')}</span>`,
-      `<span style="background:var(--red-light);color:var(--red);border:1px solid #fca5a5;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:600">🗑️ ลบ ${cnt('ลบ')}</span>`,
-      `<span style="font-size:12px;color:var(--text3);margin-left:auto">ผู้ใช้ทั้งหมด ${uniqueUsers.length} คน</span>`
-    ].join('');
+    const cnt = a => all.filter(l => a==='ลบรายงานผล' ? String(l.action).startsWith(a) : l.action===a).length;
+    const users = new Set(all.map(l=>l.user)).size;
+    const chip = (val, label) => {
+      const n = val ? cnt(val) : all.length;
+      if (val && !n) return '';
+      const a = val ? _alAct(val) : {c:'var(--text)', bg:'var(--surface2)', icon:''};
+      const on = filterAc === val;
+      return `<button type="button" class="al-chip${on?' on':''}" style="--c:${a.c};--bg:${a.bg}" onclick="document.getElementById('actlogFilterAction').value='${val}';_actlogPage=1;renderActlog()">${a.icon?`<span>${a.icon}</span>`:''}${label}<b>${n}</b></button>`;
+    };
+    sumEl.innerHTML = chip('', 'ทั้งหมด') + chip('เพิ่ม','เพิ่ม') + chip('แก้ไข','แก้ไข') + chip('รายงานผล','รายงานผล') + chip('ลบรายงานผล','ลบรายงานผล') + chip('ลบ','ลบ')
+      + `<span class="al-users">👥 ผู้ใช้ ${users} คน</span>`;
   }
 
-  const tbody  = document.getElementById('actlogBody');
-  const empty  = document.getElementById('actlogEmpty');
-  const pager  = document.getElementById('actlogPager');
-  if (!tbody) return;
-
+  const body  = document.getElementById('actlogBody');
+  const empty = document.getElementById('actlogEmpty');
+  const pager = document.getElementById('actlogPager');
+  if (!body) return;
   if (!logs.length) {
-    tbody.innerHTML = ''; empty.style.display = ''; pager.innerHTML = ''; return;
+    body.innerHTML = ''; empty.style.display = ''; pager.innerHTML = '';
+    const t = empty.querySelector('div:nth-child(2)'); if (t) t.textContent = (search||filterAc) ? 'ไม่พบรายการที่ตรงกับการค้นหา' : 'ยังไม่มีประวัติการแก้ไข';
+    return;
   }
   empty.style.display = 'none';
 
-  // Pagination
   const totalPages = Math.ceil(logs.length / ACTLOG_PAGE);
-  _actlogPage = Math.min(_actlogPage, totalPages);
+  _actlogPage = Math.max(1, Math.min(_actlogPage, totalPages));
   const slice = logs.slice((_actlogPage-1)*ACTLOG_PAGE, _actlogPage*ACTLOG_PAGE);
-  const globalOffset = (_actlogPage-1)*ACTLOG_PAGE;
 
-  // Action badge
-  const badge = (a) => {
-    const map = {
-      'เพิ่ม':  ['#dcfce7','#166534','➕ เพิ่ม'],
-      'แก้ไข': ['#fef9c3','#92400e','✏️ แก้ไข'],
-      'ลบ':   ['#fee2e2','#991b1b','🗑️ ลบ']
-    };
-    const [bg,col,label] = map[a] || ['var(--surface2)','var(--text2)',a];
-    return `<span style="background:${bg};color:${col};padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700">${label}</span>`;
-  };
-
-  tbody.innerHTML = slice.map((l, i) => {
-    const dt = new Date(l.ts);
-    const dateStr = dt.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'2-digit'});
-    const timeStr = dt.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    const rowNum  = globalOffset + i + 1;
-    const initials = l.user === 'ผู้เยี่ยมชม' ? '👁' : l.user.slice(0,1).toUpperCase();
-    const fieldList = l.fields.length
-      ? l.fields.slice(0,4).map(f=>`<span style="display:inline-block;background:var(--accent-light);color:var(--accent);border-radius:4px;padding:1px 6px;font-size:11px;margin:1px">${f.label}</span>`).join('') + (l.fields.length>4?`<span style="font-size:11px;color:var(--text3)"> +${l.fields.length-4}</span>`:'')
-      : (l.action==='เพิ่ม' ? '<span style="font-size:11px;color:var(--text3)">โครงการใหม่</span>'
-       : l.action==='ลบ'  ? '<span style="font-size:11px;color:var(--text3)">—</span>'
-       : '<span style="font-size:11px;color:var(--text3)">ไม่มีการเปลี่ยนแปลง</span>');
-
-    const detailBtn = l.fields.length
-      ? `<button onclick="showActlogDetail('${String(l.id).replace(/'/g,"\\'")}')" style="border:none;background:none;cursor:pointer;font-size:11px;color:var(--accent);text-decoration:underline;padding:0">ดูเพิ่ม</button>`
-      : '—';
-
-    return `<tr style="border-bottom:1px solid var(--border);transition:background .12s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <td style="padding:10px 14px;color:var(--text3);font-size:12px">${rowNum}</td>
-      <td style="padding:10px 14px;white-space:nowrap">
-        <div style="font-weight:600;font-size:13px">${dateStr}</div>
-        <div style="font-size:11px;color:var(--text3)">${timeStr}</div>
-      </td>
-      <td style="padding:10px 14px">
-        <div style="display:flex;align-items:center;gap:7px">
-          <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#059669,#3b72f0);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${initials}</span>
-          <div>
-            <div style="font-weight:600;font-size:13px">${escapeHtml(l.user)}</div>
-            ${l.position ? `<div style="font-size:11px;color:var(--accent);font-weight:600">${escapeHtml(l.position)}</div>` : ''}
-            ${l.email ? `<div style="font-size:11px;color:var(--text3)">${escapeHtml(l.email)}</div>` : ''}
+  let html = '', lastDay = '';
+  slice.forEach(l => {
+    const d = new Date(l.ts);
+    const dk = _alDayKey(d);
+    if (dk !== lastDay) {
+      if (lastDay) html += '</div>';
+      html += `<div class="al-day"><div class="al-day-label">${_alDayLabel(d)}</div>`;
+      lastDay = dk;
+    }
+    const a = _alAct(l.action);
+    const fields = _alVisibleFields(l);
+    const chips = fields.length
+      ? fields.slice(0,5).map(f=>`<span class="al-field">${_alEsc(f.label)}</span>`).join('') + (fields.length>5?`<span class="al-field more">+${fields.length-5}</span>`:'')
+      : `<span class="al-muted">${l.action==='เพิ่ม'?'สร้างโครงการใหม่':l.action==='ลบ'?'ลบโครงการออกจากระบบ':'ไม่มีฟิลด์ที่เปลี่ยน'}</span>`;
+    const idq = String(l.id).replace(/'/g,"\\'");
+    html += `
+      <div class="al-item" role="button" tabindex="0" onclick="showActlogDetail('${idq}')" onkeydown="if(event.key==='Enter')showActlogDetail('${idq}')">
+        <div class="al-dot" style="--c:${a.c};--bg:${a.bg}">${a.icon}</div>
+        <div class="al-card">
+          <div class="al-card-top">
+            ${_alAvatar(l.user, 30)}
+            <div class="al-who">
+              <div><strong>${_alEsc(l.user)}</strong> <span class="al-verb" style="color:${a.c}">${_alEsc(a.verb)}</span></div>
+              <div class="al-sub">${l.position?_alEsc(l.position)+' · ':''}<span title="${_alEsc(d.toLocaleString('th-TH'))}">${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น. · ${_alRelTime(d)}</span></div>
+            </div>
+            <span class="al-open">รายละเอียด ›</span>
           </div>
+          <div class="al-project" title="${_alEsc(l.projectName)}">📁 ${_alEsc(l.projectName)}</div>
+          <div class="al-fields">${fields.length?`<span class="al-count">${fields.length} ฟิลด์</span>`:''}${chips}</div>
         </div>
-      </td>
-      <td style="padding:10px 14px">${badge(l.action)}</td>
-      <td style="padding:10px 14px;max-width:200px">
-        <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.projectName}">${l.projectName}</div>
-        <div style="font-size:11px;color:var(--text3)">ID: ${l.projectId ?? '—'}</div>
-      </td>
-      <td style="padding:10px 14px">${fieldList}</td>
-      <td style="padding:10px 14px;text-align:center">${detailBtn}</td>
-    </tr>`;
-  }).join('');
+      </div>`;
+  });
+  if (lastDay) html += '</div>';
+  body.innerHTML = html;
 
-  // Pager
-  if (totalPages <= 1) { pager.innerHTML = ''; return; }
-  let ph = '';
-  for (let p = 1; p <= totalPages; p++) {
-    ph += `<button onclick="_actlogPage=${p};renderActlog()" style="padding:4px 10px;border:1px solid ${p===_actlogPage?'var(--accent)':'var(--border)'};border-radius:6px;background:${p===_actlogPage?'var(--accent)':'var(--surface)'};color:${p===_actlogPage?'#fff':'var(--text)'};cursor:pointer;font-size:12px">${p}</button>`;
-  }
+  // ── ตัวแบ่งหน้า (มี … เมื่อหน้าเยอะ) ──
+  if (totalPages <= 1) { pager.innerHTML = `<span class="al-muted">แสดง ${logs.length} รายการ</span>`; return; }
+  const go = p => `_actlogPage=${p};renderActlog();document.getElementById('page-actlog').scrollIntoView({behavior:'smooth'})`;
+  const pages = new Set([1,totalPages,_actlogPage-1,_actlogPage,_actlogPage+1].filter(p=>p>=1&&p<=totalPages));
+  let ph = `<button class="al-pg" ${_actlogPage===1?'disabled':''} onclick="${go(_actlogPage-1)}">‹ ก่อนหน้า</button>`, prev = 0;
+  [...pages].sort((x,y)=>x-y).forEach(p => {
+    if (p-prev > 1) ph += '<span class="al-muted">…</span>';
+    ph += `<button class="al-pg${p===_actlogPage?' on':''}" onclick="${go(p)}">${p}</button>`; prev = p;
+  });
+  ph += `<button class="al-pg" ${_actlogPage===totalPages?'disabled':''} onclick="${go(_actlogPage+1)}">ถัดไป ›</button>`;
+  ph += `<span class="al-muted" style="margin-left:8px">${(_actlogPage-1)*ACTLOG_PAGE+1}–${Math.min(_actlogPage*ACTLOG_PAGE,logs.length)} จาก ${logs.length}</span>`;
   pager.innerHTML = ph;
 }
 
-// ── modal รายละเอียด diff ────────────────────────────────────
+// ── เปรียบเทียบข้อความทีละคำ (ภาษาไทยตัดคำด้วย Intl.Segmenter) ──
+function _alTokens(s){
+  s = String(s ?? '');
+  try { if (typeof Intl!=='undefined' && Intl.Segmenter) return [...new Intl.Segmenter('th',{granularity:'word'}).segment(s)].map(x=>x.segment); } catch(e){}
+  return s.split(/(\s+)/).filter(Boolean);
+}
+function _alInlineDiff(a, b){
+  const A = _alTokens(a), B = _alTokens(b);
+  if (A.length*B.length > 160000) return null; // ยาวเกินไป ใช้แบบกล่องก่อน/หลังแทน
+  const n=A.length, m=B.length, dp=Array.from({length:n+1},()=>new Uint16Array(m+1));
+  for (let i=n-1;i>=0;i--) for (let j=m-1;j>=0;j--) dp[i][j] = A[i]===B[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j],dp[i][j+1]);
+  let i=0,j=0,out='',same=0;
+  const push=(t,s)=>{ out += t==='=' ? _alEsc(s) : `<${t==='-'?'del':'ins'}>${_alEsc(s)}</${t==='-'?'del':'ins'}>`; };
+  let buf='',bt='';
+  const flush=()=>{ if(buf) push(bt,buf); buf=''; };
+  const add=(t,s)=>{ if(t!==bt){ flush(); bt=t; } buf+=s; if(t==='=') same+=s.trim().length; };
+  while(i<n&&j<m){ if(A[i]===B[j]){add('=',A[i]);i++;j++;} else if(dp[i+1][j]>=dp[i][j+1]){add('-',A[i]);i++;} else {add('+',B[j]);j++;} }
+  while(i<n) add('-',A[i++]); while(j<m) add('+',B[j++]); flush();
+  // ถ้าแทบไม่เหลือส่วนที่เหมือนกัน การโชว์แบบแทรกจะอ่านยาก → ใช้กล่องก่อน/หลังแทน
+  return same >= Math.min(String(a).length, String(b).length)*0.3 ? out.replace(/\n/g,'<br>') : null;
+}
+function _alFmtVal(key, v){
+  const s = String(v ?? '').trim();
+  if (s === '' || s === '—') return '<span class="al-empty">ว่าง</span>';
+  if (key==='status' && _AL_STATUS[s]) return `<span class="al-status" style="--c:${_AL_STATUS[s][1]}">${_AL_STATUS[s][0]}</span>`;
+  if (key==='strategy' && /^\d+$/.test(s)) return Number(s)===5 ? 'งบบริหารสำนักงาน' : 'ยุทธศาสตร์ที่ '+s;
+  if (_AL_NUM_KEYS.includes(key) && !isNaN(Number(s))) return Number(s).toLocaleString('th-TH') + (key==='progress'?' %':' บาท');
+  if (s==='(เดิม)'||s==='(ใหม่)') return `<span class="al-empty">${s}</span>`;
+  return _alEsc(s).replace(/\n/g,'<br>');
+}
+function _alFieldBody(f){
+  // รายการ (รูปแบบใหม่): เพิ่ม/ลบ/แก้ไขทีละรายการ
+  if (f.kind === 'list') {
+    const tag = {add:['เพิ่ม','#059669','＋'],del:['ลบ','#dc2626','−'],chg:['แก้ไข','#d97706','✎']};
+    return `<div class="al-list-sum">${_alEsc(f.from)} → <strong>${_alEsc(f.to)}</strong></div>
+      <ul class="al-list">${(f.items||[]).map(it=>{ const t=tag[it.t]||tag.chg; return `<li style="--c:${t[1]}"><span class="al-li-tag">${t[2]} ${t[0]}</span><span>${_alEsc(it.s)}${it.o&&it.o!==it.s?`<div class="al-li-old">เดิม: ${_alEsc(it.o)}</div>`:''}</span></li>`; }).join('')}
+      ${f.more?`<li class="al-muted" style="--c:#9aa3b2">และอีก ${f.more} รายการ</li>`:''}</ul>`;
+  }
+  // ประวัติรุ่นเก่าที่เก็บไว้แค่ "(เดิม) → (ใหม่)"
+  if (f.from==='(เดิม)' && f.to==='(ใหม่)') return `<div class="al-legacy">มีการเปลี่ยนแปลงข้อมูลในส่วนนี้ <span class="al-muted">(ประวัติรายการนี้บันทึกก่อนระบบเก็บรายละเอียดรายการ)</span></div>`;
+  // ตัวเลข: แสดงส่วนต่าง
+  if (_AL_NUM_KEYS.includes(f.key) && !isNaN(Number(f.from||0)) && !isNaN(Number(f.to||0))) {
+    const o = Number(f.from||0), n = Number(f.to||0), d = n-o;
+    const pct = o ? ` (${d>0?'+':''}${(d/o*100).toLocaleString('th-TH',{maximumFractionDigits:1})}%)` : '';
+    return `<div class="al-ba"><div class="al-before">${_alFmtVal(f.key,f.from)}</div><div class="al-arrow">→</div><div class="al-after">${_alFmtVal(f.key,f.to)}</div>
+      ${d?`<span class="al-delta" style="--c:${d>0?'#059669':'#dc2626'}">${d>0?'▲ +':'▼ '}${d.toLocaleString('th-TH')}${pct}</span>`:''}</div>`;
+  }
+  // ข้อความที่แก้บางส่วน: แสดงแบบแทรก (ขีดฆ่าส่วนที่ลบ / ไฮไลต์ส่วนที่เพิ่ม)
+  const short = String(f.from||'').length < 24 && String(f.to||'').length < 24;
+  const empty = _alEmptyish(f.key, f.from) || _alEmptyish(f.key, f.to);
+  if (!empty && !short && f.key!=='status' && f.key!=='strategy') {
+    const inl = _alInlineDiff(f.from, f.to);
+    if (inl) return `<div class="al-inline">${inl}</div>`;
+  }
+  return `<div class="al-ba"><div class="al-before">${_alFmtVal(f.key,f.from)}</div><div class="al-arrow">→</div><div class="al-after">${_alFmtVal(f.key,f.to)}</div></div>`;
+}
+
+function closeActlogDetail(){
+  const ov = document.getElementById('actlogDetailOverlay'); if (ov) ov.remove();
+  document.removeEventListener('keydown', _alKeyNav, true);
+}
+function _alKeyNav(e){
+  if (!document.getElementById('actlogDetailOverlay')) return;
+  if (e.key==='Escape'){ e.stopPropagation(); closeActlogDetail(); }
+  if (e.key==='ArrowLeft'||e.key==='ArrowRight'){
+    const btn = document.querySelector(`#actlogDetailOverlay [data-nav="${e.key==='ArrowLeft'?'prev':'next'}"]`);
+    if (btn && !btn.disabled) btn.click();
+  }
+}
+
+// ── หน้าต่างรายละเอียดการแก้ไข ────────────────────────────────
 function showActlogDetail(logId) {
   const log = _readActlog().find(l => l.id === logId);
   if (!log) return;
-  const dt  = new Date(log.ts).toLocaleString('th-TH');
-  const rows = log.fields.map(f => `
-    <tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:8px 12px;font-weight:700;font-size:13px;white-space:nowrap;color:var(--accent)">${f.label}</td>
-      <td style="padding:8px 12px;font-size:12px;color:var(--red);max-width:200px;word-break:break-word">${f.from || '—'}</td>
-      <td style="padding:8px 12px;font-size:13px;color:var(--text3)">→</td>
-      <td style="padding:8px 12px;font-size:12px;color:var(--green);max-width:200px;word-break:break-word">${f.to || '—'}</td>
-    </tr>`).join('');
+  const d = new Date(log.ts);
+  const a = _alAct(log.action);
+  const fields = _alVisibleFields(log);
+  const idx = _alFiltered.findIndex(l=>l.id===logId);
+  const prevL = idx>0 ? _alFiltered[idx-1] : null;              // ใหม่กว่า
+  const nextL = idx>=0 && idx<_alFiltered.length-1 ? _alFiltered[idx+1] : null; // เก่ากว่า
+  const proj = (typeof projects!=='undefined' ? projects : []).find(p=>p.id==log.projectId);
+  const navBtn = (l, dir, label) => `<button class="btn btn-sm" data-nav="${dir}" ${l?'':'disabled'} onclick="showActlogDetail('${l?String(l.id).replace(/'/g,"\\'"):''}')">${label}</button>`;
 
-  const html = `<div style="position:fixed;inset:0;background:rgba(10,15,30,.6);backdrop-filter:blur(5px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem" onclick="if(event.target===this)this.remove()">
-    <div style="background:var(--surface);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.2);width:min(640px,100%);max-height:80vh;display:flex;flex-direction:column;overflow:hidden">
-      <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
-        <div>
-          <div style="font-size:15px;font-weight:700">📋 รายละเอียดการแก้ไข</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:3px">${escapeHtml(log.user)}${log.position ? ' (' + escapeHtml(log.position) + ')' : ''} · ${dt}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">โครงการ: <strong>${log.projectName}</strong></div>
+  const bodyHtml = fields.length
+    ? fields.map(f=>`<div class="al-change"><div class="al-change-label">${_alEsc(f.label)}</div>${_alFieldBody(f)}</div>`).join('')
+    : `<div class="al-nochange"><div style="font-size:30px">${a.icon}</div>${
+        log.action==='เพิ่ม' ? 'สร้างโครงการนี้ขึ้นใหม่ในระบบ'
+        : log.action==='ลบ' ? `ลบโครงการนี้ออกจากระบบ${log.snapshot&&log.snapshot.budget?`<div class="al-muted">งบประมาณ ${Number(log.snapshot.budget).toLocaleString('th-TH')} บาท</div>`:''}`
+        : 'ไม่มีฟิลด์ที่เปลี่ยนแปลง'}</div>`;
+
+  closeActlogDetail();
+  document.body.insertAdjacentHTML('beforeend', `
+  <div id="actlogDetailOverlay" class="al-overlay" onclick="if(event.target===this)closeActlogDetail()">
+    <div class="al-modal" role="dialog" aria-modal="true" style="--c:${a.c};--bg:${a.bg}">
+      <div class="al-modal-head">
+        <div style="display:flex;gap:12px;align-items:flex-start;min-width:0;flex:1">
+          ${_alAvatar(log.user, 42)}
+          <div style="min-width:0;flex:1">
+            <div class="al-modal-title"><strong>${_alEsc(log.user)}</strong> <span class="al-pill">${a.icon} ${_alEsc(a.verb)}</span></div>
+            <div class="al-sub">${log.position?_alEsc(log.position)+' · ':''}${d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'long',year:'numeric'})} เวลา ${d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'})} น. <span class="al-muted">(${_alRelTime(d)})</span></div>
+          </div>
         </div>
-        <button onclick="this.closest('[style*=fixed]').remove()" style="border:none;background:none;cursor:pointer;font-size:20px;color:var(--text3);line-height:1;flex-shrink:0">×</button>
+        <button class="al-x" onclick="closeActlogDetail()" title="ปิด (Esc)">×</button>
       </div>
-      <div style="overflow-y:auto;flex:1">
-        ${rows ? `<table style="width:100%;border-collapse:collapse">
-          <thead><tr style="background:var(--surface2)">
-            <th style="padding:8px 12px;text-align:left;font-size:12px;color:var(--text2)">ฟิลด์</th>
-            <th style="padding:8px 12px;text-align:left;font-size:12px;color:var(--red)">ก่อน</th>
-            <th style="padding:8px 2px;width:24px"></th>
-            <th style="padding:8px 12px;text-align:left;font-size:12px;color:var(--green)">หลัง</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>` : `<div style="padding:2rem;text-align:center;color:var(--text3);font-size:13px">ไม่มีรายละเอียดเพิ่มเติม</div>`}
+      <div class="al-modal-proj">
+        <div style="min-width:0"><div class="al-muted" style="font-size:11px">โครงการ</div><div class="al-proj-name">${_alEsc(log.projectName)}</div></div>
+        ${proj && log.action!=='ลบ' ? `<button class="btn btn-sm" onclick="closeActlogDetail();openDetail(${JSON.stringify(proj.id)})">เปิดโครงการ ›</button>` : ''}
+      </div>
+      ${fields.length?`<div class="al-modal-count">เปลี่ยนแปลง ${fields.length} ฟิลด์ <span class="al-legend"><del>ข้อความที่ลบ</del> <ins>ข้อความที่เพิ่ม</ins></span></div>`:''}
+      <div class="al-modal-body">${bodyHtml}</div>
+      <div class="al-modal-foot">
+        ${navBtn(prevL,'prev','‹ ใหม่กว่า')}
+        <span class="al-muted">${idx>=0?`${idx+1} / ${_alFiltered.length}`:''}</span>
+        ${navBtn(nextL,'next','เก่ากว่า ›')}
       </div>
     </div>
-  </div>`;
-  document.body.insertAdjacentHTML('beforeend', html);
+  </div>`);
+  document.addEventListener('keydown', _alKeyNav, true);
 }
 
 // ── ล้าง log ─────────────────────────────────────────────────
