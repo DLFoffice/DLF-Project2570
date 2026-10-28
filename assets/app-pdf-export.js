@@ -1090,7 +1090,9 @@ function _buildQuarterReportHTML(p, quarter, r, logoSrc){
   const budget = p.budget||0, spent = (r&&r.spent)||0;
   const cumulative = (typeof getCumulativeSpentUpTo==='function') ? getCumulativeSpentUpTo(p, quarter) : spent;
   const remaining = budget - cumulative;
-  const kpiResults = ((r && r.kpiResults) || []).map(k => (k && typeof k === 'object') ? { indicator:k.indicator||'', target:k.target||'', achieved:k.achieved||'' } : { indicator:k||'', target:'', achieved:'' });
+  const kpiResults = ((r && r.kpiResults) || []).map(k => (k && typeof k === 'object') ? { indicator:k.indicator||'', target:k.target||'', achieved:k.achieved||'', planTarget:k.planTarget, unit:k.unit||'' } : { indicator:k||'', target:'', achieved:'' });
+  const _kNum = v => { const m = String(v==null?'':v).replace(/,/g,'').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
+  const _hasPlanT = kpiResults.some(k => _kNum(k.planTarget) != null);
   const quarterActivities = (r && r.quarterActivities) || [];
   const images = (r && r.images) || [];
 
@@ -1098,7 +1100,7 @@ function _buildQuarterReportHTML(p, quarter, r, logoSrc){
     <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:10px">
       <tr>${_pdfCell('โครงการ',{bold:true,bg:_PDF_HEAD_BG,width:'120px'})}${_pdfCell(_esc(p.name||''),{bold:true,colspan:3})}</tr>
       <tr>${_pdfCell('ยุทธศาสตร์ที่',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell(s+' — '+_esc(S_FULL_NAMES[s]||''),{})}${_pdfCell('ไตรมาส',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell('ไตรมาส '+_esc(String(quarter)),{bold:true})}</tr>
-      <tr>${_pdfCell('สถานะ',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell(r?(statusLabelMap[r.status]||_esc(r.status||'')):'-',{})}${_pdfCell('แก้ไขล่าสุด',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell(_esc((r&&r.lastEditedAt)?( (typeof formatLastEdited==='function')?formatLastEdited(r.lastEditedAt):r.lastEditedAt ):'-')+(r&&r.lastEditedBy?' โดย '+_esc(r.lastEditedBy):''),{small:true})}</tr>
+      <tr>${_pdfCell('สถานะ',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell(r?(statusLabelMap[r.status]||_esc(r.status||''))+(r.progress?' · ความคืบหน้า '+Number(r.progress)+'%':''):'-',{})}${_pdfCell('แก้ไขล่าสุด',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell(_esc((r&&r.lastEditedAt)?( (typeof formatLastEdited==='function')?formatLastEdited(r.lastEditedAt):r.lastEditedAt ):'-')+(r&&r.lastEditedBy?' โดย '+_esc(r.lastEditedBy):''),{small:true})}</tr>
     </table>`;
 
   const budgetRows = `
@@ -1138,8 +1140,8 @@ function _buildQuarterReportHTML(p, quarter, r, logoSrc){
     <div class="pdf-noBreak" style="margin-bottom:12px">
       <div style="font-weight:700;font-size:11px;margin-bottom:4px">3.2 การวัดและประเมินผล</div>
       <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-        <tr>${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'26px'})}${_pdfCell('ตัวชี้วัดโครงการ',{bold:true,bg:_PDF_HEAD_BG})}${_pdfCell('ค่าเป้าหมายที่ทำได้',{bold:true,bg:_PDF_HEAD_BG,width:'150px'})}${_pdfCell('ผลการดำเนินงาน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'85px'})}</tr>
-        ${kpiResults.map((k,i)=>{const zebra=i%2===1?'#f6f8fc':'#fff';const res=k.achieved==='yes'?'<span style="color:#059669;font-weight:700">บรรลุ</span>':k.achieved==='no'?'<span style="color:#dc2626;font-weight:700">ไม่บรรลุ</span>':'<span style="color:#9aa3b2">—</span>';return `<tr>${_pdfCell(i+1,{center:true,bg:zebra})}${_pdfCell(_esc(k.indicator||''),{bg:zebra})}${_pdfCell(_esc(k.target||''),{bg:zebra})}${`<td style="padding:5px 8px;border:1px solid ${_PDF_BORDER_DARK};text-align:center;background:${zebra}">${res}</td>`}</tr>`;}).join('')}
+        <tr>${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'26px'})}${_pdfCell('ตัวชี้วัดโครงการ',{bold:true,bg:_PDF_HEAD_BG})}${_hasPlanT?_pdfCell('เป้าหมาย (แผน)',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'90px'}):''}${_pdfCell(_hasPlanT?'ผลที่ทำได้ (สะสม)':'ค่าเป้าหมายที่ทำได้',{bold:true,bg:_PDF_HEAD_BG,width:_hasPlanT?'95px':'150px'})}${_hasPlanT?_pdfCell('เทียบเป้า',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'60px'}):''}${_pdfCell('ผลการดำเนินงาน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'85px'})}</tr>
+        ${kpiResults.map((k,i)=>{const zebra=i%2===1?'#f6f8fc':'#fff';const res=k.achieved==='yes'?'<span style="color:#059669;font-weight:700">บรรลุ</span>':k.achieved==='no'?'<span style="color:#dc2626;font-weight:700">ไม่บรรลุ</span>':'<span style="color:#9aa3b2">—</span>';return `<tr>${_pdfCell(i+1,{center:true,bg:zebra})}${_pdfCell(_esc(k.indicator||''),{bg:zebra})}${_hasPlanT?_pdfCell(_kNum(k.planTarget)!=null?_kNum(k.planTarget).toLocaleString('th-TH')+' '+_esc(k.unit||''):'—',{center:true,bg:zebra}):''}${_pdfCell(_esc(k.target||''),{bg:zebra})}${_hasPlanT?(()=>{const t=_kNum(k.planTarget),a=_kNum(k.target);return _pdfCell(t&&a!=null?(Math.round(a/t*1000)/10)+'%':'—',{center:true,bold:true,bg:zebra});})():''}${`<td style="padding:5px 8px;border:1px solid ${_PDF_BORDER_DARK};text-align:center;background:${zebra}">${res}</td>`}</tr>`;}).join('')}
       </table>
     </div>` : '';
 

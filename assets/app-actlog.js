@@ -25,12 +25,13 @@
     a = String(a || '');
     if (a === 'เพิ่ม') return 'add';
     if (a === 'แก้ไข') return 'edit';
-    if (a === 'รายงานผล') return 'report';
+    if (a === 'รายงานผล' || a === 'ตรวจรายงาน') return 'report';
     if (a.startsWith('ลบ')) return 'del';
     return 'edit';
   }
   function verbOf(l) {
     const k = kindOf(l.action);
+    if (l.action === 'ตรวจรายงาน') return 'ตรวจรายงาน';
     if (k === 'del' && l.action !== 'ลบ') return l.action; // เช่น "ลบรายงานผล ไตรมาส 2"
     return KINDS[k].verb;
   }

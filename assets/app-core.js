@@ -458,7 +458,7 @@ function resetToDefault() {
 
 // ── รวมข้อมูล "ผลการดำเนินงาน" (Sheet: ReportResult) เข้ากับโครงการ (Sheet: Project70) ──
 // ตั้งค่า default ให้โครงการที่ยังไม่เคยมีการรายงานผล (ไม่มีแถวใน ReportResult) เพื่อไม่ให้ค่า undefined
-const REPORT_DEFAULTS = { status:'pending', quarter:'all', spent:0, po:0, result:'', problems:'', solutions:'', kpiResults:[], quarterActivities:[], images:[], lastEditedBy:'', lastEditedByPosition:'', lastEditedAt:'' };
+const REPORT_DEFAULTS = { status:'pending', quarter:'all', spent:0, po:0, progress:0, reviewStatus:'', reviewNote:'', reviewedBy:'', reviewedAt:'', result:'', problems:'', solutions:'', kpiResults:[], quarterActivities:[], images:[], lastEditedBy:'', lastEditedByPosition:'', lastEditedAt:'' };
 
 // แก้ไข (สำคัญ): เดิม 1 โครงการมีได้แค่ 1 แถวผลการดำเนินงาน (แถวล่าสุดเขียนทับของเก่าเสมอ)
 // ทำให้ดูผลย้อนหลังแยกรายไตรมาสไม่ได้ — ตอนนี้ ReportResult อาจมีได้สูงสุด 4 แถวต่อโครงการ
@@ -1355,7 +1355,9 @@ function saveProject(){
     authorizer:      gv('fAuthorizer'),
     authorizerPos:   gv('fAuthorizerPos'),
     activities:      activitiesData,
-    budgetSource:    '',
+    budgetSource:    (typeof dlfGetBudgetSource==='function') ? dlfGetBudgetSource() : '',
+    // เป้าหมายตัวชี้วัด (ค่าเป้าหมาย+หน่วย) และแผนการใช้จ่ายรายไตรมาส — ดู app-planperf.js
+    planExtra:       (typeof dlfCollectPlanExtra==='function') ? dlfCollectPlanExtra() : undefined,
     budget:          gn('fBudget'),
     budgetDetail:    budgetDetailData,
     evalRows:        evalData,
@@ -1368,7 +1370,6 @@ function saveProject(){
     evaluator:       evalData.map(r=>r.tool),
     risk:            '',
     expectedBenefit: gvRich('fExpectedBenefit'),
-    progress:        0,
     kpi:             kpiFromEval,
     committees:      getComCheckboxes(),
     docFiles:        docFiles.map(f=>({name:f.name,size:f.size,type:f.type,url:f.url||'',fileId:f.fileId||''}))
@@ -2030,6 +2031,7 @@ function saveResultReport(){
     problems:  document.getElementById('fProblems').value.replace(/\s+$/,''),
     solutions: document.getElementById('fSolutions').value.replace(/\s+$/,''),
     images:    cleanImages,
+    progress:  (typeof dlfGetReportProgress==='function') ? dlfGetReportProgress() : 0,
     kpiResults: reportTempKpiResults.map(_reportKpiObj).filter(k=>k.indicator.trim()!=='' || k.target.trim()!=='' || k.achieved!==''),
     quarterActivities: reportTempActivities.filter(a=>(a.name||'').trim()!=='' || (a.budget||0)!==0 || (a.spent||0)!==0),
     lastEditedBy:         (typeof _currentUser!=='undefined' && _currentUser) ? (_currentUser.name||'ผู้ใช้') : 'ผู้ใช้',
@@ -2043,6 +2045,10 @@ function saveResultReport(){
   projects[i].reportsByQuarter[qVal] = {
     id: projects[i].id, name: projects[i].name, strategy: projects[i].strategy, ...patch
   };
+  // เตรียมข้อมูลที่จะส่งขึ้น Sheet ของ "ไตรมาสนี้" ก่อน แล้วค่อยคำนวณยอดสะสมทุกไตรมาสใหม่ให้หน้าจอ
+  // (เดิม p.spent กลายเป็นยอดของไตรมาสที่เพิ่งบันทึกอย่างเดียว จนกว่าจะ sync ใหม่)
+  const _rptPayload = buildReportPayload(projects[i]);
+  if(typeof _applyReportsToProject==='function') _applyReportsToProject(projects[i], projects[i].reportsByQuarter);
 
   if(typeof actlogRecord === 'function'){
     const _changed = typeof _diffProject==='function' ? _diffProject(_oldSnap, projects[i]) : [];
@@ -2059,7 +2065,7 @@ function saveResultReport(){
 
   if(GAS_ENABLED){
     showToast('⏳ กำลังบันทึกขึ้น Google Sheet...', 2000);
-    gasPost('saveReport',{data: buildReportPayload(projects[i])})
+    gasPost('saveReport',{data: _rptPayload})
       .then(res=>{
         if(res && res.success){ showToast(`✅ บันทึกรายงานผลสำเร็จ${imgLabel}`, 2800); }
         else { showToast(`⚠️ Sync ขึ้น Sheet ไม่สำเร็จ: ${(res&&res.message)||'ไม่ทราบสาเหตุ'} — ข้อมูลบันทึกในเครื่องแล้ว`, 4500); }
@@ -3046,7 +3052,46 @@ function gasJsonp(params){
 
 // ── gasPost: ส่งข้อมูลขึ้น GAS ด้วย JSONP (รับ response จริง ไม่มีปัญหา CORS) ──────
 // เข้ารหัส payload เป็น base64 เพื่อหลีกเลี่ยง URL limit และอักขระพิเศษ
+
+// ── 🔐 แนบ Firebase ID Token ไปกับทุกคำสั่ง "เขียน" เพื่อให้ Apps Script ตรวจสอบผู้ใช้ได้จริง ──
+// รอ Firebase คืนสถานะล็อกอินครั้งแรกก่อน (ตอนเพิ่งเปิดหน้า currentUser อาจยังเป็น null ชั่วครู่)
+let _dlfAuthReady = null;
+function _dlfIdToken(){
+  try {
+    if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) return Promise.resolve('');
+    const auth = firebase.auth();
+    if (!_dlfAuthReady) {
+      _dlfAuthReady = new Promise(res => {
+        let done = false;
+        const fin = () => { if (!done) { done = true; res(); } };
+        try { const un = auth.onAuthStateChanged(() => { fin(); try { un(); } catch(e){} }); } catch(e) { fin(); }
+        setTimeout(fin, 6000);
+      });
+    }
+    return _dlfAuthReady.then(() => auth.currentUser ? auth.currentUser.getIdToken() : '').catch(() => '');
+  } catch(e) { return Promise.resolve(''); }
+}
+// ถ้าเซิร์ฟเวอร์ตอบว่าไม่ผ่านการยืนยันตัวตน → แจ้งผู้ใช้ (ครั้งเดียวต่อช่วงสั้นๆ) แล้ว reject
+let _dlfAuthWarnAt = 0;
+function _dlfCheckAuthRes(res){
+  if (res && res.success === false && (res.code === 'AUTH' || res.code === 'FORBIDDEN')) {
+    if (Date.now() - _dlfAuthWarnAt > 8000) {
+      _dlfAuthWarnAt = Date.now();
+      const msg = res.code === 'AUTH'
+        ? '❌ บันทึกขึ้น Sheet ไม่สำเร็จ · เซสชันหมดอายุ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่'
+        : '🔒 ไม่อนุญาต · ' + (res.message || 'บัญชีนี้ไม่มีสิทธิ์แก้ไขข้อมูล');
+      // หน่วงเล็กน้อยให้ขึ้นทับข้อความ "Sync ไม่สำเร็จ" ทั่วไปของจุดที่เรียกใช้
+      setTimeout(() => { if (typeof showToast === 'function') showToast(msg, 5000); }, 80);
+    }
+    const err = new Error(res.message || 'AUTH'); err.code = res.code; throw err;
+  }
+  return res;
+}
+
 function gasPost(action, payload){
+  return _dlfIdToken().then(idToken => _gasPostSigned(action, payload, idToken));
+}
+function _gasPostSigned(action, payload, idToken){
   // แก้ไข (สำคัญ): เดิมมีการเดาขนาดข้อมูลจาก bodyData.length (นับจำนวน "ตัวอักษร")
   // แล้วเลือกใช้ JSONP แบบ GET หากดูว่า "เล็ก" (<4000 ตัวอักษร) — แต่ข้อความภาษาไทยเมื่อผ่าน
   // encodeURIComponent + base64 (สำหรับยัดใส่ query string) จะพองขึ้นราว 4 เท่า
@@ -3057,7 +3102,7 @@ function gasPost(action, payload){
   //
   // ทางแก้: ตัดเส้นทาง JSONP (GET) ที่เปราะบางออกสำหรับการ "เขียน" ข้อมูลทั้งหมด
   // ใช้ fetch POST (text/plain, ไม่มี preflight) + hidden-form fallback ที่ sync กลับมาเช็คจริงเสมอ
-  const bodyData = JSON.stringify({ action, ...payload });
+  const bodyData = JSON.stringify({ action, ...payload, idToken });
 
   return new Promise((resolve, reject) => {
     {
@@ -3074,6 +3119,7 @@ function gasPost(action, payload){
       })
         .then(r => { if(!r.ok) throw new Error('GAS HTTP ' + r.status); return r.json(); })
         .then(res => {
+          try { _dlfCheckAuthRes(res); } catch(authErr) { reject(authErr); return; }
           if (typeof _syncFromSheetSilent === 'function') _syncFromSheetSilent();
           resolve(res && typeof res === 'object' ? res : { success: true });
         })
@@ -3115,14 +3161,14 @@ function gasPost(action, payload){
 // ใช้สำหรับงานที่ต้องรอผลลัพธ์ทันที เช่น อัปโหลด/ลบไฟล์เอกสารแนบบน Drive
 // Content-Type: text/plain เพื่อหลีกเลี่ยง CORS preflight (OPTIONS) ที่ GAS ไม่รองรับ
 function gasFetchPost(action, data){
-  return fetch(_gasUrl, {
+  return _dlfIdToken().then(idToken => fetch(_gasUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, data })
-  }).then(res => {
+    body: JSON.stringify({ action, data, idToken })
+  })).then(res => {
     if(!res.ok) throw new Error('GAS HTTP ' + res.status);
     return res.json();
-  });
+  }).then(_dlfCheckAuthRes);
 }
 
 // ── fileToBase64: แปลงไฟล์เป็น base64 (ไม่รวม data: prefix) ──────
@@ -3431,15 +3477,20 @@ function syncAllToSheet(){
 
 // สร้าง payload สำหรับ Sheet "ผลการดำเนินงาน" (ReportResult) จากข้อมูลโครงการที่รวมอยู่ใน memory
 function buildReportPayload(p){
+  // แก้ไข (บั๊ก): p.spent/p.po ของโครงการคือ "ยอดสะสมทุกไตรมาส" (ดู _applyReportsToProject)
+  // ถ้าส่งค่านี้ขึ้นไปเป็นแถวของไตรมาสล่าสุด (เช่น ตอน Sync ทั้งหมด) ยอดจะถูกนับซ้ำ —
+  // จึงใช้ข้อมูลของไตรมาสนั้นจาก reportsByQuarter ก่อนเสมอ ถ้ามี
+  const q = String(p.quarter||'all');
+  const r = (p.reportsByQuarter && p.reportsByQuarter[q]) ? { ...p, ...p.reportsByQuarter[q] } : p;
   return {
     id: p.id, name: p.name, strategy: p.strategy,
-    status: p.status||'pending', quarter: p.quarter||'all',
-    spent: p.spent||0, po: p.po||0,
-    result: p.result||'', problems: p.problems||'', solutions: p.solutions||'',
-    kpiResults: p.kpiResults||[],
-    quarterActivities: p.quarterActivities||[],
-    images: p.images||[],
-    lastEditedBy: p.lastEditedBy||'', lastEditedByPosition: p.lastEditedByPosition||'', lastEditedAt: p.lastEditedAt||''
+    status: r.status||'pending', quarter: q,
+    spent: r.spent||0, po: r.po||0, progress: r.progress||0,
+    result: r.result||'', problems: r.problems||'', solutions: r.solutions||'',
+    kpiResults: r.kpiResults||[],
+    quarterActivities: r.quarterActivities||[],
+    images: r.images||[],
+    lastEditedBy: r.lastEditedBy||'', lastEditedByPosition: r.lastEditedByPosition||'', lastEditedAt: r.lastEditedAt||''
   };
 }
 
@@ -3483,7 +3534,8 @@ const FIELD_LABELS = {
   expectedBenefit:'ผลที่คาดว่าจะได้รับ', proposer:'ผู้เสนอ', approver:'ผู้เห็นชอบ',
   authorizer:'ผู้อนุมัติ', kpi:'KPI', activities:'แผนกิจกรรม (Gantt)',
   budgetDetail:'รายละเอียดงบ', images:'รูปภาพ', docFiles:'เอกสารแนบ',
-  committees:'อนุกรรมการ', evalRows:'การประเมิน', quarter:'ไตรมาส'
+  committees:'อนุกรรมการ', evalRows:'การประเมิน', quarter:'ไตรมาส',
+  budgetSource:'แหล่งงบประมาณ', planExtra:'ค่าเป้าหมาย KPI / แผนการใช้จ่ายรายไตรมาส'
 };
 
 // ── อ่าน / เขียน log ────────────────────────────────────────
@@ -3498,7 +3550,7 @@ function _writeActlog(logs) {
 // ── diff สองโครงการ หา field ที่เปลี่ยน ────────────────────
 function _diffProject(oldP, newP) {
   const changed = [];
-  const SKIP = ['id','images','docFiles','activities','budgetDetail','evalRows','committees'];
+  const SKIP = ['id','images','docFiles','activities','budgetDetail','evalRows','committees','planExtra'];
   for (const key of Object.keys(FIELD_LABELS)) {
     if (SKIP.includes(key)) continue;
     const ov = Array.isArray(oldP[key]) ? oldP[key].join(', ') : String(oldP[key] ?? '');
@@ -3506,7 +3558,7 @@ function _diffProject(oldP, newP) {
     if (ov !== nv) changed.push({ key, label: FIELD_LABELS[key], from: ov, to: nv });
   }
   // ตรวจ array fields แบบ shallow (เปรียบเทียบ JSON)
-  const ARR = ['images','activities','budgetDetail','evalRows'];
+  const ARR = ['images','activities','budgetDetail','evalRows','planExtra'];
   for (const key of ARR) {
     if (JSON.stringify(oldP[key]) !== JSON.stringify(newP[key]))
       changed.push({ key, label: FIELD_LABELS[key], from: '(เดิม)', to: '(ใหม่)' });
