@@ -29,14 +29,14 @@ const _PDF_HEAD_BG = '#f1eefb';     // พื้นหลังหัวตา�
 const _PDF_ZEBRA_BG = '#faf9fe';    // พื้นหลังแถวคู่ (zebra stripe) ช่วยให้อ่านตารางแถวยาวๆง่ายขึ้น
 
 function _pdfCell(txt, opts){
-  const {bold,center,right,bg,color,small,colspan,rowspan,borderR,borderB,borderT,borderL,noBorder,width,gray} = opts||{};
+  const {bold,center,right,bg,color,small,colspan,rowspan,borderR,borderB,borderT,borderL,noBorder,width,gray,top} = opts||{};
   const bdr = noBorder ? 'border:none' : [
     'border-top:'+(borderT===false?'none':'1px solid '+_PDF_BORDER),
     'border-left:'+(borderL===false?'none':'1px solid '+_PDF_BORDER),
     'border-right:'+(borderR===false?'none':'1px solid '+_PDF_BORDER),
     'border-bottom:'+(borderB===false?'none':'1px solid '+_PDF_BORDER),
   ].join(';');
-  return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px ${right?'4px':'7px'};font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};${right?'white-space:nowrap;':''}vertical-align:middle">${txt||''}</td>`;
+  return `<td ${colspan?'colspan="'+colspan+'"':''} ${rowspan?'rowspan="'+rowspan+'"':''} style="${bdr};padding:5px ${right?'4px':'7px'};font-size:${small?'9.5':'10.5'}px;font-weight:${bold?'700':'400'};text-align:${center?'center':right?'right':'left'};background:${bg||( gray?'#f0f0f0':'transparent')};color:${color||'#161c26'};${width?'width:'+width:''};${right?'white-space:nowrap;':''}vertical-align:${top?'top':'middle'}">${txt||''}</td>`;
 }
 
 // ── ตารางกิจกรรม (ข้อ 4) ใน PDF แบบ Gantt: แถบสีทึบต่อเนื่อง + หัวไตรมาสสี ─────────────────────
@@ -190,7 +190,8 @@ function _buildEvalTable(evalRowsData, proj) {
     const v = (t.tval !== null && t.tval !== undefined && t.tval !== '') ? t.tval : r.tval;
     const u = t.unit || r.unit || '';
     if (v === null || v === undefined || v === '' || !isFinite(Number(v))) return '<span style="color:#9aa3b2">—</span>';
-    return '<b>' + Number(v).toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</b>' + (u ? ' ' + _esc(u) : '');
+    // ตัวเลขอยู่บน หน่วยนับอยู่บรรทัดล่าง
+    return '<div style="font-weight:700;font-size:11.5px;line-height:1.4">' + Number(v).toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</div>' + (u ? '<div style="font-size:9.5px;color:#555;line-height:1.4">' + _esc(u) + '</div>' : '');
   };
   // normalize: รองรับทั้ง string array (kpi เก่า) และ object array (evalRows ใหม่)
   let rows = [];
@@ -206,11 +207,11 @@ function _buildEvalTable(evalRowsData, proj) {
   const dataRows = rows.map((r,i) => {
     const zebra = i % 2 === 1 ? _PDF_ZEBRA_BG : '#fff';
     return `<tr>
-    ${_pdfCell(i+1,{center:true,bg:zebra})}
-    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.kpi)||''))),{bg:zebra})}
-    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.method)||''))),{bg:zebra})}
-    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.tool)||''))),{bg:zebra})}
-    ${_pdfCell(_tgText(i, r),{center:true,bg:zebra})}
+    ${_pdfCell(i+1,{center:true,top:true,bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.kpi)||''))),{top:true,bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.method)||''))),{top:true,bg:zebra})}
+    ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.tool)||''))),{top:true,bg:zebra})}
+    ${_pdfCell(_tgText(i, r),{center:true,top:true,bg:zebra})}
   </tr>`;
   }).join('');
 
