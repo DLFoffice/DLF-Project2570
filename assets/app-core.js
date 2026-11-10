@@ -162,107 +162,119 @@ function formatMoneyText(raw) {
 }
 
 function showToast(msg, dur=2500) {
-  // ── inject styles once ──────────────────────────────────────
-  if (!document.getElementById('_ntfSt')) {
+  // ── popup แจ้งเตือนแบบใหม่: ไอคอนเส้นเคลื่อนไหว (วาดวงกลม + ติ๊กถูกสีเขียว) ──
+  // ใช้กล่องเดียวกันซ้ำ: "กำลังบันทึกข้อมูล" (วงหมุน) → "บันทึกสำเร็จ" (ติ๊กถูก) จะเปลี่ยนในกล่องเดิมอย่างนุ่มนวล
+  if (!document.getElementById('_ntfSt2')) {
     const s = document.createElement('style');
-    s.id = '_ntfSt';
+    s.id = '_ntfSt2';
     s.textContent = `
-      @keyframes _ntfIn  { 0%{opacity:0;transform:translateY(-28px) scale(.9)} 55%{transform:translateY(4px) scale(1.03)} 100%{opacity:1;transform:translateY(0) scale(1)} }
-      @keyframes _ntfOut { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-20px) scale(.92)} }
-      @keyframes _ntfIconPop { 0%{transform:scale(.4);opacity:0} 60%{transform:scale(1.12);opacity:1} 100%{transform:scale(1)} }
-      @keyframes _ntfBar { from{width:100%} to{width:0%} }
-      ._ntf-overlay { position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;pointer-events:none; }
+      @keyframes _ntfIn  { 0%{opacity:0;transform:translateY(14px) scale(.92)} 60%{transform:translateY(-3px) scale(1.02)} 100%{opacity:1;transform:none} }
+      @keyframes _ntfOut { to{opacity:0;transform:translateY(10px) scale(.94)} }
+      @keyframes _ntfFade { from{opacity:0} to{opacity:1} }
+      @keyframes _ntfDraw { to{stroke-dashoffset:0} }
+      @keyframes _ntfSpin { to{transform:rotate(360deg)} }
+      @keyframes _ntfPop  { 0%{transform:scale(.6)} 55%{transform:scale(1.12)} 100%{transform:scale(1)} }
+      @keyframes _ntfRing { 0%{transform:scale(.8);opacity:.55} 100%{transform:scale(1.55);opacity:0} }
+      @keyframes _ntfShake{ 0%,100%{transform:none} 20%{transform:translateX(-5px)} 40%{transform:translateX(5px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
+      @keyframes _ntfBar  { from{transform:scaleX(1)} to{transform:scaleX(0)} }
+      @keyframes _ntfDots { 0%,20%{opacity:.2} 50%{opacity:1} 100%{opacity:.2} }
+      ._ntf-overlay { position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:16px; }
       ._ntf-box {
-        pointer-events:auto;
-        min-width:300px;max-width:400px;
-        background:#fff;
-        border-radius:18px;
-        box-shadow:0 16px 48px rgba(0,0,0,.18),0 4px 12px rgba(0,0,0,.08);
-        overflow:hidden;
-        animation:_ntfIn .42s cubic-bezier(.22,.68,0,1.2) forwards;
-        font-family:'Sarabun',sans-serif;
-        cursor:pointer;
+        pointer-events:auto;position:relative;
+        width:300px;max-width:100%;
+        background:#fff;border-radius:22px;overflow:hidden;
+        box-shadow:0 24px 60px -18px rgba(22,101,52,.35),0 6px 18px rgba(0,0,0,.06);
+        animation:_ntfIn .45s cubic-bezier(.22,.68,0,1.2) both;
+        font-family:'Noto Sans Thai','Sarabun',sans-serif;cursor:pointer;
       }
-      ._ntf-inner { position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:32px 26px 26px; }
-      ._ntf-icon-wrap {
-        width:68px;height:68px;border-radius:50%;
-        display:flex;align-items:center;justify-content:center;
-        font-size:36px;flex-shrink:0;
-        animation:_ntfIconPop .5s cubic-bezier(.34,1.56,.64,1) .05s both;
-      }
-      ._ntf-text { min-width:0; }
-      ._ntf-title { font-size:16px;font-weight:700;color:#1c2333;line-height:1.4; }
-      ._ntf-sub   { font-size:12.5px;color:#6b7280;margin-top:4px;line-height:1.5; }
-      ._ntf-bar   { height:3px;border-radius:0 0 18px 18px; }
-      ._ntf-bar-fill { height:100%;border-radius:0 0 18px 18px;animation:_ntfBar var(--dur,2.5s) linear forwards; }
-      ._ntf-close { position:absolute;top:8px;right:8px;flex-shrink:0;width:28px;height:28px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:16px;transition:background .15s; }
+      ._ntf-inner { display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;padding:30px 24px 24px; }
+      ._ntf-ic { position:relative;width:76px;height:76px; }
+      ._ntf-ic svg { position:relative;width:76px;height:76px;display:block;overflow:visible; }
+      ._ntf-ic::before { content:'';position:absolute;inset:0;border-radius:50%;background:var(--ntf-soft); }
+      ._ntf-ic.done::after { content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--ntf-c);animation:_ntfRing .9s ease-out .45s both; }
+      ._ntf-ic.done svg { animation:_ntfPop .5s cubic-bezier(.34,1.56,.64,1) .5s both; }
+      ._ntf-ic.bad svg { animation:_ntfShake .45s ease .55s both; }
+      ._ntf-ic .c { fill:none;stroke:var(--ntf-c);stroke-width:4;stroke-linecap:round;stroke-dasharray:202;stroke-dashoffset:202;animation:_ntfDraw .55s cubic-bezier(.65,0,.45,1) forwards;transform-origin:center;transform:rotate(-90deg); }
+      ._ntf-ic .m { fill:none;stroke:var(--ntf-c);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:_ntfDraw .4s cubic-bezier(.65,0,.45,1) .45s forwards; }
+      ._ntf-ic .m2 { animation-delay:.6s; }
+      ._ntf-ic.spin svg { animation:_ntfSpin .9s linear infinite; }
+      ._ntf-ic.spin .c { stroke-dasharray:60 202;stroke-dashoffset:0;animation:none; }
+      ._ntf-ic.info .dot { fill:var(--ntf-c);opacity:0;animation:_ntfFade .3s ease .45s forwards; }
+      ._ntf-title { font-size:16px;font-weight:700;color:#14301f;line-height:1.45;animation:_ntfFade .3s ease .15s both; }
+      ._ntf-sub   { font-size:12.5px;color:#5b6b62;margin-top:4px;line-height:1.55;animation:_ntfFade .3s ease .25s both; }
+      ._ntf-dots i { font-style:normal;animation:_ntfDots 1.2s infinite; }
+      ._ntf-dots i:nth-child(2){animation-delay:.2s} ._ntf-dots i:nth-child(3){animation-delay:.4s}
+      ._ntf-bar { position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--ntf-c);opacity:.85;transform-origin:left;animation:_ntfBar var(--dur,2.5s) linear forwards; }
+      ._ntf-close { position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;border:none;background:transparent;cursor:pointer;color:#9ca3af;font-size:15px; }
       ._ntf-close:hover { background:#f3f4f6;color:#374151; }
+      @media (prefers-reduced-motion:reduce){ ._ntf-box,._ntf-ic *,._ntf-ic::after{animation-duration:.01s!important;animation-delay:0s!important} ._ntf-ic.spin svg{animation:none} }
     `;
     document.head.appendChild(s);
   }
 
-  // ── classify message ────────────────────────────────────────
-  // หมายเหตุ: ต้องเช็ก ❌ / ⚠️ / 🔒 ก่อนเสมอ เพราะข้อความแจ้งเตือน/ผิดพลาด
-  // มักมีคำว่า "บันทึก" ปนอยู่ (เช่น "บันทึกในเครื่องแล้ว") ซึ่งจะชนกับเงื่อนไข ✅ ถ้าเช็กสำเร็จก่อน
-  // หมายเหตุ: ทุกประเภทข้อความใช้โทนสีเขียวเหมือนกันหมด (ตามที่ผู้ใช้ต้องการ)
-  // ยังคง emoji ต่างกันตามประเภท เพื่อให้พอแยกแยะเนื้อหาได้ แต่สี icon/bar/border เป็นเขียวเสมอ
-  let icon='ℹ️';
-  const iconBg='#f0fdf4', iconColor='#16a34a', barColor='#22c55e', borderL='#22c55e';
-  const m = msg;
-  if (m.includes('❌')||m.includes('ผิดพลาด')||m.includes('ไม่สำเร็จ')||m.includes('error')) {
-    icon='❌';
-  } else if (m.includes('⚠️')||m.includes('แจ้งเตือน')||m.includes('ระวัง')||m.includes('ผิดปกติ')) {
-    icon='⚠️';
-  } else if (m.includes('🔒')||m.includes('ล็อค')||m.includes('ไม่อนุญาต')) {
-    icon='🔒';
-  } else if (m.includes('🔄')||m.includes('⏳')||m.includes('กำลัง')||m.includes('sync')) {
-    icon='🔄';
-  } else if (m.includes('👋')||m.includes('ออกจากระบบ')) {
-    icon='👋';
-  } else if (m.includes('👁')||m.includes('ผู้เยี่ยมชม')) {
-    icon='👁';
-  } else if (m.includes('✅')||m.includes('สำเร็จ')||m.includes('บันทึก')||m.includes('ยินดีต้อนรับ')||m.includes('โหลด')) {
-    icon='✅';
+  // ── แยกประเภทข้อความ (เช็ก ❌ / ⚠️ / 🔒 ก่อน เพราะข้อความผิดพลาดมักมีคำว่า "บันทึก" ปน) ──
+  const m = String(msg == null ? '' : msg);
+  let kind = 'info';
+  if (m.includes('❌')||m.includes('ผิดพลาด')||m.includes('ไม่สำเร็จ')||m.toLowerCase().includes('error')) kind = 'error';
+  else if (m.includes('⚠️')||m.includes('แจ้งเตือน')||m.includes('ระวัง')||m.includes('ผิดปกติ')||m.includes('🔒')||m.includes('ไม่อนุญาต')) kind = 'warn';
+  else if (m.includes('⏳')||m.includes('กำลัง')) kind = 'busy';
+  else if (m.includes('✅')||m.includes('สำเร็จ')||m.includes('บันทึก')||m.includes('ยินดีต้อนรับ')||m.includes('โหลด')||m.includes('🔄')||m.includes('ลบ')||m.includes('แล้ว')) kind = 'success';
+
+  // สี: สำเร็จ/กำลังทำ/ข้อมูล = เขียว · ผิดพลาด = แดง · เตือน = ส้ม (ไม่ใช้ติ๊กถูกกับข้อความผิดพลาด)
+  const C = { success:['#16a34a','#dcfce7'], busy:['#16a34a','#ecfdf3'], info:['#16a34a','#ecfdf3'], warn:['#d97706','#fef3c7'], error:['#dc2626','#fee2e2'] }[kind];
+  const circle = '<circle class="c" cx="38" cy="38" r="32"/>';
+  const svg = {
+    success: `${circle}<path class="m" d="M24 39.5 L34 49 L53 28"/>`,
+    busy:    circle,
+    info:    `${circle}<path class="m" d="M38 35 V51"/><circle class="dot" cx="38" cy="25.5" r="3.2"/>`,
+    warn:    `${circle}<path class="m" d="M38 22 V42"/><circle class="dot" cx="38" cy="52" r="3.4" style="fill:${C[0]};opacity:0;animation:_ntfFade .3s ease .7s forwards"/>`,
+    error:   `${circle}<path class="m" d="M27 27 L49 49"/><path class="m m2" d="M49 27 L27 49"/>`
+  }[kind];
+  const icCls = kind === 'success' ? 'done' : kind === 'busy' ? 'spin' : kind === 'error' || kind === 'warn' ? 'bad' : 'info';
+
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const cleanText = m.replace(/^[\p{Extended_Pictographic}️‍\s]+/u, '').trim();
+  const lines = cleanText.split(/[·|]|(?<=\S{6,})\s{2,}/);
+  let title = (lines[0] || cleanText).trim();
+  const sub = lines.slice(1).join(' ').trim();
+  // ข้อความ "กำลัง..." แสดงจุดเคลื่อนไหวแทน "..."
+  const titleHtml = kind === 'busy'
+    ? esc(title.replace(/[.…]+$/, '')) + '<span class="_ntf-dots"><i>.</i><i>.</i><i>.</i></span>'
+    : esc(title);
+
+  // ── ใช้กล่องเดิมถ้ายังเปิดอยู่ (เปลี่ยนจาก "กำลังบันทึก" → "สำเร็จ" ในกล่องเดียว) ──
+  let overlay = document.querySelector('._ntf-overlay');
+  if (overlay && overlay._closing) { overlay.remove(); overlay = null; }
+  const reuse = !!overlay;
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = '_ntf-overlay';
+    document.body.appendChild(overlay);
   }
-
-  // strip leading emoji for main text
-  const cleanText = m.replace(/^\p{Emoji}+\s*/u,'').trim();
-  // split first line as title, rest as subtitle
-  const lines = cleanText.split(/[·|·]|(?<=\S{6,})\s{2,}/);
-  const title = lines[0]?.trim() || cleanText;
-  const sub   = lines.slice(1).join(' ').trim();
-
-  // ── build DOM ───────────────────────────────────────────────
-  const overlay = document.createElement('div');
-  overlay.className = '_ntf-overlay';
-
-  const box = document.createElement('div');
-  box.className = '_ntf-box';
-  box.style.borderTop = '4px solid '+borderL;
-  box.innerHTML = `
-    <div class="_ntf-inner">
-      <button class="_ntf-close" title="ปิด">✕</button>
-      <div class="_ntf-icon-wrap" style="background:${iconBg};color:${iconColor}">${icon}</div>
-      <div class="_ntf-text">
-        <div class="_ntf-title">${title}</div>
-        ${sub ? '<div class="_ntf-sub">'+sub+'</div>' : ''}
+  clearTimeout(overlay._t);
+  overlay.innerHTML = `
+    <div class="_ntf-box" role="status" aria-live="polite" style="--ntf-c:${C[0]};--ntf-soft:${C[1]};--dur:${dur/1000}s${reuse ? ';animation:none' : ''}">
+      <button class="_ntf-close" title="ปิด" aria-label="ปิด">✕</button>
+      <div class="_ntf-inner">
+        <div class="_ntf-ic ${icCls}"><svg viewBox="0 0 76 76" aria-hidden="true">${svg}</svg></div>
+        <div class="_ntf-text">
+          <div class="_ntf-title">${titleHtml}</div>
+          ${sub ? '<div class="_ntf-sub">' + esc(sub) + '</div>' : ''}
+        </div>
       </div>
-    </div>
-    <div class="_ntf-bar"><div class="_ntf-bar-fill" style="background:${barColor};--dur:${dur/1000}s"></div></div>
-  `;
+      <div class="_ntf-bar"></div>
+    </div>`;
+  const box = overlay.firstElementChild;
 
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-
-  // ── close logic ─────────────────────────────────────────────
   const close = () => {
-    box.style.animation = '_ntfOut .3s cubic-bezier(.4,0,1,1) forwards';
-    overlay.style.pointerEvents = 'none';
-    setTimeout(() => { if(overlay.parentNode) overlay.remove(); }, 300);
+    if (overlay._closing) return;
+    overlay._closing = true;
+    box.style.animation = '_ntfOut .28s cubic-bezier(.4,0,1,1) forwards';
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 280);
   };
   box.querySelector('._ntf-close').addEventListener('click', e => { e.stopPropagation(); close(); });
   box.addEventListener('click', close);
-  setTimeout(close, dur);
+  overlay._t = setTimeout(close, dur);
 }
 
 // ===== QUARTER FILTER =====
@@ -1428,7 +1440,7 @@ function saveProject(){
     window._pendingSaveTs = Date.now();
     saveToLocal(true); closeModal(); renderTable(); updateDashboard();
     if(GAS_ENABLED){
-      showToast('⏳ กำลังบันทึกขึ้น Google Sheet...', 2000);
+      showToast('⏳ กำลังบันทึกข้อมูล...', 2000);
       gasPost('update',{data})
         .then(res=>{
           if(res && res.success){
@@ -1457,7 +1469,7 @@ function saveProject(){
     window._pendingSaveTs = Date.now();
     saveToLocal(true); closeModal(); renderTable(); updateDashboard();
     if(GAS_ENABLED){
-      showToast('⏳ กำลังบันทึกขึ้น Google Sheet...', 2000);
+      showToast('⏳ กำลังบันทึกข้อมูล...', 2000);
       gasPost('save',{data})
         .then(res=>{
           if(res && res.success){
@@ -2064,7 +2076,7 @@ function saveResultReport(){
   const imgLabel = imgCount>0 ? ` · รูปภาพ ${imgCount} รูป (Cloudinary)` : '';
 
   if(GAS_ENABLED){
-    showToast('⏳ กำลังบันทึกขึ้น Google Sheet...', 2000);
+    showToast('⏳ กำลังบันทึกข้อมูล...', 2000);
     gasPost('saveReport',{data: _rptPayload})
       .then(res=>{
         if(res && res.success){ showToast(`✅ บันทึกรายงานผลสำเร็จ${imgLabel}`, 2800); }
@@ -3078,7 +3090,7 @@ function _dlfCheckAuthRes(res){
     if (Date.now() - _dlfAuthWarnAt > 8000) {
       _dlfAuthWarnAt = Date.now();
       const msg = res.code === 'AUTH'
-        ? '❌ บันทึกขึ้น Sheet ไม่สำเร็จ · เซสชันหมดอายุ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่'
+        ? '❌ บันทึกข้อมูลไม่สำเร็จ · เซสชันหมดอายุ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่'
         : '🔒 ไม่อนุญาต · ' + (res.message || 'บัญชีนี้ไม่มีสิทธิ์แก้ไขข้อมูล');
       // หน่วงเล็กน้อยให้ขึ้นทับข้อความ "Sync ไม่สำเร็จ" ทั่วไปของจุดที่เรียกใช้
       setTimeout(() => { if (typeof showToast === 'function') showToast(msg, 5000); }, 80);

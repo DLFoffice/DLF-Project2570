@@ -13,8 +13,9 @@
   const DUE_DAYS_AFTER_QUARTER = 15; // กำหนดส่งรายงาน = วันสิ้นไตรมาส + 15 วัน
   const BUDGET_SOURCES = ['งบประมาณประจำปีของมูลนิธิฯ', 'เงินรายได้', 'เงินบริจาค', 'งบประมาณแผ่นดิน', 'เงินสนับสนุนจากหน่วยงานภายนอก'];
 
-  const esc = s => (typeof escapeHtml === 'function') ? escapeHtml(s == null ? '' : String(s))
-    : String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // หมายเหตุ: ไม่ใช้ escapeHtml ของระบบ เพราะตัวนั้นแปลง "ขึ้นบรรทัดใหม่" เป็น <br> —
+  // ถ้าใส่ลงใน <textarea> หรือ value="" จะเห็นเป็นตัวอักษร "<br>" (สาเหตุของปัญหาในตารางตัวชี้วัด)
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const num = v => { if (v === null || v === undefined || v === '') return null; const m = String(v).replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; };
   const baht = n => Math.round(Number(n) || 0).toLocaleString('th-TH');
   const pctTxt = n => (n == null || !isFinite(n)) ? '—' : (Math.round(n * 10) / 10).toLocaleString('th-TH') + '%';
@@ -50,7 +51,7 @@
     return rows.map((r, i) => {
       const t = pe.kpiTargets[i] || {};
       const tval = num(t.tval != null && t.tval !== '' ? t.tval : r.tval);
-      return { kpi: String((typeof _unwrapMaybeJsonArrayString === 'function' ? _unwrapMaybeJsonArrayString(r.kpi) : r.kpi) || '').trim(), tval, unit: t.unit || r.unit || '' };
+      return { kpi: String(unbr(typeof _unwrapMaybeJsonArrayString === 'function' ? _unwrapMaybeJsonArrayString(r.kpi) : r.kpi) || '').trim(), tval, unit: t.unit || r.unit || '' };
     }).filter(r => r.kpi);
   }
   function qReport(p, q) { return (p && p.reportsByQuarter && p.reportsByQuarter[String(q)]) || null; }
@@ -66,7 +67,7 @@
       for (let q = 4; q >= 1; q--) {
         const r = qReport(p, q); if (!r || !Array.isArray(r.kpiResults)) continue;
         const rows = r.kpiResults.map(x => (x && typeof x === 'object') ? x : { indicator: String(x || '') });
-        const hit = rows.find(x => String(x.indicator || '').trim() === k.kpi) || rows[i];
+        const hit = rows.find(x => norm(x.indicator) === norm(k.kpi)) || rows[i];
         if (hit && (num(hit.target) != null || hit.achieved)) { actual = num(hit.target); achieved = hit.achieved || ''; atQ = q; break; }
       }
       const pct = (k.tval && actual != null) ? actual / k.tval * 100 : null;
@@ -80,7 +81,7 @@
   }
   function disbursement(p) {
     const pe = planExtra(p);
-    const plan = pe.disburse, hasPlan = plan.some(v => v > 0);
+    const plan = pe.disburse, hasPlan = false; // ไม่ใช้แผนการใช้จ่ายรายไตรมาสแล้ว
     const act = Q.map(q => { const r = qReport(p, q); return r ? (Number(r.spent) || 0) : 0; });
     const cum = a => a.reduce((o, v, i) => (o.push((o[i - 1] || 0) + v), o), []);
     return { hasPlan, plan, act, planCum: cum(plan), actCum: cum(act), planTotal: plan.reduce((a, b) => a + b, 0) };
@@ -116,6 +117,22 @@
       setTimeout(() => { const el = document.getElementById('reportFormPanel'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
     };
   }
+  // ── ข้อความจาก Sheet บางช่องมี "<br>" ติดมาเป็นตัวอักษร (เช่น ตัวชี้วัด/วิธีประเมิน) → แปลงเป็นขึ้นบรรทัดใหม่ ──
+  const BR_RE = /<br\s*\/?>/gi;
+  const unbr = v => typeof v === 'string' ? v.replace(BR_RE, '\n') : v;
+  const norm = v => String(v == null ? '' : v).replace(BR_RE, ' ').replace(/\s+/g, ' ').trim();
+  function cleanBr(p) {
+    if (!p || typeof p !== 'object') return;
+    ['kpi', 'evalMethod', 'evaluator'].forEach(k => {
+      if (Array.isArray(p[k])) p[k] = p[k].map(unbr); else if (typeof p[k] === 'string') p[k] = unbr(p[k]);
+    });
+    if (Array.isArray(p.evalRows)) p.evalRows.forEach(r => { if (r) { r.kpi = unbr(r.kpi); r.method = unbr(r.method); r.tool = unbr(r.tool); } });
+    const fixK = arr => Array.isArray(arr) ? arr.map(k => (k && typeof k === 'object') ? { ...k, indicator: unbr(k.indicator), target: unbr(k.target) } : unbr(k)) : arr;
+    p.kpiResults = fixK(p.kpiResults);
+    Object.values(p.reportsByQuarter || {}).forEach(r => { if (r) r.kpiResults = fixK(r.kpiResults); });
+  }
+  function cleanAllBr() { try { projs().forEach(cleanBr); } catch (e) {} }
+
   window.DLFPerf = { planExtra, planKpis, kpiStatus, disbursement, reportState, qDue, currentQ };
 
   // ──────────────────────────────────────────────────────────────────────
@@ -123,32 +140,8 @@
   // ──────────────────────────────────────────────────────────────────────
   function injectPlanForm() {
     const b = document.getElementById('fBudget');
-    if (!b || document.getElementById('fBudgetSource')) return;
-    const field = b.closest('.form-field');
-    const src = document.createElement('div');
-    src.className = 'form-field';
-    src.innerHTML = `<label class="form-label">แหล่งงบประมาณ</label>
-      <input type="text" id="fBudgetSource" class="form-input" list="ppBudgetSrcList" placeholder="เลือกหรือพิมพ์แหล่งงบประมาณ" autocomplete="off">
-      <datalist id="ppBudgetSrcList">${BUDGET_SOURCES.map(s => `<option value="${esc(s)}">`).join('')}</datalist>`;
-    field.after(src);
-    const disb = document.createElement('div');
-    disb.className = 'form-field full';
-    disb.innerHTML = `<div class="pp-disb">
-      <div class="pp-disb-head">
-        <div><b>แผนการใช้จ่ายงบประมาณรายไตรมาส</b><span>ใช้เทียบกับยอดใช้จ่ายจริงในหน้า "ติดตามและวิเคราะห์"</span></div>
-        <div class="pp-disb-btns">
-          <button type="button" class="btn btn-sm" onclick="DLFPerf.splitEven()">แบ่งเท่ากัน 4 ไตรมาส</button>
-          <button type="button" class="btn btn-sm" onclick="DLFPerf.clearDisb()">ล้าง</button>
-        </div>
-      </div>
-      <div class="pp-disb-grid">
-        ${Q.map(q => `<label class="pp-disb-cell"><span>ไตรมาส ${q}<small>${Q_RANGE[q]}</small></span>
-          <input type="number" min="0" step="any" id="fDisbQ${q}" class="form-input" placeholder="0" oninput="DLFPerf.refreshDisb()"></label>`).join('')}
-      </div>
-      <div class="pp-disb-sum" id="ppDisbSum"></div>
-    </div>`;
-    src.after(disb);
-    b.addEventListener('input', refreshDisb);
+    if (!b) return;
+    // (นำช่อง "แหล่งงบประมาณ" และ "แผนการใช้จ่ายรายไตรมาส" ออกตามที่ผู้ใช้ต้องการ — ค่าเดิมใน Sheet ยังเก็บไว้ ไม่ถูกลบ)
 
     // ตารางตัวชี้วัด: เพิ่มคอลัมน์ "ค่าเป้าหมาย"
     const th = document.querySelector('#evalTable thead tr');
@@ -183,12 +176,14 @@
   }
   Object.assign(window.DLFPerf, { splitEven, refreshDisb, clearDisb: () => setDisbInputs([0, 0, 0, 0]) });
 
-  window.dlfGetBudgetSource = function () { const el = document.getElementById('fBudgetSource'); return el ? el.value.trim() : ''; };
+  let _ppEditId = null; // โครงการที่กำลังแก้ไข — ใช้คงค่าเดิมของฟิลด์ที่ไม่ได้แสดงในฟอร์มแล้ว
+  const _ppEditing = () => _ppEditId == null ? null : projs().find(x => x.id == _ppEditId);
+  window.dlfGetBudgetSource = function () { const p = _ppEditing(); return (p && p.budgetSource) || ''; };
   window.dlfCollectPlanExtra = function () {
     const rows = (typeof evalRows !== 'undefined' ? evalRows : []).filter(r => (r.kpi || '').trim() || (r.method || '').trim() || (r.tool || '').trim());
     return {
       kpiTargets: rows.map(r => ({ tval: num(r.tval), unit: String(r.unit || '').trim() })),
-      disburse: getDisbInputs()
+      disburse: (() => { const p = _ppEditing(); return p ? planExtra(p).disburse : [0, 0, 0, 0]; })()
     };
   };
 
@@ -196,7 +191,7 @@
   window._mkEvalRow = function (kpi = '', method = '', tool = '', tval = '', unit = '') { return { kpi, method, tool, tval, unit }; };
   window.renderEvalTable = function () {
     const tbody = document.getElementById('evalBody'); if (!tbody) return;
-    const un = v => (typeof _unwrapMaybeJsonArrayString === 'function') ? _unwrapMaybeJsonArrayString(v) : v;
+    const un = v => unbr((typeof _unwrapMaybeJsonArrayString === 'function') ? _unwrapMaybeJsonArrayString(v) : v);
     const ta = (i, f, ph, v) => `<td style="border:1px solid #ccd5e4;padding:4px"><textarea oninput="evalRows[${i}].${f}=this.value;syncEvalHidden()" style="width:100%;border:none;outline:none;font-size:12px;font-family:inherit;background:transparent;resize:vertical;min-height:48px" placeholder="${ph}">${esc(un(v) || '')}</textarea></td>`;
     tbody.innerHTML = evalRows.map((row, i) => `<tr>
       <td style="border:1px solid #ccd5e4;padding:4px;text-align:center;font-size:12px">${i + 1}</td>
@@ -217,16 +212,17 @@
     if (typeof oAdd === 'function' && !oAdd._pp) {
       window.openAdd = function () {
         const r = oAdd.apply(this, arguments);
+        _ppEditId = null;
         injectPlanForm();
-        const s = document.getElementById('fBudgetSource'); if (s) s.value = '';
-        setDisbInputs([0, 0, 0, 0]);
         return r;
       };
       window.openAdd._pp = 1;
     }
     if (typeof oEdit === 'function' && !oEdit._pp) {
       window.openEdit = function (id) {
+        cleanBr(projs().find(x => x.id == id));
         const r = oEdit.apply(this, arguments);
+        _ppEditId = id;
         injectPlanForm();
         const p = projs().find(x => x.id == id); if (!p) return r;
         const pe = planExtra(p);
@@ -234,8 +230,6 @@
           evalRows.forEach((row, i) => { const t = pe.kpiTargets[i] || {}; row.tval = t.tval == null ? (row.tval || '') : t.tval; row.unit = t.unit || row.unit || ''; });
           window.renderEvalTable();
         }
-        const s = document.getElementById('fBudgetSource'); if (s) s.value = p.budgetSource || '';
-        setDisbInputs(pe.disburse);
         return r;
       };
       window.openEdit._pp = 1;
@@ -305,7 +299,7 @@
       const t = num(kk.planTarget);
       return `<tr>
         <td style="text-align:center;color:var(--text3)">${i + 1}</td>
-        <td><input type="text" value="${esc(kk.indicator)}" placeholder="ชื่อตัวชี้วัด" onchange="updateReportKpiRow(${i},'indicator',this.value)"></td>
+        <td><input type="text" value="${esc(norm(kk.indicator))}" placeholder="ชื่อตัวชี้วัด" onchange="updateReportKpiRow(${i},'indicator',this.value)"></td>
         <td class="pp-plan-tgt">${t != null ? `<b>${t.toLocaleString('th-TH')}</b> ${esc(kk.unit)}` : '<span style="color:var(--text3)">ไม่ได้กำหนด</span>'}</td>
         <td><input type="text" inputmode="decimal" value="${esc(kk.target)}" placeholder="${t != null ? 'ตัวเลข เช่น ' + Math.round(t / 2) : 'เช่น 10 ตอน'}" oninput="DLFPerf.kpiInput(${i},this.value)"></td>
         <td style="text-align:center" id="ppKpiPct${i}">${kpiPctHtml(kk)}</td>
@@ -335,13 +329,14 @@
     const o = window.loadReportFormForQuarter;
     if (typeof o !== 'function' || o._pp) return;
     window.loadReportFormForQuarter = function (p, quarter) {
+      cleanBr(p);
       const res = o.apply(this, arguments);
       injectReportForm();
       try {
         const plan = planKpis(p);
         reportTempKpiResults = reportTempKpiResults.map((k, i) => {
           const kk = window._reportKpiObj(k);
-          const pk = plan.find(x => x.kpi === kk.indicator.trim()) || (plan[i] && !kk.indicator ? plan[i] : null);
+          const pk = plan.find(x => norm(x.kpi) === norm(kk.indicator)) || (plan[i] && !kk.indicator ? plan[i] : null);
           if (pk && pk.tval != null) { kk.planTarget = pk.tval; kk.unit = pk.unit; }
           return kk;
         });
@@ -415,14 +410,13 @@
         <div class="pp-kpi-meta">เป้าหมาย ${k.tval != null ? `<b>${k.tval.toLocaleString('th-TH')}</b> ${esc(k.unit)}` : '—'} · ผล ${k.actual != null ? `<b>${k.actual.toLocaleString('th-TH')}</b> ${esc(k.unit)}` : '—'}${k.pct != null ? ` · <b>${pctTxt(k.pct)}</b>` : ''}${k.atQ ? ` <span class="pp-muted">(ถึง Q${k.atQ})</span>` : ''}</div>
       </div>`;
     }).join('') : '<div class="pp-empty">ยังไม่ได้กำหนดตัวชี้วัดในแผนโครงการ</div>';
-    const disbGap = d.hasPlan && lq ? d.actCum[lq - 1] - d.planCum[lq - 1] : null;
     return `<div class="detail-section pp-detail">
-      <div class="detail-section-title">📐 แผนเทียบผลการดำเนินงาน</div>
+      <div class="detail-section-title">📐 ผลการดำเนินงานเทียบเป้าหมาย</div>
       <div class="pp-detail-grid">
         <div class="pp-box">
           <div class="pp-box-h">การใช้จ่ายงบประมาณ (สะสม)</div>
           ${disbChart(d, 140, Math.max(lq, currentQ()))}${legendHtml(d.hasPlan)}
-          <div class="pp-box-f">${d.hasPlan ? (lq ? `ถึงไตรมาส ${lq}: ใช้จริง <b>${baht(d.actCum[lq - 1])}</b> / แผน <b>${baht(d.planCum[lq - 1])}</b> บาท · <b class="${disbGap < 0 ? 'pp-red' : 'pp-green'}">${disbGap < 0 ? 'ต่ำกว่าแผน ' + baht(-disbGap) : 'ตามแผน/สูงกว่า ' + baht(disbGap)}</b>` : 'ยังไม่มีรายงานผล') : 'ยังไม่ได้กำหนดแผนการใช้จ่ายรายไตรมาส — กด "แก้ไข" เพื่อเพิ่มในข้อ 5'}</div>
+          <div class="pp-box-f">${lq ? `ถึงไตรมาส ${lq}: ใช้จ่ายจริงสะสม <b>${baht(d.actCum[lq - 1])}</b> บาท · <b>${pctTxt((Number(p.budget) || 0) ? d.actCum[lq - 1] / Number(p.budget) * 100 : null)}</b> ของงบประมาณ ${baht(p.budget)} บาท` : 'ยังไม่มีรายงานผล'}</div>
         </div>
         <div class="pp-box">
           <div class="pp-box-h">ตัวชี้วัด (KPI) <span class="pp-muted">ความคืบหน้าโครงการ <b>${prog}%</b></span></div>
@@ -436,6 +430,7 @@
     const o = window.openDetail;
     if (typeof o !== 'function' || o._pp) return;
     window.openDetail = function (id) {
+      cleanBr(projs().find(x => x.id == id));
       const r = o.apply(this, arguments);
       try {
         const p = projs().find(x => x.id == id);
@@ -478,7 +473,7 @@
       if (page === 'track') {
         const t = document.getElementById('topbar-title'), s = document.getElementById('topbar-sub');
         if (t) t.textContent = 'ติดตามและวิเคราะห์ผล';
-        if (s) s.textContent = 'การส่งรายงานรายไตรมาส · แผนเทียบผลการใช้จ่ายและตัวชี้วัด ปีงบประมาณ พ.ศ. ' + year();
+        if (s) s.textContent = 'การส่งรายงานรายไตรมาส · การใช้จ่ายงบประมาณและตัวชี้วัดเทียบเป้าหมาย ปีงบประมาณ พ.ศ. ' + year();
         renderPage();
       }
       return r;
@@ -491,7 +486,7 @@
     el.innerHTML = `<div class="pp-page">
       <div class="pp-tabs" role="tablist">
         <button role="tab" class="${T.tab === 'track' ? 'on' : ''}" onclick="DLFPerf.tab('track')">📨 ติดตามการรายงาน</button>
-        <button role="tab" class="${T.tab === 'analyze' ? 'on' : ''}" onclick="DLFPerf.tab('analyze')">📐 วิเคราะห์แผน–ผล</button>
+        <button role="tab" class="${T.tab === 'analyze' ? 'on' : ''}" onclick="DLFPerf.tab('analyze')">📐 วิเคราะห์ผลเทียบเป้าหมาย</button>
       </div>
       <div id="ppBody">${T.tab === 'track' ? trackHtml() : analyzeHtml()}</div>
     </div>`;
@@ -627,8 +622,10 @@
       s.plan += d.planCum[uptoQ - 1]; s.act += d.actCum[uptoQ - 1];
     });
     const cum = a => a.reduce((o, v, i) => (o.push((o[i - 1] || 0) + v), o), []);
-    const D = { hasPlan: agg.plan.some(v => v > 0), plan: agg.plan, act: agg.act, planCum: cum(agg.plan), actCum: cum(agg.act) };
-    const planTo = D.planCum[uptoQ - 1], actTo = D.actCum[uptoQ - 1];
+    const D = { hasPlan: false, plan: agg.plan, act: agg.act, planCum: cum(agg.plan), actCum: cum(agg.act) };
+    const actTo = D.actCum[uptoQ - 1];
+    const progs = all.filter(p => latestQ(p)).map(p => Number((qReport(p, latestQ(p)) || {}).progress) || 0);
+    const progN = progs.length, avgProg = progN ? progs.reduce((a, b) => a + b, 0) / progN : null;
     // KPI
     const ks = [];
     all.forEach(p => kpiStatus(p).forEach(k => { ks.push({ p, k }); const s = byS[String(p.strategy || '')]; if (s && k.tval) { s.kpiT++; if (k.state === 'met') s.kpiMet++; } }));
@@ -639,26 +636,26 @@
     return `
       <div class="pp-stats four">
         <div class="pp-stat hero"><span>เบิกจ่ายจริงสะสม (ถึง Q${uptoQ})</span><b>${baht(actTo)}<small> บาท</small></b><div class="pp-meter"><i style="width:${agg.budget ? Math.min(100, actTo / agg.budget * 100) : 0}%"></i></div><em>${pctTxt(agg.budget ? actTo / agg.budget * 100 : null)} ของงบประมาณรวม ${baht(agg.budget)} บาท</em></div>
-        <div class="pp-stat"><span>เทียบแผนการใช้จ่าย</span><b class="${planTo && actTo < planTo ? 'pp-red' : 'pp-green'}">${planTo ? pctTxt(actTo / planTo * 100) : '—'}</b><em>${planTo ? `แผนสะสม ${baht(planTo)} บาท` : 'ยังไม่มีแผนการใช้จ่าย'}</em></div>
+        <div class="pp-stat"><span>ความคืบหน้าเฉลี่ย</span><b>${avgProg == null ? '—' : pctTxt(avgProg)}</b><em>จาก ${progN} โครงการที่รายงานแล้ว</em></div>
         <div class="pp-stat"><span>KPI บรรลุแล้ว</span><b class="pp-green">${kc('met')}<small>/${withT}</small></b><em>จากตัวชี้วัดที่มีค่าเป้าหมาย</em></div>
         <div class="pp-stat"><span>KPI ต่ำกว่าแผน</span><b class="${kc('behind') ? 'pp-red' : ''}">${kc('behind')}</b><em>ตามแผน ${kc('ontrack')} · ยังไม่รายงาน ${kc('nodata')}</em></div>
       </div>
       <div class="pp-grid2">
-        <div class="card pp-card"><div class="pp-card-head"><b>แผนการใช้จ่าย vs ใช้จ่ายจริง (สะสม ทั้งปี)</b></div>
+        <div class="card pp-card"><div class="pp-card-head"><b>การใช้จ่ายงบประมาณจริง (สะสมรายไตรมาส)</b></div>
           <div class="pp-card-body">${disbChart(D, 200, uptoQ)}${legendHtml(D.hasPlan)}
-          ${noPlan ? `<div class="pp-warnline">มี <b>${noPlan}</b> โครงการที่ยังไม่ได้กำหนดแผนการใช้จ่ายรายไตรมาส — เส้นแผนจึงต่ำกว่าความจริง</div>` : ''}</div></div>
+</div></div>
         <div class="card pp-card"><div class="pp-card-head"><b>แยกตามยุทธศาสตร์ (ถึง Q${uptoQ})</b></div>
-          <div class="pp-table-wrap"><table class="pp-table compact"><thead><tr><th>ยุทธศาสตร์</th><th class="r">งบประมาณ</th><th class="r">แผนสะสม</th><th class="r">ใช้จริงสะสม</th><th class="r">เทียบแผน</th><th class="r">KPI บรรลุ</th></tr></thead>
-          <tbody>${Object.keys(byS).sort().map(k => { const s = byS[k]; const g = s.plan ? s.act / s.plan * 100 : null; return `<tr><td>${esc(sNames[k] || ('ยุทธศาสตร์ ' + k))} <span class="pp-muted">(${s.n})</span></td><td class="r">${baht(s.budget)}</td><td class="r">${s.plan ? baht(s.plan) : '—'}</td><td class="r">${baht(s.act)}</td><td class="r ${g != null && g < 100 ? 'pp-red' : ''}">${pctTxt(g)}</td><td class="r">${s.kpiT ? `${s.kpiMet}/${s.kpiT}` : '—'}</td></tr>`; }).join('')}</tbody></table></div></div>
+          <div class="pp-table-wrap"><table class="pp-table compact"><thead><tr><th>ยุทธศาสตร์</th><th class="r">งบประมาณ</th><th class="r">ใช้จริงสะสม</th><th class="r">% ของงบ</th><th class="r">KPI บรรลุ</th></tr></thead>
+          <tbody>${Object.keys(byS).sort().map(k => { const s = byS[k]; const g = s.budget ? s.act / s.budget * 100 : null; return `<tr><td>${esc(sNames[k] || ('ยุทธศาสตร์ ' + k))} <span class="pp-muted">(${s.n})</span></td><td class="r">${baht(s.budget)}</td><td class="r">${baht(s.act)}</td><td class="r">${pctTxt(g)}</td><td class="r">${s.kpiT ? `${s.kpiMet}/${s.kpiT}` : '—'}</td></tr>`; }).join('')}</tbody></table></div></div>
       </div>
       <div class="pp-grid2">
         <div class="card pp-card"><div class="pp-card-head"><b>ตัวชี้วัดที่ต่ำกว่าแผน</b><span class="pp-muted">เทียบกับความคาดหวัง 25% ต่อไตรมาส</span></div>
           <div class="pp-table-wrap"><table class="pp-table compact"><thead><tr><th>โครงการ / ตัวชี้วัด</th><th class="r">เป้าหมาย</th><th class="r">ผล</th><th class="r">%</th></tr></thead>
           <tbody>${behind.length ? behind.slice(0, 30).map(x => `<tr><td><div class="pp-pname" onclick="openDetail(${x.p.id})">${esc(x.p.name)}</div><div class="pp-sub">${esc(x.k.kpi)}</div></td><td class="r">${x.k.tval != null ? x.k.tval.toLocaleString('th-TH') + ' ' + esc(x.k.unit) : '—'}</td><td class="r">${x.k.actual != null ? x.k.actual.toLocaleString('th-TH') : '—'} <span class="pp-muted">Q${x.k.atQ}</span></td><td class="r pp-red">${pctTxt(x.k.pct)}</td></tr>`).join('') : '<tr><td colspan="4" class="pp-empty">ไม่มีตัวชี้วัดที่ต่ำกว่าแผน 🎉</td></tr>'}</tbody></table></div></div>
-        <div class="card pp-card"><div class="pp-card-head"><b>ข้อมูลแผนที่ยังไม่ครบ</b><span class="pp-muted">ทำให้วิเคราะห์ได้ไม่เต็มที่</span></div>
+        <div class="card pp-card"><div class="pp-card-head"><b>ตัวชี้วัดที่ยังไม่มีค่าเป้าหมาย</b><span class="pp-muted">ทำให้วิเคราะห์ได้ไม่เต็มที่</span></div>
           <div class="pp-table-wrap"><table class="pp-table compact"><thead><tr><th>โครงการ</th><th>ขาด</th><th></th></tr></thead>
           <tbody>${(() => {
-            const miss = all.map(p => ({ p, m: [!disbursement(p).hasPlan && 'แผนการใช้จ่ายรายไตรมาส', noTarget.includes(p) && 'ค่าเป้าหมาย KPI', !planKpis(p).length && 'ตัวชี้วัด', !p.budgetSource && 'แหล่งงบประมาณ'].filter(Boolean) })).filter(x => x.m.length);
+            const miss = all.map(p => ({ p, m: [noTarget.includes(p) && 'ค่าเป้าหมาย KPI', !planKpis(p).length && 'ตัวชี้วัด'].filter(Boolean) })).filter(x => x.m.length);
             return miss.length ? miss.slice(0, 40).map(x => `<tr><td><div class="pp-pname" onclick="openDetail(${x.p.id})">${esc(x.p.name)}</div></td><td class="pp-sub">${x.m.join(' · ')}</td><td class="pp-act">${typeof _isEditable === 'function' && _isEditable() ? `<button class="btn btn-sm" onclick="openEdit(${x.p.id})">เติมข้อมูล</button>` : ''}</td></tr>`).join('') + (miss.length > 40 ? `<tr><td colspan="3" class="pp-empty">และอีก ${miss.length - 40} โครงการ</td></tr>` : '')
               : '<tr><td colspan="3" class="pp-empty">ข้อมูลแผนครบทุกโครงการ</td></tr>';
           })()}</tbody></table></div></div>
@@ -679,6 +676,7 @@
     const o = window.updateDashboard;
     if (typeof o !== 'function' || o._ppw) return;
     window.updateDashboard = function () {
+      cleanAllBr();
       const r = o.apply(this, arguments);
       const el = document.getElementById('page-track');
       if (el && el.style.display === 'block' && !el.contains(document.activeElement)) renderPage();

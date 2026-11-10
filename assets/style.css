@@ -3366,3 +3366,4 @@ html, body { overflow-x: clip; }
 .pp-pct.ok{background:var(--accent-light);color:var(--accent)}
 .pp-dlg h3 small{display:block;margin-top:2px;font-size:12.5px!important;font-weight:500!important;color:var(--text2)!important}
 @media (max-width:560px){.pp-stats.four{grid-template-columns:1fr}}
+.pp-kpi-name{white-space:pre-line}
