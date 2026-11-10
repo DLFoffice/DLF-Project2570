@@ -178,13 +178,26 @@ function _unwrapMaybeJsonArrayString(v) {
   return t;
 }
 
-function _buildEvalTable(evalRowsData) {
+function _buildEvalTable(evalRowsData, proj) {
+  // ค่าเป้าหมาย (ตัวเลข + หน่วย) จากแผนโครงการ ข้อ 6 — เก็บใน planExtra.kpiTargets เรียงตามลำดับตัวชี้วัด
+  const _tg = (() => {
+    let x = proj && proj.planExtra;
+    if (typeof x === 'string') { try { x = JSON.parse(x); } catch(e) { x = null; } }
+    return (x && Array.isArray(x.kpiTargets)) ? x.kpiTargets : [];
+  })();
+  const _tgText = (i, r) => {
+    const t = _tg[i] || {};
+    const v = (t.tval !== null && t.tval !== undefined && t.tval !== '') ? t.tval : r.tval;
+    const u = t.unit || r.unit || '';
+    if (v === null || v === undefined || v === '' || !isFinite(Number(v))) return '<span style="color:#9aa3b2">—</span>';
+    return '<b>' + Number(v).toLocaleString('th-TH', { maximumFractionDigits: 2 }) + '</b>' + (u ? ' ' + _esc(u) : '');
+  };
   // normalize: รองรับทั้ง string array (kpi เก่า) และ object array (evalRows ใหม่)
   let rows = [];
   if (Array.isArray(evalRowsData) && evalRowsData.length) {
     rows = evalRowsData.map(r => {
       if (typeof r === 'string') return { kpi: r, method: '', tool: '' };
-      if (typeof r === 'object' && r !== null) return { kpi: r.kpi||'', method: r.method||'', tool: r.tool||'' };
+      if (typeof r === 'object' && r !== null) return { kpi: r.kpi||'', method: r.method||'', tool: r.tool||'', tval: r.tval, unit: r.unit||'' };
       return { kpi: '', method: '', tool: '' };
     });
   } else {
@@ -197,6 +210,7 @@ function _buildEvalTable(evalRowsData) {
     ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.kpi)||''))),{bg:zebra})}
     ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.method)||''))),{bg:zebra})}
     ${_pdfCell(_rich((String(_unwrapMaybeJsonArrayString(r.tool)||''))),{bg:zebra})}
+    ${_pdfCell(_tgText(i, r),{center:true,bg:zebra})}
   </tr>`;
   }).join('');
 
@@ -204,8 +218,9 @@ function _buildEvalTable(evalRowsData) {
     <tr class="pdf-headerRow">
       ${_pdfCell('ที่',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'28px'})}
       ${_pdfCell('ตัวชี้วัดความสำเร็จ',{bold:true,center:true,bg:_PDF_HEAD_BG})}
-      ${_pdfCell('วิธีการประเมิน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'160px'})}
-      ${_pdfCell('เครื่องมือที่ใช้',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'160px'})}
+      ${_pdfCell('วิธีการประเมิน',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'150px'})}
+      ${_pdfCell('เครื่องมือที่ใช้',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'150px'})}
+      ${_pdfCell('ค่าเป้าหมาย',{bold:true,center:true,bg:_PDF_HEAD_BG,width:'90px'})}
     </tr>
     ${dataRows}
   </table>`;
@@ -361,7 +376,7 @@ function _buildFormHTML(p, logoSrc, opts) {
   ${_buildBudgetTable(p.budgetDetail, p.budget||0)}
 
   ${_sectionHeader(6,'การวัดและประเมินผล','#5A4CB0')}
-  ${_buildEvalTable(evalData)}
+  ${_buildEvalTable(evalData, p)}
   ${p.risk?`<div style="font-size:10.5px;margin-top:6px"><strong>ความเสี่ยงและการจัดการ :</strong> ${_rich((p.risk))}</div>`:''}
 
   <div class="pdf-noBreak">
