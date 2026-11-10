@@ -22,7 +22,9 @@ function _arNum(v){ const n = Number(v); return isFinite(n) ? n : 0; }
 function _arFmt(n){ return _arNum(n).toLocaleString('th-TH'); }
 function _arPct(part, whole){ return whole > 0 ? (part / whole * 100) : null; }
 function _arPctText(v){ return v === null ? '–' : v.toLocaleString('th-TH',{minimumFractionDigits:1, maximumFractionDigits:1}) + '%'; }
-function _arKey(s){ return String(s||'').trim().replace(/\s+/g,' ').toLowerCase(); }
+function _arKey(s){ return String(s||'').replace(/<br\s*\/?>/gi,' ').trim().replace(/\s+/g,' ').toLowerCase(); }
+function _arNumOf(v){ const m = String(v==null?'':v).replace(/,/g,'').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; }
+function _arNumTxt(n){ return n==null ? '' : Number(n).toLocaleString('th-TH', { maximumFractionDigits: 2 }); }
 function _arQLabel(q){
   return (typeof Q_LABEL !== 'undefined' && Q_LABEL && Q_LABEL[q]) ? Q_LABEL[q] : ('ไตรมาส ' + q);
 }
@@ -31,7 +33,7 @@ function _arGetReport(p, q){
   return (p && p.reportsByQuarter) ? (p.reportsByQuarter[String(q)] || null) : null;
 }
 function _arKpiObj(k){
-  if (k && typeof k === 'object') return { indicator:k.indicator||'', target:k.target||'', achieved:k.achieved||'' };
+  if (k && typeof k === 'object') return { indicator:k.indicator||'', target:k.target||'', achieved:k.achieved||'', planTarget:k.planTarget, unit:k.unit||'' };
   return { indicator:k||'', target:'', achieved:'' };
 }
 
@@ -94,16 +96,27 @@ function _arBuildData(p){
   const addKpi = (name) => {
     const k = _arKey(name);
     if (!k) return null;
-    if (!kpiMap.has(k)) { kpiMap.set(k, { indicator: String(name).trim(), q: {1:null,2:null,3:null,4:null} }); kpiOrder.push(k); }
+    if (!kpiMap.has(k)) { kpiMap.set(k, { indicator: String(name).replace(/<br\s*\/?>/gi,' ').replace(/\s+/g,' ').trim(), q: {1:null,2:null,3:null,4:null} }); kpiOrder.push(k); }
     return kpiMap.get(k);
   };
   const planKpis = (typeof _getProjectPlanKpis === 'function') ? _getProjectPlanKpis(p) : [];
   planKpis.forEach(k => addKpi(k));
+  // ค่าเป้าหมาย + หน่วย ของแต่ละตัวชี้วัดในแผน (ถ้ามีโมดูล planperf)
+  if (window.DLFPerf && typeof DLFPerf.planKpis === 'function') {
+    DLFPerf.planKpis(p).forEach(pk => {
+      const row = kpiMap.get(_arKey(pk.kpi)) || addKpi(pk.kpi);
+      if (row && pk.tval != null) { row.tval = pk.tval; row.unit = pk.unit || ''; }
+    });
+  }
   quarters.forEach(x => {
     const ks = (x.r && Array.isArray(x.r.kpiResults)) ? x.r.kpiResults.map(_arKpiObj) : [];
     ks.forEach(k => {
       const row = addKpi(k.indicator);
-      if (row) row.q[x.q] = { target: k.target, achieved: k.achieved };
+      if (row) {
+        row.q[x.q] = { target: k.target, achieved: k.achieved };
+        // ค่าเป้าหมายที่ติดมากับรายงาน (กรณีชื่อตัวชี้วัดในแผนถูกแก้ภายหลัง)
+        if (row.tval == null && _arNumOf(k.planTarget) != null) { row.tval = _arNumOf(k.planTarget); row.unit = k.unit || ''; }
+      }
     });
   });
   const kpis = kpiOrder.map(k => {
@@ -114,9 +127,22 @@ function _arBuildData(p){
       const v = row.q[_AR_QUARTERS[i]];
       if (v && (v.achieved === 'yes' || v.achieved === 'no')) { final = { ...v, q:_AR_QUARTERS[i] }; break; }
     }
-    return { ...row, final };
+    // ── เทียบกับค่าเป้าหมายทั้งปี (จากแผนโครงการ ข้อ 6) ──
+    // ผลแต่ละไตรมาสคือ "ค่าสะสมถึงไตรมาสนั้น" → ผลล่าสุด = ไตรมาสล่าสุดที่กรอกตัวเลขไว้
+    let latest = null;
+    for (let i = _AR_QUARTERS.length - 1; i >= 0; i--) {
+      const v = row.q[_AR_QUARTERS[i]];
+      if (v && _arNumOf(v.target) != null) { latest = { value: _arNumOf(v.target), q: _AR_QUARTERS[i] }; break; }
+    }
+    const tval = row.tval;
+    const pct = (tval && latest) ? latest.value / tval * 100 : null;
+    let state = null;
+    if (final && final.achieved === 'yes') state = 'met';
+    else if (pct != null) state = pct >= 100 ? 'met' : (pct >= Number(latest.q) * 25 - 1e-9 ? 'ontrack' : 'behind');
+    else if (final && final.achieved === 'no') state = 'behind';
+    return { ...row, final, latest, pct, state };
   });
-  const kpiAchieved = kpis.filter(k => k.final && k.final.achieved === 'yes').length;
+  const kpiAchieved = kpis.filter(k => k.state === 'met').length; // บรรลุ = ประเมินว่าบรรลุ หรือผลถึง 100% ของค่าเป้าหมาย
 
   return { budget, quarters, totalSpent, remaining: budget - totalSpent, pctTotal: _arPct(totalSpent, budget),
            reportedCount, latest, activities, kpis, kpiAchieved };
@@ -164,8 +190,24 @@ function _arKpiCellWeb(v, reported){
   if (!v) return '<span class="ar-muted">–</span>';
   const res = v.achieved === 'yes' ? '<span class="ar-yes">✅ บรรลุ</span>'
             : v.achieved === 'no'  ? '<span class="ar-no">❌ ไม่บรรลุ</span>'
-            : '<span class="ar-muted">ยังไม่ประเมิน</span>';
+            : (v.target ? '' : '<span class="ar-muted">ยังไม่ประเมิน</span>');
   return `${v.target ? `<div class="ar-kpi-target">${_arEsc(v.target)}</div>` : ''}<div>${res}</div>`;
+}
+const _AR_KSTATE = { met:['บรรลุเป้าหมาย','met'], ontrack:['ตามแผน','ok'], behind:['ต่ำกว่าแผน','bad'] };
+function _arKpiPctWeb(v, tval){
+  const a = v ? _arNumOf(v.target) : null;
+  if (!tval || a == null) return '';
+  const pc = a / tval * 100;
+  return `<div class="ar-kpi-pct">${_arPctText(pc)} ของเป้า</div>`;
+}
+function _arKpiLatestWeb(k){
+  if (k.tval && k.latest) {
+    const [lbl, cls] = _AR_KSTATE[k.state] || ['', ''];
+    return `<div class="ar-kpi-latest"><b>${_arNumTxt(k.latest.value)}</b> / ${_arNumTxt(k.tval)} ${_arEsc(k.unit||'')}</div>
+      <div class="ar-kpi-meter"><i class="${cls}" style="width:${Math.min(100, k.pct)}%"></i></div>
+      <div class="ar-kpi-foot"><span class="ar-kchip ${cls}">${lbl}</span> <b>${_arPctText(k.pct)}</b> <span class="ar-muted">(ถึง Q${k.latest.q})</span></div>`;
+  }
+  return k.final ? (k.final.achieved==='yes'?'<span class="ar-yes">✅ บรรลุ</span>':'<span class="ar-no">❌ ไม่บรรลุ</span>')+`<div class="ar-muted">(ไตรมาส ${k.final.q})</div>` : '<span class="ar-muted">ยังไม่ประเมิน</span>';
 }
 function _arBar(pct){
   const w = pct === null ? 0 : Math.max(0, Math.min(100, pct));
@@ -271,17 +313,19 @@ function openAnnualSummary(projectId){
       <div class="ar-section-title">${d.activities.length?'3':'2'}. ตัวชี้วัดโครงการ — ผลรายไตรมาส</div>
       ${d.kpis.length ? `<div class="mini-table-wrap"><table class="mini-table ar-table">
         <thead><tr>
-          <th style="width:34px">ที่</th><th>ตัวชี้วัด</th>
+          <th style="width:34px">ที่</th><th>ตัวชี้วัด</th><th class="ar-th-target">เป้าหมายทั้งปี</th>
           ${_AR_QUARTERS.map(q=>`<th>ไตรมาส ${q}</th>`).join('')}
-          <th>ผลล่าสุด</th>
+          <th style="min-width:150px">ผลล่าสุด เทียบเป้าหมาย</th>
         </tr></thead>
         <tbody>${d.kpis.map((k,i)=>`<tr>
           <td style="text-align:center;color:var(--text3)">${i+1}</td>
           <td><strong>${_arEsc(k.indicator)}</strong></td>
-          ${d.quarters.map(x=>`<td style="font-size:11.5px">${_arKpiCellWeb(k.q[x.q], x.reported)}</td>`).join('')}
-          <td style="font-size:11.5px">${k.final ? (k.final.achieved==='yes'?'<span class="ar-yes">✅ บรรลุ</span>':'<span class="ar-no">❌ ไม่บรรลุ</span>')+`<div class="ar-muted">(ไตรมาส ${k.final.q})</div>` : '<span class="ar-muted">ยังไม่ประเมิน</span>'}</td>
+          <td class="ar-td-target">${k.tval!=null ? `<b>${_arNumTxt(k.tval)}</b> <span>${_arEsc(k.unit||'')}</span>` : '<span class="ar-muted" title="ยังไม่ได้กรอกค่าเป้าหมายในแผนโครงการ (ข้อ 6)">—</span>'}</td>
+          ${d.quarters.map(x=>`<td style="font-size:11.5px">${_arKpiCellWeb(k.q[x.q], x.reported)}${x.reported?_arKpiPctWeb(k.q[x.q], k.tval):''}</td>`).join('')}
+          <td style="font-size:11.5px">${_arKpiLatestWeb(k)}</td>
         </tr>`).join('')}</tbody>
-      </table></div>` : '<div class="ar-muted" style="padding:6px 2px">ยังไม่มีตัวชี้วัดในแผนโครงการหรือในรายงานผล</div>'}
+      </table></div>
+      ${d.kpis.some(k=>k.tval==null) ? '<div class="ar-note" style="margin-top:6px">ตัวชี้วัดที่แสดง "—" ยังไม่ได้กรอกค่าเป้าหมาย — กรอกได้ที่ แก้ไขโครงการ › ข้อ 6 การวัดและประเมินผล (คอลัมน์ค่าเป้าหมาย)</div>' : ''}` : '<div class="ar-muted" style="padding:6px 2px">ยังไม่มีตัวชี้วัดในแผนโครงการหรือในรายงานผล</div>'}
     </div>`;
 
   // 4. ผลการดำเนินงานรายไตรมาส
@@ -380,16 +424,24 @@ function _buildAnnualSummaryHTML(p){
     if (!v) return '<span style="color:#9aa3b2">–</span>';
     const res = v.achieved==='yes' ? '<span style="color:#059669;font-weight:700">บรรลุ</span>'
               : v.achieved==='no' ? '<span style="color:#dc2626;font-weight:700">ไม่บรรลุ</span>'
-              : '<span style="color:#9aa3b2">ยังไม่ประเมิน</span>';
-    return (v.target ? _arEsc(v.target)+'<br>' : '') + res;
+              : (v.target ? '' : '<span style="color:#9aa3b2">ยังไม่ประเมิน</span>');
+    return (v.target ? _arEsc(v.target)+(res?'<br>':'') : '') + res;
+  };
+  const pdfLatest = k => {
+    if (k.tval && k.latest) {
+      const col = k.state==='met' ? '#059669' : k.state==='behind' ? '#dc2626' : '#1d4ed8';
+      const lbl = (_AR_KSTATE[k.state]||[''])[0];
+      return `<b>${_arNumTxt(k.latest.value)}</b> / ${_arNumTxt(k.tval)}<br><span style="color:${col};font-weight:700">${_arPctText(k.pct)} · ${lbl}</span><br><span style="color:#777">(ถึงไตรมาส ${k.latest.q})</span>`;
+    }
+    return k.final?(k.final.achieved==='yes'?'<span style="color:#059669;font-weight:700">บรรลุ</span>':'<span style="color:#dc2626;font-weight:700">ไม่บรรลุ</span>')+'<br><span style="color:#777">(ไตรมาส '+k.final.q+')</span>':'<span style="color:#9aa3b2">ยังไม่ประเมิน</span>';
   };
   const kpiTable = `
     <div style="margin-bottom:12px">
       ${title(kpiNo+'. ตัวชี้วัดโครงการ — ผลรายไตรมาส')}
       ${d.kpis.length ? `<table style="width:100%;border-collapse:collapse;table-layout:fixed">
-        <colgroup><col style="width:4%"><col style="width:24%"><col style="width:15%"><col style="width:15%"><col style="width:15%"><col style="width:15%"><col style="width:12%"></colgroup>
-        <tr class="pdf-headerRow">${_pdfCell('ที่',{bold:true,center:true,bg:H})}${_pdfCell('ตัวชี้วัด',{bold:true,center:true,bg:H})}${_AR_QUARTERS.map(q=>_pdfCell('ไตรมาส '+q,{bold:true,center:true,bg:H,small:true})).join('')}${_pdfCell('ผลล่าสุด',{bold:true,center:true,bg:H,small:true})}</tr>
-        ${d.kpis.map((k,i)=>`<tr>${_pdfCell(i+1,{center:true,bg:zb(i)})}${_pdfCell(_arEsc(k.indicator),{bold:true,bg:zb(i)})}${d.quarters.map(x=>_pdfCell(kpiCell(k.q[x.q], x.reported),{small:true,bg:zb(i)})).join('')}${_pdfCell(k.final?(k.final.achieved==='yes'?'<span style="color:#059669;font-weight:700">บรรลุ</span>':'<span style="color:#dc2626;font-weight:700">ไม่บรรลุ</span>')+'<br><span style="color:#777">(ไตรมาส '+k.final.q+')</span>':'<span style="color:#9aa3b2">ยังไม่ประเมิน</span>',{center:true,small:true,bg:zb(i)})}</tr>`).join('')}
+        <colgroup><col style="width:4%"><col style="width:22%"><col style="width:10%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:16%"></colgroup>
+        <tr class="pdf-headerRow">${_pdfCell('ที่',{bold:true,center:true,bg:H})}${_pdfCell('ตัวชี้วัด',{bold:true,center:true,bg:H})}${_pdfCell('เป้าหมายทั้งปี',{bold:true,center:true,bg:H,small:true})}${_AR_QUARTERS.map(q=>_pdfCell('ไตรมาส '+q,{bold:true,center:true,bg:H,small:true})).join('')}${_pdfCell('ผลล่าสุด เทียบเป้าหมาย',{bold:true,center:true,bg:H,small:true})}</tr>
+        ${d.kpis.map((k,i)=>`<tr>${_pdfCell(i+1,{center:true,bg:zb(i)})}${_pdfCell(_arEsc(k.indicator),{bold:true,bg:zb(i)})}${_pdfCell(k.tval!=null?'<b>'+_arNumTxt(k.tval)+'</b> '+_arEsc(k.unit||''):'—',{center:true,small:true,bg:zb(i)})}${d.quarters.map(x=>_pdfCell(kpiCell(k.q[x.q], x.reported)+((x.reported&&k.tval&&k.q[x.q]&&_arNumOf(k.q[x.q].target)!=null)?'<br><span style="color:#555">('+_arPctText(_arNumOf(k.q[x.q].target)/k.tval*100)+')</span>':''),{small:true,bg:zb(i)})).join('')}${_pdfCell(pdfLatest(k),{center:true,small:true,bg:zb(i)})}</tr>`).join('')}
       </table>` : '<div style="color:#888;font-size:10.5px">ยังไม่มีตัวชี้วัดในแผนโครงการหรือในรายงานผล</div>'}
     </div>`;
 
