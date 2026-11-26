@@ -1,6 +1,6 @@
 // ══════════════════════════════════════════════════════════════════
 // หน้าภาพรวม (Dashboard) แบบใหม่: แบนเนอร์ทักทาย · การ์ดตัวเลข 4 ใบ · กริด 3 คอลัมน์
-// (การใช้งบ / เมนูลัด / สถานะ / ความเคลื่อนไหวล่าสุด / ความครบถ้วนของข้อมูล / งบตามอนุกรรมการ)
+// (การใช้งบ / เมนูลัด / สถานะ / ความเคลื่อนไหวล่าสุด / ปฏิทินงาน / งบตามอนุกรรมการ)
 // + ช่องค้นหาเมนูและโครงการในแถบบน (Ctrl+K)
 //
 // ไฟล์นี้ไม่แก้ตรรกะเดิม: แค่ "ต่อท้าย" updateDashboard / _setLoggedIn / authLogout ให้วาดส่วนใหม่ซ้ำ
@@ -68,7 +68,7 @@
           <div class="ov-card ov-grow" id="ovActivity"></div>
         </div>
         <div class="ov-col">
-          <div class="ov-card" id="ovCheck"></div>
+          <div class="ov-card ov-cal" id="ovCal"></div>
           <div class="ov-card" id="ovCom"></div>
         </div>
       </div>
@@ -239,35 +239,6 @@
       </li>`).join('')}</ul>`;
   }
 
-  // ── ความครบถ้วนของข้อมูลโครงการ (คล้าย "เริ่มต้นใช้งาน" ในภาพตัวอย่าง) ──
-  function renderCheck(fp) {
-    const el = $('ovCheck'); if (!el) return;
-    const has = v => Array.isArray(v) ? v.filter(x => x && (typeof x !== 'object' || Object.values(x).some(Boolean))).length > 0 : !!String(v || '').trim();
-    const reported = p => Object.keys(p.reportsByQuarter || {}).length > 0 || p.status !== 'pending';
-    const items = [
-      ['หลักการและเหตุผล', p => has(p.rationale)],
-      ['วัตถุประสงค์', p => has(p.objective)],
-      ['เป้าหมาย', p => has(p.targetQuantity) || has(p.target)],
-      ['แผนกิจกรรม', p => has(p.activities)],
-      ['รายละเอียดงบประมาณ', p => has(p.budgetDetail)],
-      ['ตัวชี้วัด (KPI)', p => has(p.kpi)],
-      ['รายงานผลการดำเนินงาน', reported],
-    ];
-    const n = fp.length;
-    const rows = items.map(([l, f]) => ({ l, c: fp.filter(f).length }));
-    const full = rows.filter(r => n && r.c === n).length;
-    const total = rows.reduce((s, r) => s + r.c, 0);
-    const p = n ? Math.round(total / (n * rows.length) * 100) : 0;
-    el.innerHTML = `
-      <div class="ov-card-head"><h3>${svg('list', 17)}ความครบถ้วนของข้อมูล</h3><span class="ov-muted">${full}/${rows.length}</span></div>
-      <div class="ov-check-bar" title="ข้อมูลครบ ${p}%"><i style="width:${p}%"></i></div>
-      <ul class="ov-check">${rows.map(r => {
-        const ok = n && r.c === n;
-        return `<li class="${ok ? 'ok' : ''}" onclick="showPage('projects','')" tabindex="0" onkeydown="if(event.key==='Enter')this.click()">
-          <span class="dot">${ok ? svg('check', 14) : ''}</span><span class="l">${r.l}</span><span class="c">${r.c}/${n}</span>${svg('chev', 15)}</li>`;
-      }).join('')}</ul>`;
-  }
-
   // ── งบตามอนุกรรมการ ─────────────────────────────────────────────
   function renderCom(fp, t) {
     const el = $('ovCom'); if (!el) return;
@@ -290,6 +261,9 @@
       }).join('')}</ul>` : '<div class="ov-empty sm"><p>ยังไม่มีโครงการที่ระบุอนุกรรมการ</p></div>'}`;
   }
 
+  // ── ปฏิทินงาน (แทน "ความครบถ้วนของข้อมูล") — ดู app-calendar.js ──
+  function renderCal() { if (window.DLFCal) window.DLFCal.render(); }
+
   // ── รวม ─────────────────────────────────────────────────────────
   function renderOverview() {
     mount();
@@ -304,7 +278,7 @@
       prog: fp.filter(p => p.status === 'progress').length,
       pend: fp.filter(p => p.status === 'pending').length,
     };
-    [renderHero, renderKpis, renderRing, renderQuick, renderStatus, renderActivity, renderCheck, renderCom]
+    [renderHero, renderKpis, renderRing, renderQuick, renderStatus, renderActivity, renderCal, renderCom]
       .forEach(fn => { try { fn(fp, t); } catch (e) { console.warn('overview', fn.name, e); } });
     updateUserRole();
   }
