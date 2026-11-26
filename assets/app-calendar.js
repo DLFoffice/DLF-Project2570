@@ -64,6 +64,16 @@
     holiday:  { label: 'วันหยุดหน่วยงาน', color: '#ef4444' },
     other:    { label: 'อื่น ๆ', color: '#8b5cf6' },
   };
+  // งานที่ต้องส่ง (ใช้กับหมวด "กำหนดส่ง")
+  const DELIVERABLES = {
+    quarterly: { label: 'รายงานผลการดำเนินงานรายไตรมาส', q: true, page: 'report' },
+    annual:    { label: 'รายงานผลการดำเนินงานประจำปี', page: 'report' },
+    plan:      { label: 'แผนปฏิบัติการ / คำของบประมาณ', page: 'projects' },
+    risk:      { label: 'รายงานผลการบริหารความเสี่ยง', page: 'risk' },
+    budget:    { label: 'รายงานการใช้จ่ายงบประมาณ', page: 'report' },
+    other:     { label: 'เอกสาร / งานอื่น ๆ' },
+  };
+  const REMIND_OPTS = [1, 3, 7, 14, 30];
   const TH_MONTH = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
   const TH_MON_S = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
   const TH_DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -91,6 +101,7 @@
     pin: '<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
     x: '<path d="M18 6 6 18M6 6l12 12"/>',
     trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/>',
     edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
   };
   const svg = (k, s) => `<svg width="${s || 16}" height="${s || 16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[k]}</svg>`;
@@ -145,7 +156,8 @@
     const monthHol = HOLIDAYS.filter(h => h[0].startsWith(S.ym)).length;
     el.innerHTML = `
       <div class="ov-card-head"><h3>${svg('cal', 17)}ปฏิทินงาน</h3>
-        ${canEdit() ? `<button type="button" class="cal-add" onclick="DLFCal.add()">${svg('plus', 14)}เพิ่มงาน</button>` : ''}</div>
+        <div class="cal-head-r">${(() => { const n = reminders().length; return `<button type="button" class="cal-bell${n ? ' on' : ''}" onclick="DLFCal.reminders()" title="งานที่ใกล้ถึงกำหนดส่ง" aria-label="งานที่ใกล้ถึงกำหนดส่ง ${n} รายการ">${svg('bell', 16)}${n ? `<b>${n}</b>` : ''}</button>`; })()}
+        ${canEdit() ? `<button type="button" class="cal-add" onclick="DLFCal.add()">${svg('plus', 14)}เพิ่มงาน</button>` : ''}</div></div>
       <div class="cal-body">
         <div class="cal-nav">
           <button type="button" class="cal-ic" onclick="DLFCal.move(-1)" aria-label="เดือนก่อนหน้า">${svg('left', 16)}</button>
@@ -217,7 +229,7 @@
   //  โหลด / บันทึก (Apps Script)
   // ──────────────────────────────────────────────────────────────────────
   async function load() {
-    if (typeof GAS_ENABLED === 'undefined' || !GAS_ENABLED || typeof gasFetchPost !== 'function') { render(); return; }
+    if (typeof GAS_ENABLED === 'undefined' || !GAS_ENABLED || typeof gasFetchPost !== 'function') { render(); autoRemind(); return; }
     try {
       const res = await gasFetchPost('getAllEvents', {});
       if (res && res.success && Array.isArray(res.data)) {
@@ -229,6 +241,7 @@
       }
     } catch (e) { /* ออฟไลน์: ใช้ข้อมูลที่เก็บไว้ในเครื่อง */ }
     render();
+    autoRemind();
   }
 
   async function persist(action, data) {
@@ -256,13 +269,22 @@
 
   function form(ev) {
     if (!canEdit()) { toast('🔒 ไม่อนุญาต · กรุณาเข้าสู่ระบบก่อนเพิ่มงาน'); return; }
-    const e = Object.assign({ title: '', startDate: S.sel || today, endDate: '', allDay: true, startTime: '09:00', endTime: '12:00', category: 'meeting', projectId: '', location: '', note: '' }, ev || {});
+    const e = Object.assign({ title: '', startDate: S.sel || today, endDate: '', allDay: true, startTime: '09:00', endTime: '12:00', category: 'meeting', projectId: '', location: '', note: '', deliverable: 'quarterly', quarter: '', remindDays: 7 }, ev || {});
+    if (!e.quarter && window.DLFPerf && DLFPerf.currentQ) e.quarter = String(DLFPerf.currentQ());
     const isEdit = !!(ev && ev.id);
     const ov = modal(`
       <div class="cal-m-h"><h3>${isEdit ? 'แก้ไขงาน' : 'เพิ่มงานในปฏิทิน'}</h3><button type="button" class="cal-ic" data-x aria-label="ปิด">${svg('x', 16)}</button></div>
       <form class="cal-f" novalidate>
         <label class="full"><span class="lb">ชื่องาน <em>*</em></span><input name="title" maxlength="200" required value="${esc(e.title)}" placeholder="เช่น ประชุมคณะอนุกรรมการ ครั้งที่ 1/2570"></label>
         <div class="full cal-cats">${Object.entries(CATS).map(([k, c]) => `<label class="cal-cat" style="--c:${c.color}"><input type="radio" name="category" value="${k}" ${e.category === k ? 'checked' : ''}><span>${esc(c.label)}</span></label>`).join('')}</div>
+        <div class="full cal-dl" hidden>
+          <div class="cal-dl-h">${svg('bell', 15)} รายละเอียดงานที่ต้องส่ง <small>ระบบจะแสดง popup แจ้งเตือนผู้ใช้ก่อนถึงกำหนด</small></div>
+          <div class="cal-dl-g">
+            <label class="cal-dl-w"><span class="lb">งานที่ต้องส่ง</span><select name="deliverable">${Object.entries(DELIVERABLES).map(([k, v]) => `<option value="${k}" ${e.deliverable === k ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select></label>
+            <label class="cal-dl-q"><span class="lb">ไตรมาส</span><select name="quarter">${[1, 2, 3, 4].map(q => `<option value="${q}" ${String(e.quarter) === String(q) ? 'selected' : ''}>ไตรมาส ${q}</option>`).join('')}</select></label>
+            <label><span class="lb">แจ้งเตือนล่วงหน้า</span><select name="remindDays">${REMIND_OPTS.map(n => `<option value="${n}" ${Number(e.remindDays || 7) === n ? 'selected' : ''}>${n} วัน</option>`).join('')}</select></label>
+          </div>
+        </div>
         <label><span class="lb">วันที่เริ่ม <em>*</em></span><input type="date" name="startDate" required value="${esc(e.startDate)}"></label>
         <label><span class="lb">ถึงวันที่ <small>(ถ้าหลายวัน)</small></span><input type="date" name="endDate" value="${esc(e.endDate && e.endDate !== e.startDate ? e.endDate : '')}"></label>
         <label class="full cal-switch"><input type="checkbox" name="allDay" ${e.allDay ? 'checked' : ''}><span class="sw"></span>ทั้งวัน</label>
@@ -277,6 +299,18 @@
     const f = ov.querySelector('form');
     const syncTime = () => ov.querySelectorAll('.cal-time').forEach(x => { x.hidden = f.allDay.checked; });
     f.allDay.addEventListener('change', syncTime); syncTime();
+    // หมวด "กำหนดส่ง": แสดงช่องรายละเอียดงานที่ต้องส่ง + เติมชื่องานให้อัตโนมัติถ้ายังว่าง
+    const dlBox = ov.querySelector('.cal-dl');
+    let autoTitle = !e.title;
+    const suggest = () => {
+      const dv = DELIVERABLES[f.deliverable.value] || DELIVERABLES.other;
+      ov.querySelector('.cal-dl-q').hidden = !dv.q;
+      if (autoTitle && f.deliverable.value !== 'other') f.title.value = 'ส่ง' + dv.label + (dv.q ? ' ไตรมาส ' + f.quarter.value : '') + ' ปีงบประมาณ ' + year();
+    };
+    const syncCat = () => { const on = f.category.value === 'deadline'; dlBox.hidden = !on; f.note.placeholder = on ? 'สิ่งที่ต้องส่ง รูปแบบไฟล์ ช่องทางการส่ง ผู้รับ เช่น ส่งไฟล์ PDF ทางระบบ / อีเมล กลุ่มงานนโยบายและแผน' : 'วาระ ผู้เข้าร่วม สิ่งที่ต้องเตรียม'; if (on) suggest(); else if (autoTitle) f.title.value = ''; };
+    f.addEventListener('change', ev3 => { if (ev3.target.name === 'category') syncCat(); if (['deliverable', 'quarter'].includes(ev3.target.name)) suggest(); });
+    f.title.addEventListener('input', () => { autoTitle = !f.title.value.trim(); });
+    syncCat();
     ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', closeModal));
     setTimeout(() => f.title.focus(), 30);
     f.addEventListener('submit', async ev2 => {
@@ -286,8 +320,14 @@
         id: e.id || '', title: f.title.value.trim(), category: (f.category.value || 'other'),
         startDate: f.startDate.value, endDate: f.endDate.value || f.startDate.value, allDay: f.allDay.checked,
         startTime: f.allDay.checked ? '' : f.startTime.value, endTime: f.allDay.checked ? '' : f.endTime.value,
-        projectId: f.projectId.value, location: f.location.value.trim(), note: f.note.value.trim()
+        projectId: f.projectId.value, location: f.location.value.trim(), note: f.note.value.trim(),
+        deliverable: '', quarter: '', remindDays: ''
       };
+      if (d.category === 'deadline') {
+        d.deliverable = f.deliverable.value;
+        d.quarter = (DELIVERABLES[d.deliverable] || {}).q ? f.quarter.value : '';
+        d.remindDays = Number(f.remindDays.value) || 7;
+      }
       const bad = !d.title ? 'กรุณากรอกชื่องาน' : !d.startDate ? 'กรุณาเลือกวันที่เริ่ม'
         : d.endDate < d.startDate ? 'วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม'
         : (!d.allDay && d.startTime && d.endTime && d.endTime <= d.startTime && d.endDate === d.startDate) ? 'เวลาสิ้นสุดต้องหลังเวลาเริ่ม' : '';
@@ -322,6 +362,7 @@
       <h3 class="cal-v-t">${esc(e.title)}</h3>
       <ul class="cal-v">
         <li>${svg('clock', 15)}<span>${esc(when)}</span></li>
+        ${e.category === 'deadline' && e.deliverable ? `<li>${svg('bell', 15)}<span>งานที่ต้องส่ง: <b>${esc((DELIVERABLES[e.deliverable] || DELIVERABLES.other).label)}${e.quarter ? ' ไตรมาส ' + esc(e.quarter) : ''}</b> · แจ้งเตือนล่วงหน้า ${esc(e.remindDays || 7)} วัน</span></li>` : ''}
         ${e.location ? `<li>${svg('pin', 15)}<span>${esc(e.location)}</span></li>` : ''}
         ${p ? `<li>${svg('cal', 15)}<span>โครงการ: <a href="#" onclick="event.preventDefault();DLFCal.close();openDetail(${p.id})">${esc(p.name)}</a></span></li>` : ''}
       </ul>
@@ -343,10 +384,102 @@
     });
   }
 
+  // ──────────────────────────────────────────────────────────────────────
+  //  🔔 แจ้งเตือนกำหนดส่งงาน
+  //  · งานหมวด "กำหนดส่ง" ที่ใกล้ถึง (ตามจำนวนวันแจ้งเตือนล่วงหน้า) หรือเลยกำหนดไม่เกิน 7 วัน
+  //  · กำหนดส่งรายงานผลรายไตรมาส (ภายใน 14 วัน หรือเลยกำหนดแล้วแต่ยังมีโครงการไม่ส่ง)
+  // ──────────────────────────────────────────────────────────────────────
+  const daysLeft = d => Math.round((parse(d) - parse(today)) / 864e5);
+  function reminders() {
+    const out = [];
+    S.events.filter(e => e.category === 'deadline').forEach(e => {
+      const due = e.endDate || e.startDate, n = daysLeft(due), w = Number(e.remindDays) || 7;
+      if (n <= w && n >= -7) out.push({ type: 'ev', id: e.id, due, n, title: e.title, deliverable: e.deliverable, quarter: e.quarter, note: e.note, time: e.allDay ? '' : e.endTime || e.startTime, projectId: e.projectId });
+    });
+    const P = window.DLFPerf;
+    if (P && P.qDue && P.reportState) {
+      for (let q = 1; q <= 4; q++) {
+        const due = iso(P.qDue(q)), n = daysLeft(due);
+        const ps = projs(), miss = ps.filter(p => P.reportState(p, q) === 'missing').length;
+        if ((n <= 14 && n >= 0) || (n < 0 && n >= -45 && miss > 0)) {
+          out.push({ type: 'due', q, due, n, miss, total: ps.length,
+            title: q === 4 ? 'ส่งรายงานผลการดำเนินงาน ไตรมาส 4 และสรุปผลประจำปี' : `ส่งรายงานผลการดำเนินงาน ไตรมาส ${q}`,
+            deliverable: 'quarterly', quarter: q });
+        }
+      }
+    }
+    return out.sort((a, b) => a.n - b.n);
+  }
+  function countdown(n) {
+    if (n < 0) return ['เลยกำหนด ' + (-n) + ' วัน', 'late'];
+    if (n === 0) return ['ครบกำหนดวันนี้', 'today'];
+    if (n === 1) return ['พรุ่งนี้', 'soon'];
+    return ['อีก ' + n + ' วัน', n <= 3 ? 'soon' : 'ok'];
+  }
+  function showReminders(auto) {
+    const list = reminders();
+    if (!list.length) { if (!auto) toast('✅ ไม่มีงานที่ใกล้ถึงกำหนดส่ง'); return; }
+    const ov = modal(`
+      <div class="cal-rm-hero">
+        <div class="cal-rm-bell">${svg('bell', 26)}</div>
+        <div><h3>แจ้งเตือนกำหนดส่งงาน</h3><p>มี <b>${list.length}</b> งานที่ใกล้ถึงกำหนดหรือเลยกำหนดส่ง</p></div>
+        <button type="button" class="cal-ic" data-x aria-label="ปิด">${svg('x', 16)}</button>
+      </div>
+      <ul class="cal-rm">${list.map((x, i) => {
+        const [cd, cls] = countdown(x.n);
+        const dv = x.deliverable ? (DELIVERABLES[x.deliverable] || DELIVERABLES.other) : null;
+        const p = x.projectId ? projs().find(pp => String(pp.id) === String(x.projectId)) : null;
+        const sent = x.type === 'due' ? x.total - x.miss : 0;
+        return `<li class="cal-rm-i ${cls}" style="animation-delay:${0.08 + i * 0.06}s">
+          <div class="cal-rm-top"><span class="cal-rm-cd">${cd}</span><span class="cal-rm-date">${svg('cal', 13)} ${esc(thLong(x.due))}${x.time ? ' · ' + esc(x.time) + ' น.' : ''}</span></div>
+          <b class="cal-rm-t">${esc(x.title)}</b>
+          ${dv ? `<div class="cal-rm-dv">📄 ${esc(dv.label)}${x.quarter ? ' · ไตรมาส ' + esc(x.quarter) : ''}${p ? ' · โครงการ ' + esc(p.name) : ''}</div>` : ''}
+          ${x.type === 'due' ? `<div class="cal-rm-prog"><div class="cal-rm-bar"><i style="width:${x.total ? sent / x.total * 100 : 0}%"></i></div>
+              <span>ส่งแล้ว <b>${sent}</b>/${x.total} โครงการ${x.miss ? ` · ยังไม่ส่ง <b class="r">${x.miss}</b>` : ' · ครบทุกโครงการ'}</span></div>` : ''}
+          ${x.note ? `<div class="cal-rm-note">${esc(x.note)}</div>` : ''}
+          <div class="cal-rm-act">
+            ${x.type === 'due' ? `<button type="button" class="btn btn-sm" data-go="track" data-q="${x.q}">ดูรายชื่อที่ยังไม่ส่ง</button><button type="button" class="btn btn-sm btn-primary" data-go="report">กรอกรายงานผล</button>`
+              : `<button type="button" class="btn btn-sm" data-ev="${esc(x.id)}">รายละเอียด</button>${dv && dv.page ? `<button type="button" class="btn btn-sm btn-primary" data-go="${dv.page}">ไปที่หน้า${dv.page === 'report' ? 'รายงานผล' : dv.page === 'risk' ? 'บริหารความเสี่ยง' : 'โครงการ'}</button>` : ''}`}
+          </div></li>`;
+      }).join('')}</ul>
+      <div class="cal-rm-foot"><label><input type="checkbox" class="cal-rm-mute" ${auto ? 'checked' : ''}> ไม่ต้องแจ้งเตือนอีกในวันนี้</label><button type="button" class="btn btn-sm btn-primary" data-x>รับทราบ</button></div>`, 'remind');
+    const close = () => {
+      try { if (ov.querySelector('.cal-rm-mute').checked) localStorage.setItem('dltv_remind_' + year(), JSON.stringify({ d: today, sig: sig(list) })); else localStorage.removeItem('dltv_remind_' + year()); } catch (e) {}
+      closeModal();
+    };
+    ov.querySelectorAll('[data-x]').forEach(b => b.addEventListener('click', close));
+    ov.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+      close();
+      const pg = b.dataset.go;
+      if (pg === 'track') { showPage('track'); if (window.DLFPerf && DLFPerf.quarter) { DLFPerf.quarter(Number(b.dataset.q)); DLFPerf.filter('missing'); } }
+      else if (pg === 'risk') showPage('risk');
+      else if (pg === 'projects') showPage('projects', '');
+      else showPage('report');
+    }));
+    ov.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => { close(); view(b.dataset.ev); }));
+  }
+  const sig = list => list.map(x => (x.id || 'q' + x.q) + ':' + x.n).join('|');
+  // แสดงอัตโนมัติวันละครั้ง (หรือเมื่อมีงานใหม่) หลังล็อกอิน — รอให้ popup ต้อนรับปิดก่อน
+  let _autoTimer = null;
+  function autoRemind() {
+    clearTimeout(_autoTimer);
+    let tries = 0;
+    const tick = () => {
+      if (!canEdit()) return;
+      const busy = document.querySelector('._wlc-overlay, .auth-overlay.open, #calOv, .modal-overlay.open');
+      if (busy && tries++ < 40) { _autoTimer = setTimeout(tick, 500); return; }
+      const list = reminders(); if (!list.length) return;
+      try { const m = JSON.parse(localStorage.getItem('dltv_remind_' + year()) || 'null'); if (m && m.d === today && m.sig === sig(list)) return; } catch (e) {}
+      showReminders(true);
+    };
+    _autoTimer = setTimeout(tick, 1200);
+  }
+
   window.DLFCal = {
     render, load,
     move, go: d => select(d), today: () => { S.ym = today.slice(0, 7); S.sel = today; render(); },
     add: d => { if (d) S.sel = d; form(); }, view, close: closeModal,
+    reminders: () => showReminders(false), autoRemind,
   };
 
   // โหลดงานเมื่อเปิดหน้า และหลังล็อกอิน/ออกจากระบบ (ปุ่ม "เพิ่มงาน" แสดงตามสิทธิ์)
@@ -354,7 +487,7 @@
     load();
     ['_setLoggedIn', 'authLogout'].forEach(fn => {
       const o = window[fn];
-      if (typeof o === 'function' && !o._cal) { window[fn] = function () { const r = o.apply(this, arguments); setTimeout(render, 60); return r; }; window[fn]._cal = 1; }
+      if (typeof o === 'function' && !o._cal) { window[fn] = function () { const r = o.apply(this, arguments); setTimeout(render, 60); if (fn === '_setLoggedIn') autoRemind(); return r; }; window[fn]._cal = 1; }
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
